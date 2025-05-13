@@ -23,23 +23,27 @@ class Player extends GameObject {
 
     // Mover al jugador en una dirección
     move(dir) {
-        const speed = 5;
-        switch (dir) {
-            case "up":
-                this.position.y -= speed;
-                break;
-            case "down":
-                this.position.y += speed;
-                break;
-            case "left":
-                this.position.x -= speed;
-                break;
-            case "right":
-                this.position.x += speed;
-                break;
+        const directions = {
+            up: new Vector(0, -1),
+            down: new Vector(0, 1),
+            left: new Vector(-1, 0),
+            right: new Vector(1, 0),
+            //diagonales
+            "up-left": new Vector(-1, -1),
+            "up-right": new Vector(1, -1),
+            "down-left": new Vector(-1, 1),
+            "down-right": new Vector(1, 1)
         }
+
+        let moveVector = directions[dir];
+
+        //Usar la normalizacion para que la velocidad sea constante -> que no sea mayor en diagonales
+        moveVector = moveVector.normalize().mul(PLAYER_SPEED);
+
+        this.position = this.position.add(moveVector);
+
         // Actualizamos el hitbox al mover
-        this.hitbox = { ...this.position, width: this.width, height: this.height };
+        this.hitbox = hitbox(this);
     }
 
     // Interactuar con un objeto
