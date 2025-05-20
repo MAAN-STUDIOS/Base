@@ -19,19 +19,11 @@ export class Player extends GameObject {
         this.direction = direction;       // Dirección de ataque/mirada
     }
 
-    move(dir) {
-        this.position = this.position.add(dir);
-        this.direction = dir;
-        this.hitbox.moveTo(this.position.x, this.position.y);
-    }
-
-
     interact(obj) {
         if (obj && typeof obj.onInteract === "function") {
             obj.onInteract(this);
         }
     }
-
 
     attack() {
         const weapon = this.attackSlots[this.activeSlot];

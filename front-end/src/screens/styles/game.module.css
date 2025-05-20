@@ -17,3 +17,24 @@
     height: 100%;
     display: block;
 }
+
+.container div {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    padding: var(--spacing-xs);
+    border-radius: var(--spacing-xs);
+    background: #383636;
+}
+
+.container-h3 {
+    font: var(--h2);
+    font-size: 2rem;
+}
+
+.container-ul li {
+    font: var(--p2);
+    /*font-size: 0.75rem;*/
+    list-style: none;
+    text-decoration: none;
+}

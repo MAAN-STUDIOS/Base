@@ -3,15 +3,53 @@ import logger from "./logger.js";
 
 const api_url = "http://localhost:3000";
 
-async function get_map_chunk(coordinates_x, coordinates_y) {
+async function get_map_chunk(coordinates_x, coordinates_y, mockup) {
+    if (mockup) {
+        // return [
+        //     0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0,
+        //     0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0,
+        //     0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0,
+        //     0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 1, 1, 0, 0, 0,
+        //     0, 1, 1, 1, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0,
+        //     0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0,
+        //     0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0,
+        //     0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0,
+        //     0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0,
+        //     0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        //     0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0,
+        //     0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0,
+        //     0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 0, 0,
+        //     0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0,
+        //     0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0,
+        //     0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0,
+        //     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+        // ]
+        return [
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+        ];
+    }
+
     const response = await fetch(`${api_url}/map/chunk/${coordinates_x}/${coordinates_y}`);
     if (!response.ok) {
         logger.error("Error fetching map chunk");
         return null;
     }
-    const data = await response.json();
-    return data;
-
+    return await response.json();
 }
 
 async function userinfo(session_id) {
@@ -41,6 +79,7 @@ async function authenticate(username, password) {
     const data = await response.json();
     return data;
 }
+
 async function register(username, password) {
     const response = await fetch(`${api_url}/user/`, {
         method: "POST",
@@ -56,6 +95,7 @@ async function register(username, password) {
     const data = await response.json();
     return data;
 }
+
 async function delete_user(session_id) {
     const response = await fetch(`${api_url}/user/${session_id}`, {
         method: "DELETE",
@@ -70,6 +110,7 @@ async function delete_user(session_id) {
     const data = await response.json();
     return data;
 }
+
 async function get_seed() {
     const response = await fetch(`${api_url}/seed`);
     if (!response.ok) {
@@ -79,6 +120,7 @@ async function get_seed() {
     const data = await response.json();
     return data;
 }
+
 async function get_ranking() {
     const response = await fetch(`${api_url}/ranking`);
     if (!response.ok) {
@@ -88,6 +130,7 @@ async function get_ranking() {
     const data = await response.json();
     return data;
 }
+
 export {
     get_map_chunk,
     userinfo,
