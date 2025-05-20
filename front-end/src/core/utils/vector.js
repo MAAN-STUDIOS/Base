@@ -122,6 +122,20 @@ export class Vector {
     }
 
     /**
+     * Scales this vector by multiplying its components by the given scalar.
+     * Modifies the vector in-place so there is no new object overhead.
+     * @param {number} scalar - The scalar value.
+     * @returns {Vector} This vector for chaining.
+     */
+    scale(scalar) {
+        this.x *= scalar;
+        this.y *= scalar;
+
+        logger.debug(`Vector scaled by ${scalar} to (${this.x}, ${this.y})`);
+        return this;
+    }
+
+    /**
      * Divides this vector by a scalar.
      * @param {number} scalar - The scalar value.
      * @returns {Vector|null} A new vector or null if division by zero.
@@ -208,7 +222,7 @@ export class Vector {
 
         let cos = this.dot(other) / denominator;
         cos = Math.min(1, Math.max(-1, cos)); // Clamp due to the arcCos domain
-        return  Math.cos(cos);
+        return Math.cos(cos);
     }
 
     /**
@@ -263,4 +277,3 @@ export class Vector {
         return this.sub(normal.mul(dot_product));
     }
 }
-
