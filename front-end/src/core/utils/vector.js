@@ -20,7 +20,6 @@ export class Vector {
         this.x = x;
         this.y = y;
 
-        logger.debug(`Vector constructed with x: ${x}, y: ${y}`);
         if (x === undefined || y === undefined) {
             logger.warn("Vector constructed with undefined x | y");
         }
@@ -86,8 +85,6 @@ export class Vector {
      * @returns {boolean}
      */
     equals(other, epsilon = 1e-6) {
-        logger.debug(`Comparing vectors: this ${this} vs other ${other}`);
-
         return (
             Math.abs(this.x - other.x) <= epsilon &&
             Math.abs(this.y - other.y) <= epsilon
@@ -95,50 +92,154 @@ export class Vector {
     }
 
     /**
-     * Adds another vector to this one.
-     * @param {Vector} other - The vector to add.
-     * @returns {Vector}
+     * Adds another vector to this one, returning a new vector.
+     * Creates a new vector that is the sum of this vector and another vector.
+     *
+     * @param {Vector} other - The vector to add
+     * @returns {Vector} A new vector representing the sum
+     * @see addEqual - For in-place version that modifies this vector
+     *
+     * @example
+     * // Create a new sum vector without modifying the originals
+     * const sumVector = vectorA.add(vectorB);
      */
     add(other) {
         return new Vector(this.x + other.x, this.y + other.y);
     }
 
     /**
-     * Subtracts another vector from this one.
-     * @param {Vector} other - The vector to subtract.
-     * @returns {Vector}
+     * Adds another vector to this one in-place.
+     * Modifies this vector by adding the components of another vector.
+     *
+     * @param {Vector} other - The vector to add
+     * @returns {Vector} This vector instance (for method chaining)
+     * @see add - For non-mutating version that returns a new vector
+     *
+     * @example
+     * // Modify the current vector by adding another (like +=)
+     * myVector.addEqual(otherVector);
+     */
+    addEqual(other) {
+        this.x += other.x;
+        this.y += other.y;
+        return this;
+    }
+
+    /**
+     * Subtracts another vector from this one, returning a new vector.
+     * Creates a new vector that is the difference between this vector and another vector.
+     *
+     * @param {Vector} other - The vector to subtract
+     * @returns {Vector} A new vector representing the difference
+     * @see subEqual - For in-place version that modifies this vector
+     *
+     * @example
+     * // Create a new difference vector without modifying the originals
+     * const diffVector = vectorA.sub(vectorB);
      */
     sub(other) {
         return new Vector(this.x - other.x, this.y - other.y);
     }
 
     /**
-     * Multiplies this vector by a scalar.
-     * @param {number} scalar - The scalar value.
-     * @returns {Vector}
+     * Subtracts another vector from this one in-place.
+     * Modifies this vector by subtracting the components of another vector.
+     *
+     * @param {Vector} other - The vector to subtract
+     * @returns {Vector} This vector instance (for method chaining)
+     * @see sub - For non-mutating version that returns a new vector
+     *
+     * @example
+     * // Modify the current vector by subtracting another (like -=)
+     * myVector.subEqual(otherVector);
+     */
+    subEqual(other) {
+        this.x -= other.x;
+        this.y -= other.y;
+        return this;
+    }
+
+    /**
+     * Multiplies this vector by a scalar value, returning a new vector.
+     * Creates a new vector with each component multiplied by the scalar.
+     *
+     * @param {number} scalar - The scalar value to multiply by
+     * @returns {Vector} A new vector representing the product
+     * @see mulEqual - For in-place version that modifies this vector
+     *
+     * @example
+     * // Create a new doubled vector without modifying the original
+     * const doubledVector = myVector.mul(2);
      */
     mul(scalar) {
         return new Vector(this.x * scalar, this.y * scalar);
     }
 
     /**
-     * Scales this vector by multiplying its components by the given scalar.
-     * Modifies the vector in-place so there is no new object overhead.
-     * @param {number} scalar - The scalar value.
-     * @returns {Vector} This vector for chaining.
+     * Multiplies this vector by a scalar value in-place.
+     * Modifies this vector by multiplying each component by the scalar.
+     *
+     * @param {number} scalar - The scalar value to multiply by
+     * @returns {Vector} This vector instance (for method chaining)
+     * @see mul - For non-mutating version that returns a new vector
+     *
+     * @example
+     * // Modify the current vector by doubling it (like *=)
+     * myVector.mulEqual(2);
      */
-    scale(scalar) {
+    mulEqual(scalar) {
         this.x *= scalar;
         this.y *= scalar;
 
-        logger.debug(`Vector scaled by ${scalar} to (${this.x}, ${this.y})`);
         return this;
     }
 
     /**
-     * Divides this vector by a scalar.
-     * @param {number} scalar - The scalar value.
-     * @returns {Vector|null} A new vector or null if division by zero.
+     * Scales this vector by multiplying its components by the given scalar, returning a new vector.
+     * Creates a new vector with each component multiplied by the scalar.
+     *
+     * @param {number} scalar - The scalar value to multiply by.
+     * @returns {Vector} A new vector representing the scaled result.
+     * @see scaleEqual - For in-place version that modifies this vector.
+     *
+     * @example
+     * // Create a new scaled vector without modifying the original
+     * const doubledVector = myVector.scale(2);
+     */
+    scale(scalar) {
+        return new Vector(this.x * scalar, this.y * scalar);
+    }
+
+    /**
+     * Scales this vector by multiplying its components by the given scalar in-place.
+     * Modifies this vector directly by multiplying each component by the scalar.
+     *
+     * @param {number} scalar - The scalar value to multiply by.
+     * @returns {Vector} This vector instance (for method chaining).
+     * @see scale - For non-mutating version that returns a new vector.
+     *
+     * @example
+     * // Modify the current vector by doubling it
+     * myVector.scaleEqual(2);
+     */
+    scaleEqual(scalar) {
+        this.x *= scalar;
+        this.y *= scalar;
+
+        return this;
+    }
+
+    /**
+     * Divides this vector by a scalar value, returning a new vector.
+     * Creates a new vector with each component divided by the scalar.
+     *
+     * @param {number} scalar - The scalar value to divide by
+     * @returns {Vector|null} A new vector representing the result, or null if division by zero
+     * @see divEqual - For in-place version that modifies this vector
+     *
+     * @example
+     * // Create a vector half the size without modifying the original
+     * const halfVector = myVector.div(2);
      */
     div(scalar) {
         if (scalar === 0) {
@@ -147,6 +248,30 @@ export class Vector {
         }
 
         return new Vector(this.x / scalar, this.y / scalar);
+    }
+
+    /**
+     * Divides this vector by a scalar value in-place.
+     * Modifies this vector by dividing each component by the scalar.
+     *
+     * @param {number} scalar - The scalar value to divide by
+     * @returns {Vector|null} This vector instance for chaining, or null if division by zero
+     * @see div - For non-mutating version that returns a new vector
+     *
+     * @example
+     * // Modify the current vector by halving it (like /=)
+     * myVector.divEqual(2);
+     */
+    divEqual(scalar) {
+        if (scalar === 0) {
+            logger.error("Attempted division by zero in Vector.div()");
+            return null;
+        }
+
+        this.x /= scalar;
+        this.y /= scalar;
+
+        return this;
     }
 
     /**
@@ -177,7 +302,14 @@ export class Vector {
 
     /**
      * Returns a normalized (unit length) version of this vector.
-     * @returns {Vector}
+     * Creates a new vector with the same direction but magnitude of 1.
+     *
+     * @returns {Vector} A new normalized vector, or zero vector if magnitude was zero
+     * @see normalizeEqual - For in-place version that modifies this vector
+     *
+     * @example
+     * // Create a normalized direction vector without modifying the original
+     * const direction = myVector.normalize();
      */
     normalize() {
         const len = this.magnitude();
@@ -187,6 +319,29 @@ export class Vector {
         }
 
         return len === 0 ? new Vector(0, 0) : this.div(len);
+    }
+
+    /**
+     * Normalizes this vector to unit length in-place.
+     * Modifies this vector to have the same direction but magnitude of 1.
+     *
+     * @returns {Vector} This vector instance (for method chaining), normalized to unit length
+     * @see normalize - For non-mutating version that returns a new vector
+     *
+     * @example
+     * // Convert the current vector to a unit vector in-place
+     * myVector.normalizeEqual();
+     */
+    normalizeEqual() {
+        const len = this.magnitude();
+
+        if (len !== 0) {
+            this.divEqual(len);
+        } else {
+            logger.warn("Attempted to normalize a zero-length vector");
+        }
+
+        return this;
     }
 
     /**
@@ -226,9 +381,16 @@ export class Vector {
     }
 
     /**
-     * Rotates the vector by a given angle in radians.
-     * @param {number} theta - Angle in radians.
-     * @returns {Vector}
+     * Rotates the vector by a given angle in radians, returning a new vector.
+     * Creates a new vector that is this vector rotated around the origin.
+     *
+     * @param {number} theta - Angle in radians (positive is counterclockwise)
+     * @returns {Vector} A new vector representing the rotated vector
+     * @see rotateEqual - For in-place version that modifies this vector
+     *
+     * @example
+     * // Create a new vector rotated 90 degrees without modifying the original
+     * const rotatedVector = myVector.rotate(Math.PI/2);
      */
     rotate(theta) {
         const c = Math.cos(theta), s = Math.sin(theta);
@@ -240,11 +402,44 @@ export class Vector {
     }
 
     /**
-     * Linearly interpolates between from this vector to another at t factor.
-     * NOTE: Useful for smooth transitions.
-     * @param {Vector} other - The other vector.
-     * @param {number} [factor=0.5] - Interpolation factor (0 to 1).
-     * @returns {Vector}
+     * Rotates this vector by a given angle in radians in-place.
+     * Modifies this vector by rotating it around the origin.
+     *
+     * @param {number} theta - Angle in radians (positive is counterclockwise)
+     * @returns {Vector} This vector instance (for method chaining)
+     * @see rotate - For non-mutating version that returns a new vector
+     *
+     * @example
+     * // Rotate the current vector by 45 degrees in-place
+     * myVector.rotateEqual(Math.PI/4);
+     */
+    rotateEqual(theta) {
+        const c = Math.cos(theta), s = Math.sin(theta);
+        const newX = this.x * c - this.y * s;
+        const newY = this.x * s + this.y * c;
+
+        this.x = newX;
+        this.y = newY;
+
+        return this;
+    }
+
+    /**
+     * Linearly interpolates between this vector and another, returning a new vector.
+     * Creates a new vector positioned along the line between the two vectors based on the factor.
+     *
+     * @param {Vector} other - The target vector to interpolate toward
+     * @param {number} [factor=0.5] - Interpolation factor between 0 and 1:
+     *   - 0: Returns a copy of this vector
+     *   - 1: Returns a copy of the target vector
+     *   - Between 0-1: Returns vector at proportional position between the two
+     *   - Out-of-range values are automatically clamped to [0,1]
+     * @returns {Vector} A new interpolated vector
+     * @see lerpEqual - For in-place version that modifies this vector
+     *
+     * @example
+     * // Create a new vector halfway between current and target
+     * const midpoint = myVector.lerp(targetVector, 0.5);
      */
     lerp(other, factor = 0.5) {
         if (factor > 1 || factor < 0) {
@@ -257,6 +452,35 @@ export class Vector {
             this.x + (other.x - this.x) * factor,
             this.y + (other.y - this.y) * factor
         );
+    }
+
+    /**
+     * Linearly interpolates between this vector and another vector in-place.
+     * Modifies this vector by moving it toward the target vector by the specified factor.
+     *
+     * @param {Vector} other - The target vector to interpolate toward
+     * @param {number} [factor=0.5] - Interpolation factor between 0 and 1:
+     *   - 0: Original vector remains unchanged
+     *   - 1: Vector becomes equal to the target
+     *   - Between 0-1: Linear interpolation between vectors
+     *   - Out-of-range values are automatically clamped to [0,1]
+     * @returns {Vector} This vector instance (for method chaining)
+     * @see lerp - For non-mutating version that returns a new vector
+     *
+     * @example
+     * // Move the current vector 30% of the way toward target
+     * myVector.lerpEqual(targetVector, 0.3);
+     */
+    lerpEqual(other, factor = 0.5) {
+        if (factor > 1 || factor < 0) {
+            logger.warn(`Out of bounds factor for linear interpolation, factor = ${factor}. Clamping factor to (0, 1)`);
+            factor = Math.max(0, Math.min(factor, 1));
+        }
+
+        this.x += (other.x - this.x) * factor;
+        this.y += (other.y - this.y) * factor;
+
+        return this;
     }
 
     /**
@@ -275,5 +499,10 @@ export class Vector {
 
         const dot_product = 2 * this.dot(normal);
         return this.sub(normal.mul(dot_product));
+    }
+
+    clear() {
+        this.x = 0;
+        this.y = 0;
     }
 }
