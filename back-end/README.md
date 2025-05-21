@@ -193,3 +193,212 @@ Follow these guidelines to keep the project organized and maintainable.
 
 Each solo project (flood / human edition) maintains its own db and its must me maintain on its own fork of the base 
 repository
+
+# Game Database System
+
+This document provides comprehensive documentation for the game's database system, which handles all persistent data storage for the game including user management, game sessions, locations, fragments, and player progress.
+
+## Table of Contents
+- [Overview](#overview)
+- [Database Schema](#database-schema)
+- [Database Manager](#database-manager)
+- [Initialization](#initialization)
+- [Environment Setup](#environment-setup)
+- [Usage Examples](#usage-examples)
+- [Maintenance](#maintenance)
+
+## Overview
+
+The database system is built using MySQL and provides a robust foundation for storing and managing game data. It includes features such as:
+- User authentication and management
+- Game session tracking
+- Location and fragment management
+- Player progress tracking
+- Game statistics
+- Automatic updates via triggers
+- Transaction safety
+- Backup and restore capabilities
+- Migration system
+
+## Database Schema
+
+### Core Tables
+
+#### Users (`users`)
+Stores user account information:
+- `id`: Unique identifier
+- `username`: Unique username
+- `email`: Unique email address
+- `password_hash`: Hashed password
+- `created_at`: Account creation timestamp
+- `updated_at`: Last update timestamp
+- `last_login`: Last login timestamp
+- `is_active`: Account status
+
+#### Game Sessions (`game_sessions`)
+Tracks active game sessions:
+- `id`: Unique identifier
+- `user_id`: Reference to users table
+- `start_time`: Session start timestamp
+- `end_time`: Session end timestamp
+- `status`: Session status (active/completed/abandoned)
+- `current_location_id`: Current location reference
+
+#### Locations (`locations`)
+Stores game locations:
+- `id`: Unique identifier
+- `name`: Location name
+- `description`: Location description
+- `is_accessible`: Access status
+- `created_at`: Creation timestamp
+
+#### Fragments (`fragments`)
+Contains game content fragments:
+- `id`: Unique identifier
+- `location_id`: Reference to locations table
+- `content`: Fragment content
+- `order_index`: Display order
+- `is_required`: Required status
+- `created_at`: Creation timestamp
+
+#### Player Progress (`player_progress`)
+Tracks player achievements:
+- `id`: Unique identifier
+- `user_id`: Reference to users table
+- `fragment_id`: Reference to fragments table
+- `discovered_at`: Discovery timestamp
+- `is_completed`: Completion status
+
+#### Game Statistics (`game_statistics`)
+Maintains player statistics:
+- `id`: Unique identifier
+- `user_id`: Reference to users table
+- `total_play_time`: Total time played
+- `fragments_discovered`: Number of discovered fragments
+- `locations_visited`: Number of visited locations
+- `last_updated`: Last update timestamp
+
+### Automatic Updates
+
+The system includes triggers for automatic statistics updates:
+- `after_fragment_discovery`: Updates fragment discovery count
+- `after_location_visit`: Updates location visit count
+
+## Database Manager
+
+The `DatabaseManager` class provides a comprehensive interface for database operations:
+
+### Core Methods
+```javascript
+async connect()      // Establishes database connection
+async disconnect()   // Closes database connection
+async healthCheck()  // Verifies database health
+```
+
+#### Data Management
+```javascript
+async backup(backupPath)    // Creates database backup
+async restore(backupPath)   // Restores from backup
+async transaction(callback) // Executes transaction
+```
+
+#### Migration System
+```javascript
+async runMigrations() // Executes pending migrations
+```
+
+## Initialization
+
+The database can be initialized using the provided script:
+
+```bash
+cd back-end
+node scripts/init-db.js
+```
+
+This script:
+1. Creates the database schema
+2. Sets up all required tables
+3. Loads initial seed data
+4. Configures triggers and indexes
+
+## Environment Setup
+
+Create a `.env` file in the back-end directory with the following variables:
+
+```env
+DB_HOST=localhost
+DB_USER=your_user
+DB_ROOT_PASSWORD=your_password
+DB_DATABASE=game_db
+DB_PORT=3306
+```
+
+## Usage Examples
+
+### Basic Database Operations
+
+```javascript
+import DatabaseManager from './core/database/DatabaseManager';
+
+// Connect to database
+await DatabaseManager.connect();
+
+// Execute transaction
+await DatabaseManager.transaction(async (connection) => {
+    // Your database operations here
+});
+
+// Create backup
+const backupPath = await DatabaseManager.backup('./backups');
+
+// Restore from backup
+await DatabaseManager.restore('./backups/backup-2024-03-21.sql');
+
+// Check database health
+const isHealthy = await DatabaseManager.healthCheck();
+```
+
+### Running Migrations
+
+```javascript
+// Run all pending migrations
+await DatabaseManager.runMigrations();
+```
+
+## Maintenance
+
+### Backup Strategy
+- Regular backups should be scheduled
+- Store backups in a secure location
+- Test restore procedures periodically
+
+### Performance Optimization
+- Monitor query performance
+- Use appropriate indexes
+- Regular maintenance of statistics
+
+### Security Considerations
+- Use strong passwords
+- Implement connection pooling
+- Regular security audits
+- Keep dependencies updated
+
+## Contributing
+
+When making changes to the database:
+1. Create a new migration file
+2. Test changes in development
+3. Update documentation
+4. Follow the established naming conventions
+
+## Support
+
+For issues or questions:
+1. Check the documentation
+2. Review existing issues
+3. Create a new issue if needed
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
