@@ -50,7 +50,7 @@ export {
     subscribeToEvent,
     disconnectSocket,
     connectSocket
-  };
+
+};
 
 
-  

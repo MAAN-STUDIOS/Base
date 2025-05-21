@@ -1,7 +1,9 @@
+
 import { FloodPlayer } from "@engine/floodplayer.js";
 import { Vector } from "@utils/vector.js";
 import { ObjectContainer, FloodContainer } from "@engine/objectcontainer.js";
 import styles from "@screens/styles/game.module.css";
+import eventBus from "../core/utils/eventbus";  
 
 export default function () {
   setTimeout(() => {
@@ -11,6 +13,7 @@ export default function () {
       return;
     }
     console.log("Canvas found:", canvas);
+    eventBus.emit("game:menu");
 
     function resizeCanvas() {
       canvas.width = window.innerWidth;
@@ -29,6 +32,7 @@ export default function () {
     console.log("Canvas context obtained");
 
     const flood = new FloodPlayer({
+      
       position: new Vector(
         canvas.width / 2 - 25,
         canvas.height / 2 - 25
@@ -84,6 +88,7 @@ export default function () {
         health: 100,
         takeDamage(amount) {
           this.health -= amount;
+          eventBus.emit("human:takeDamage");
           if (this.health <= 0) {
             const index = enemies.indexOf(this);
             if (index > -1) {
@@ -272,6 +277,7 @@ export default function () {
       }
 
       requestAnimationFrame(loop);
+      
     }
 
     loop();
@@ -282,4 +288,5 @@ export default function () {
       <canvas id="game"></canvas>
     </main>
   `;
+
 }
