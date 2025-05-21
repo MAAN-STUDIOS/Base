@@ -1,103 +1,121 @@
+@font-face {
+    font-family: 'VT323';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url("./assets/fonts/VT323/VT323-Regular.woff2") format('woff2');
+}
+
+@font-face {
+    font-family: 'Press Start 2P';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url("./assets/fonts/Press_Start_2P/PressStart2P-Regular.woff2") format('woff2');
+}
+
+@font-face {
+    font-family: 'Roboto Mono';
+    font-style: normal;
+    font-weight: 100 800;
+    font-display: swap;
+    src: url("./assets/fonts/Roboto_Mono/RobotoMono-VariableFont_wght.woff2") format('woff2');
+}
+
 * {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+    color-scheme: dark;
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+    --ff1: "VT323", monospace;
+    --ff2: "Press Start 2P", monospace;
+    --ff3: "Roboto Mono", monospace;
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  overflow: hidden;
+    --h1: 800 6.5rem/1.2em var(--ff1);
+    --h2: bold 3.5rem/1.4em var(--ff1);
+    --p: 1rem/1.4em var(--ff2);
+    --p2: 0.875rem/1.4em var(--ff3);
+
+    --spacing-xxs: 0.25rem;
+    --spacing-xs: 0.5rem;
+    --spacing-s: 0.75rem;
+    --spacing-m: 1rem;
+    --spacing-l: 1.25rem;
+    --spacing-xl: 1.75rem;
+    --spacing-xxl: 2.5rem;
+
+    --color-primary-light: hsl(216, 70%, 65%);
+    --color-primary: hsl(216, 70%, 53%);
+    --color-primary-dark: hsl(216, 70%, 41%);
+
+    --color-secondary-light: hsl(238, 100%, 75%);
+    --color-secondary: hsl(238, 88%, 61%);
+    --color-secondary-dark: hsl(238, 92%, 56%);
+
+    --color-black-light: hsl(0, 0%, 20%);
+    --color-black: hsl(0, 0%, 10%);
+    --color-black-dark: hsl(0, 0%, 0%);
+
+    --color-gray100: hsl(0, 0%, 100%);
+    --color-gray70: hsl(0, 0%, 70%);
+    --color-gray0: hsl(0, 0%, 0%);
+
+    --color-white-light: hsl(0, 0%, 100%);
+    --color-white: hsl(0, 0%, 95%);
+    --color-white-dark: hsl(0, 0%, 90%);
+
+    --color-flood: hsl(0, 100%, 50%);
+    --color-human: hsl(223, 100%, 50%);
+
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow: hidden;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
+html {
+    scroll-behavior: smooth;
 }
 
 body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+    color: var(--color-white);
+    background-color: var(--color-black);
+    font: var(--p);
 }
 
 h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+    font: var(--h1);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    text-shadow: 5px 5px #151515;
 }
 
-#app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
-}
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.vanilla:hover {
-  filter: drop-shadow(0 0 2em #f7df1eaa);
-}
-
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
+h2 {
+    font: var(--h2);
+    text-shadow: 5px 5px #151515;
 }
 
 button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+    background-color: #2a2a2a;
+    color: #f8f8f8;
+    border: 3px solid #666;
+    padding: 16px 24px;
+    font: var(--p);
+    cursor: pointer;
+    margin: 10px;
+    box-shadow: 3px 3px #111;
+    text-transform: uppercase;
+    transition: background 0.2s, transform 0.2s;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+button:hover {
+    background-color: #3a3a3a;
+    transform: translate(1px, 1px);
+    box-shadow: 2px 2px #000;
 }

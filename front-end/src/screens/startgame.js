@@ -2,14 +2,13 @@ import { navigate } from "@utils/router.js";
 import styles from "./styles/startgame.module.css";
 
 export default function () {
-  document.addEventListener("DOMContentLoaded", () => {
-    // TODO:Añadir event listeners a los botones una vez que el DOM esté cargado
+    const listener = () => {
     const floodBtn = document.getElementById("flood-btn");
-    // if (floodBtn) floodBtn.addEventListener("click", () => console.log("Flood selected"));
+
     if (floodBtn) floodBtn.addEventListener("click", () => navigate("flood"));
     
     const humanBtn = document.getElementById("human-btn");
-    if (humanBtn) humanBtn.addEventListener("click", () => console.log("Human selected"));
+    if (humanBtn) humanBtn.addEventListener("click", () => navigate("human"));
     
     const statsBtn = document.getElementById("stats-btn");
     if (statsBtn) statsBtn.addEventListener("click", () => console.log("Navigate to stats"));
@@ -19,11 +18,11 @@ export default function () {
     
     const backBtn = document.getElementById("back-btn");
     if (backBtn) backBtn.addEventListener("click", () => navigate("menu"));
-  });
+    };
 
-  return `
+    return [listener, `
     <section class="${styles.screen}" style="text-align:center;">
-      <h2 style="margin-bottom: 40px;">CHOOSE YOUR SIDE</h2>
+      <h1 style="margin-bottom: 40px;">CHOOSE YOUR SIDE</h1>
       
       <button id="human-btn" class="${styles.humanBtn}">Play as Human -> </button>
       <button id="flood-btn" class="${styles.floodBtn}"> <- Play as Flood</button>
@@ -31,5 +30,5 @@ export default function () {
       <button id="settings-btn">⚙️ Settings</button>
       <button id="back-btn">← Back to Menu</button>
     </section>
-  `;
+  `];
 }
