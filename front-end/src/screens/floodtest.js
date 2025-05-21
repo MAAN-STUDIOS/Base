@@ -50,6 +50,12 @@ export default function () {
     });
     logger.debug("Flood player created", { position: flood.position });
 
+    // Track real position for map movement
+    let realPosition = new Vector(
+      canvas.width / 2 - PLAYER_SIZE / 2,
+      canvas.height / 2 - PLAYER_SIZE / 2
+    );
+
     // Arrays for clones and enemies
     const clones = [];
     const enemies = [];
@@ -102,17 +108,22 @@ export default function () {
 
       while (gameLoop.lag >= MS_PER_UPDATE) {
         const dt = MS_PER_UPDATE / 1000;
-        const prevPosition = flood.position.clone();
+        const prevPosition = realPosition.clone();
 
         // Update player movement
         const baseSpeed = 200;
         const sprintSpeed = 400;
         const currentSpeed = keys["shift"] ? sprintSpeed : baseSpeed;
 
-        if (keys["w"]) flood.position.y -= currentSpeed * dt;
-        if (keys["s"]) flood.position.y += currentSpeed * dt;
-        if (keys["a"]) flood.position.x -= currentSpeed * dt;
-        if (keys["d"]) flood.position.x += currentSpeed * dt;
+        // Update real position for map movement
+        if (keys["w"]) realPosition.y -= currentSpeed * dt;
+        if (keys["s"]) realPosition.y += currentSpeed * dt;
+        if (keys["a"]) realPosition.x -= currentSpeed * dt;
+        if (keys["d"]) realPosition.x += currentSpeed * dt;
+
+        // Keep player centered on screen
+        flood.position.x = canvas.width / 2 - PLAYER_SIZE / 2;
+        flood.position.y = canvas.height / 2 - PLAYER_SIZE / 2;
 
         // Handle collisions
         handleCollisions(flood, gameMap, prevPosition);
@@ -128,8 +139,8 @@ export default function () {
         }
         if (keys["f"]) {
           const nearestEnemy = enemies.reduce((nearest, enemy) => {
-            const dx = enemy.position.x - flood.position.x;
-            const dy = enemy.position.y - flood.position.y;
+            const dx = enemy.position.x - realPosition.x;
+            const dy = enemy.position.y - realPosition.y;
             const distance = Math.sqrt(dx * dx + dy * dy);
             if (!nearest || distance < nearest.distance) {
               return { enemy, distance };
@@ -147,8 +158,8 @@ export default function () {
           clone.update(dt, flood, enemies);
         });
 
-        // Update map
-        gameMap.update(flood.position, MS_PER_UPDATE);
+        // Update map with real position
+        gameMap.update(realPosition, MS_PER_UPDATE);
 
         gameLoop.lag -= MS_PER_UPDATE;
       }
@@ -159,19 +170,28 @@ export default function () {
       // Draw map
       gameMap.draw(ctx);
 
-      // Draw enemies
+      // Draw enemies relative to map position
       enemies.forEach(enemy => {
-        ctx.fillStyle = "red";
-        ctx.fillRect(enemy.position.x, enemy.position.y, enemy.width, enemy.height);
-        
-        const healthPercentage = enemy.health / 100;
-        ctx.fillStyle = "gray";
-        ctx.fillRect(enemy.position.x, enemy.position.y - 10, enemy.width, 5);
-        ctx.fillStyle = "green";
-        ctx.fillRect(enemy.position.x, enemy.position.y - 10, enemy.width * healthPercentage, 5);
+        const screenX = enemy.position.x - gameMap.viewPort.x;
+        const screenY = enemy.position.y - gameMap.viewPort.y;
+
+        if (screenX >= -enemy.width && 
+            screenX <= canvas.width && 
+            screenY >= -enemy.height && 
+            screenY <= canvas.height) {
+          
+          ctx.fillStyle = "red";
+          ctx.fillRect(screenX, screenY, enemy.width, enemy.height);
+          
+          const healthPercentage = enemy.health / 100;
+          ctx.fillStyle = "gray";
+          ctx.fillRect(screenX, screenY - 10, enemy.width, 5);
+          ctx.fillStyle = "green";
+          ctx.fillRect(screenX, screenY - 10, enemy.width * healthPercentage, 5);
+        }
       });
 
-      // Draw player and clones
+      // Draw player and clones (they're already in screen coordinates)
       flood.draw(ctx);
       clones.forEach(clone => clone.draw(ctx));
 
