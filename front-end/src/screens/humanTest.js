@@ -4,6 +4,7 @@ import { ObjectMap } from "@engine/objectMap.js";
 import MapSS from "@assets/map.png";
 import styles from "@screens/styles/game.module.css";
 import logger from "@utils/logger.js";
+import HUD from "@assets/HUD/HUDD.png"
 
 
 export default function humanScreen() {
@@ -12,6 +13,9 @@ export default function humanScreen() {
         const MS_PER_UPDATE = 1000 / TARGET_FPS;
 
         const PLAYER_SIZE = 50;
+
+        const hud = new Image()
+        hud.src = HUD
 
         const game = document.getElementById("game");
         game.width = window.innerWidth;
@@ -95,6 +99,12 @@ export default function humanScreen() {
 
             gameMap.draw(ctx);
             player.draw(ctx);
+
+            ctx.drawImage(
+                hud, 0,0, game.width * 2304, game.height * 1728,  //fuente de la imagen, 1º de canvas, 2º de canvas, 
+                0,0, //Desde 0 en x y desde 0 en y
+                2304,1728   //Pixeles de la imagen
+            )
 
             gameMiniMap.draw(minimapCtx, 1.8);
 
