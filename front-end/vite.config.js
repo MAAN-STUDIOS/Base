@@ -1,10 +1,9 @@
 import { defineConfig } from 'vite';
 import path from 'path';
 
-
 export default defineConfig({
-  resolve : {
-    alias : {
+  resolve: {
+    alias: {
       '@': path.resolve(__dirname, './src/'),
       '@utils': path.resolve(__dirname, './src/core/utils/'),
       '@engine': path.resolve(__dirname, './src/core/engine/'),
@@ -14,4 +13,11 @@ export default defineConfig({
       '@tiles': path.resolve(__dirname, './src/assets/tiles/')
     }
   },
+  css: {
+    modules: {
+      scopeBehaviour: 'local',
+      localsConvention: 'camelCase',
+      generateScopedName: '[name]__[local]___[hash:base64:5]',
+    }
+  }
 });

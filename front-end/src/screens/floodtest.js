@@ -1,3 +1,4 @@
+
 import { FloodPlayer } from "@engine/floodplayer.js";
 import { Vector } from "@utils/vector.js";
 import { ObjectContainer, FloodContainer } from "@engine/objectcontainer.js";
@@ -287,4 +288,5 @@ export default function () {
       <canvas id="game"></canvas>
     </main>
   `;
+
 }

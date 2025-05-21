@@ -1,5 +1,6 @@
 
 
+
 "use strict";
 import { GameObject } from "./gameobject";
 import { Hitbox } from "@utils/hitbox.js";
@@ -14,5 +15,6 @@ export class ObjectItem extends GameObject{
     use(player){
         return undefined;
     }
+
 
 }

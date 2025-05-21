@@ -1,3 +1,4 @@
+
 import { Player } from "./objectplayer.js";
 import { Hitbox } from "@utils/hitbox.js";
 import { FloodClone } from "./floodclone.js";
@@ -173,3 +174,4 @@ export class FloodPlayer extends Player {
     });
   }
 }
+
