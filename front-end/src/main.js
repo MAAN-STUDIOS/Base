@@ -3,7 +3,7 @@ import { registerScreen, navigate } from '@utils/router.js';
 import screenMenu from '@/screens/menu.js';
 import screenStartGame from '@/screens/startgame.js';
 import screenGame from "@screens/game.js";
-import screenFloodTest from "@/screens/floodtest.js";
+import screenFloodTest from "@/screens/floodTest.js";
 import screenPageNotFound from "@screens/404.js";
 import screenCredits from "@screens/credits.js";
 import screenHuman from "@screens/humanTest.js";

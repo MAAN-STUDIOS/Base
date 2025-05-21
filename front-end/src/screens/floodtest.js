@@ -1,4 +1,4 @@
-import { FloodPlayer } from "@engine/floodplayer.js";
+import { FloodPlayer } from "@engine/floodPlayer.js";
 import { Vector } from "@utils/vector.js";
 import styles from "@screens/styles/game.module.css";
 
@@ -71,7 +71,14 @@ export default function () {
     window.addEventListener("keydown", (e) => (keys[e.key.toLowerCase()] = true));
     window.addEventListener("keyup", (e) => (keys[e.key.toLowerCase()] = false));
 
+    let lastTime = performance.now();
+
     function loop() {
+      // Calcular delta time
+      const now = performance.now();
+      const dt = (now - lastTime) / 1000; // convertir de ms a segundos
+      lastTime = now;
+
       // Limpiar el canvas
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -91,6 +98,7 @@ export default function () {
         const clone = flood.createClone();
         if (clone) {
           clones.push(clone);
+          console.log("Clone added to array, total clones:", clones.length);
         }
       }
       if (keys["f"]) {
@@ -110,9 +118,9 @@ export default function () {
         }
       }
 
-      // Actualizar clones
+      // Actualizar clones con delta time
       clones.forEach(clone => {
-        clone.update(flood, enemies);
+        clone.update(dt, flood, enemies);
       });
 
       // Dibujar enemigos
@@ -132,7 +140,9 @@ export default function () {
       flood.draw(ctx);
 
       // Dibujar los clones
-      clones.forEach(clone => clone.draw(ctx));
+      clones.forEach(clone => {
+        clone.draw(ctx);
+      });
 
       // Dibujar texto de estado
       ctx.font = "16px monospace";
