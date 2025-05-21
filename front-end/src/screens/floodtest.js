@@ -5,7 +5,7 @@ import MapSS from "@assets/map.png";
 import styles from "@screens/styles/game.module.css";
 import logger from "@utils/logger.js";
 
-export default function () {
+export default function() {
   const setup = () => {
     const TARGET_FPS = 60;
     const MS_PER_UPDATE = 1000 / TARGET_FPS;
@@ -60,27 +60,27 @@ export default function () {
     const clones = [];
     const enemies = [];
 
-    // Create test enemies
-    for (let i = 0; i < 5; i++) {
-      enemies.push({
-        position: new Vector(
-          Math.random() * canvas.width,
-          Math.random() * canvas.height
-        ),
-        width: 30,
-        height: 30,
-        health: 100,
-        takeDamage(amount) {
-          this.health -= amount;
-          if (this.health <= 0) {
-            const index = enemies.indexOf(this);
-            if (index > -1) {
-              enemies.splice(index, 1);
-            }
-          }
-        }
-      });
-    }
+    // // Create test enemies
+    // for (let i = 0; i < 5; i++) {
+    //   enemies.push({
+    //     position: new Vector(
+    //       Math.random() * canvas.width,
+    //       Math.random() * canvas.height
+    //     ),
+    //     width: 30,
+    //     height: 30,
+    //     health: 100,
+    //     takeDamage(amount) {
+    //       this.health -= amount;
+    //       if (this.health <= 0) {
+    //         const index = enemies.indexOf(this);
+    //         if (index > -1) {
+    //           enemies.splice(index, 1);
+    //         }
+    //       }
+    //     }
+    //   });
+    // }
 
     // Input handling
     const keys = {};
@@ -111,8 +111,8 @@ export default function () {
         const prevPosition = realPosition.clone();
 
         // Update player movement
-        const baseSpeed = 200;
-        const sprintSpeed = 400;
+        const baseSpeed = 600;
+        const sprintSpeed = 1200;
         const currentSpeed = keys["shift"] ? sprintSpeed : baseSpeed;
 
         // Update real position for map movement
@@ -125,8 +125,51 @@ export default function () {
         flood.position.x = canvas.width / 2 - PLAYER_SIZE / 2;
         flood.position.y = canvas.height / 2 - PLAYER_SIZE / 2;
 
-        // Handle collisions
-        handleCollisions(flood, gameMap, prevPosition);
+        /**
+         * Handles collision detection and resolution between player and map
+         * @param {HumanPlayer} player - The player to check collisions for
+         * @param {ObjectMap} gameMap - The game map with hitboxes
+         * @param {Vector} prevPosition - Player's position before movement
+         */
+        function handleCollisions(player, gameMap, prevPosition) {
+          for (const boundary of gameMap.boundaries) {
+            if (player.hitbox.collidesWith(boundary)) {
+              resolveCollision(player, boundary, prevPosition);
+            }
+          }
+
+          for (const hitbox of gameMap.hitboxes) {
+            if (hitbox.isPhysical && player.hitbox.collidesWith(hitbox)) {
+              resolveCollision(player, hitbox, prevPosition);
+            }
+          }
+        }
+
+        /**
+         * Resolves collision by adjusting player position
+         * @param {HumanPlayer} player - The player object
+         * @param {Hitbox} obstacle - The hitbox player collided with
+         * @param {Vector} prevPosition - Player's position before collision
+         */
+        function resolveCollision(player, obstacle, prevPosition) {
+          const currX = player.position.x;
+          const currY = player.position.y;
+
+          player.position.x = currX;
+          player.position.y = prevPosition.y;
+
+          if (player.hitbox.collidesWith(obstacle)) {
+            player.position.x = prevPosition.x;
+            player.position.y = currY;
+
+            if (player.hitbox.collidesWith(obstacle)) {
+              player.position.x = prevPosition.x;
+              player.position.y = prevPosition.y;
+            }
+          }
+
+          player.real_position = player.position.clone();
+        }
 
         // Update abilities
         if (keys["e"]) flood.evolve();
@@ -166,30 +209,30 @@ export default function () {
 
       // Render
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
+
       // Draw map
       gameMap.draw(ctx);
 
-      // Draw enemies relative to map position
-      enemies.forEach(enemy => {
-        const screenX = enemy.position.x - gameMap.viewPort.x;
-        const screenY = enemy.position.y - gameMap.viewPort.y;
+      // // Draw enemies relative to map position
+      // enemies.forEach(enemy => {
+      //   const screenX = enemy.position.x - gameMap.viewPort.x;
+      //   const screenY = enemy.position.y - gameMap.viewPort.y;
 
-        if (screenX >= -enemy.width && 
-            screenX <= canvas.width && 
-            screenY >= -enemy.height && 
-            screenY <= canvas.height) {
-          
-          ctx.fillStyle = "red";
-          ctx.fillRect(screenX, screenY, enemy.width, enemy.height);
-          
-          const healthPercentage = enemy.health / 100;
-          ctx.fillStyle = "gray";
-          ctx.fillRect(screenX, screenY - 10, enemy.width, 5);
-          ctx.fillStyle = "green";
-          ctx.fillRect(screenX, screenY - 10, enemy.width * healthPercentage, 5);
-        }
-      });
+      //   if (screenX >= -enemy.width &&
+      //       screenX <= canvas.width &&
+      //       screenY >= -enemy.height &&
+      //       screenY <= canvas.height) {
+
+      //     ctx.fillStyle = "red";
+      //     ctx.fillRect(screenX, screenY, enemy.width, enemy.height);
+
+      //     const healthPercentage = enemy.health / 100;
+      //     ctx.fillStyle = "gray";
+      //     ctx.fillRect(screenX, screenY - 10, enemy.width, 5);
+      //     ctx.fillStyle = "green";
+      //     ctx.fillRect(screenX, screenY - 10, enemy.width * healthPercentage, 5);
+      //   }
+      // });
 
       // Draw player and clones (they're already in screen coordinates)
       flood.draw(ctx);
