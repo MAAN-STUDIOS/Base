@@ -38,6 +38,7 @@ export class ObjectMap extends GameObject {
      * @param {boolean} [options.debug=false] - Whether to draw debug information
      * @param {Vector} [options.real_position=Vector.zero()] - Initial position in world coordinates
      * @param {number[]} [options.solidTilesID=[1]] - TilesID that the player cannot walk over.
+     * @param {number} [options.scale=2] - Scalar to scale the map.
      */
     constructor(source, width, height, options = {}) {
         super({ position: Vector.zero(), width, height });
@@ -92,6 +93,7 @@ export class ObjectMap extends GameObject {
         /** @type {number} Radius of chunks to keep loaded around player */
         this.n_loaded_chunks = options.n_loaded_chunks || 1;
 
+        this.scale = options.scale || 2;
         /** @type {boolean} Whether to show debug visualization */
         this.debug = options.debug || false;
 
@@ -148,9 +150,14 @@ export class ObjectMap extends GameObject {
      * Only draws chunks and tiles that are visible in the viewport
      *
      * @param {CanvasRenderingContext2D} ctx - The 2D rendering context
+     * @param {number||null} scale
      */
-    draw(ctx) {
+    draw(ctx, scale=null) {
         if (!this.isLoaded) return;
+        if (scale) {
+            this.draw.saveScale = this.scale;
+            this.scale = scale;
+        }
 
         const startChunkX = this.#getStartChunk(this.real_position.x);
         const startChunkY = this.#getStartChunk(this.real_position.y);
@@ -174,6 +181,10 @@ export class ObjectMap extends GameObject {
             for (let hb of this.hitboxes) {
                 hb.drawDebug(ctx, color);
             }
+        }
+
+        if (scale) {
+            this.scale = this.draw.saveScale;
         }
     }
 
@@ -453,7 +464,7 @@ export class ObjectMap extends GameObject {
         ctx.drawImage(
             this.spriteSheet,
             srcX, srcY, this.tile_size, this.tile_size,
-            destX, destY, this.tile_size, this.tile_size
+            destX, destY, this.tile_size * this.scale, this.tile_size *this.scale
         );
     }
 
