@@ -16,10 +16,9 @@ export default function gameScreen() {
         context.fillText("HELLO COSMONAVT", game.width / 2, game.height / 2);
     }
 
-    document.addEventListener("DOMContentLoaded", inner);
-    return `
+    return [inner, `
     <main class="${styles.container}">
       <canvas id="game"></canvas>
     </main>
-  `;
+  `];
 }
