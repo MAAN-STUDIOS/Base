@@ -2,6 +2,7 @@ import { Player } from "./objectplayer.js";
 import { Hitbox } from "@utils/hitbox.js";
 import { FloodClone } from "./floodclone.js";
 import { Vector } from "@utils/vector.js";
+import eventBus from "@utils/eventbus.js";
 
 export class FloodPlayer extends Player {
   constructor(options = {}) {
@@ -52,6 +53,9 @@ export class FloodPlayer extends Player {
     });
 
     this.clones.push(clone);
+    eventBus.emit("flood:createClone", { 
+      position: clonePosition, 
+    });
     return clone;
   }
 
@@ -70,9 +74,22 @@ export class FloodPlayer extends Player {
     this.evolutionCooldown = now + EVOLUTION_COOLDOWN;
     console.log("Evolved to level", this.evolution);
     this.cloneCooldown = 0; // Resetear el cooldown de clonación
+    eventBus.emit("flood:evolve", { level: this.evolution })
+  }
+  takeDamage(amount) {
+    super.takeDamage(amount);
+    
+    eventBus.emit("entity:takeDamage", {
+      entity: "player",
+      amount,
+      health: this.health,
+      position: this.position
+    });
   }
 
   attack(type, target) {
+    
+
     const now = performance.now();
     const cooldown = this.attackCooldowns[type] || 0;
     
@@ -97,6 +114,12 @@ export class FloodPlayer extends Player {
         this.attackCooldowns.spikes = now + 1500; // 1.5 segundos de cooldown
         break;
     }
+    eventBus.emit("player:attack", { 
+      type, 
+      target: target.id || 'unknown',
+      position: this.position
+    });
+    
   }
 
   draw(ctx) {
