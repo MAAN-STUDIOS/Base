@@ -1,4 +1,11 @@
-const seedrandom = require('seedrandom'); // para tener aleatoriedad con semilla                 
+const express = require('express');
+const cors = require('cors');    
+const seedrandom = require('seedrandom'); // para tener aleatoriedad con semilla
+
+const app = express();    
+const PORT = 4000;     
+
+app.use(cors());                
 
 // app.get('/chunk/:x/:y/:seed', (req, res) => {
 //   const { x, y, seed } = req.params;      //extraer x, y y semilla de la URL
@@ -69,3 +76,6 @@ function chunkConectado(seed) {
     res.json({ chunk });
   });
   
+  app.listen(PORT, () => {
+    console.log(`Servidor corriendo en http://localhost:${PORT}`);
+  });
