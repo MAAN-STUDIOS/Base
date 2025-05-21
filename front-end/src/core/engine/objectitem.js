@@ -1,4 +1,5 @@
 
+
 "use strict";
 import { GameObject } from "./gameobject";
 import { Hitbox } from "@utils/hitbox.js";

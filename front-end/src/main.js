@@ -6,6 +6,7 @@ import screenGame from "@screens/game.js";
 import screenFloodTest from "@/screens/floodtest.js";
 import screenPageNotFound from "@screens/404.js";
 import screenCredits from "@screens/credits.js";
+
 import screenHuman from "@screens/humanTest.js";
 import audioManager from "@utils/audiomanager.js";
 import cloneSound from "@/assets/sfx/clone.wav";
@@ -13,6 +14,13 @@ import terrorMusic from "@/assets/sfx/Terror.mp3";
 import playerDamage from "@/assets/sfx/player_damage.wav";
 
 
+
+registerScreen('menu', screenMenu);
+registerScreen('play', screenStartGame);
+registerScreen('game', screenGame);
+registerScreen('flood', screenFloodTest);
+registerScreen(404, screenPageNotFound);
+registerScreen('credits', screenCredits);
 
 document.addEventListener("click", function unlockAudio() {
 
@@ -70,6 +78,7 @@ registerScreen('flood', screenFloodTest);
 registerScreen('human', screenHuman)
 registerScreen(404, screenPageNotFound);
 registerScreen('credits', screenCredits);
+
 
 
 navigate(location.pathname.slice(1) || 'menu');
