@@ -1,51 +1,60 @@
 import { FloodPlayer } from "@engine/floodPlayer.js";
 import { Vector } from "@utils/vector.js";
+import { ObjectMap } from "@engine/objectMap.js";
+import MapSS from "@assets/map.png";
 import styles from "@screens/styles/game.module.css";
+import logger from "@utils/logger.js";
 
 export default function () {
-  setTimeout(() => {
+  const setup = () => {
+    const TARGET_FPS = 60;
+    const MS_PER_UPDATE = 1000 / TARGET_FPS;
+    const PLAYER_SIZE = 50;
+
     const canvas = document.getElementById("game");
     if (!canvas) {
-      console.error("Canvas not found!");
+      logger.error("Canvas not found!");
       return;
     }
-    console.log("Canvas found:", canvas);
+    logger.debug("Canvas found:", { width: canvas.width, height: canvas.height });
 
-    // Ajustar tamaño del canvas al tamaño de la ventana
-    function resizeCanvas() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-      console.log("Canvas resized to:", canvas.width, canvas.height);
-    }
-
-    // Inicializar tamaño y agregar listener para resize
-    resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
-
+    // Initialize canvas size
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
     const ctx = canvas.getContext("2d");
     if (!ctx) {
-      console.error("Could not get canvas context!");
+      logger.error("Could not get canvas context!");
       return;
     }
-    console.log("Canvas context obtained");
 
-    // Crear el jugador en el centro de la pantalla
+    // Initialize game map
+    const gameMap = new ObjectMap(MapSS, canvas.width, canvas.height, {
+      tiles_per_row: 1,
+      tile_size: 32,
+      chunk_size: 16,
+      n_loaded_chunks: 2,
+      debug: true,
+      real_position: Vector.zero()
+    });
+    logger.debug("Game map initialized");
+
+    // Create player in center of screen
     const flood = new FloodPlayer({
       position: new Vector(
-        canvas.width / 2 - 25,  // Centrar horizontalmente (restamos la mitad del ancho)
-        canvas.height / 2 - 25  // Centrar verticalmente (restamos la mitad del alto)
+        canvas.width / 2 - PLAYER_SIZE / 2,
+        canvas.height / 2 - PLAYER_SIZE / 2
       ),
-      width: 50,
-      height: 50,
+      width: PLAYER_SIZE,
+      height: PLAYER_SIZE,
       color: "purple"
     });
-    console.log("Flood player created at:", flood.position);
+    logger.debug("Flood player created", { position: flood.position });
 
-    // Array para mantener los clones y enemigos
+    // Arrays for clones and enemies
     const clones = [];
     const enemies = [];
 
-    // Crear algunos enemigos de prueba
+    // Create test enemies
     for (let i = 0; i < 5; i++) {
       enemies.push({
         position: new Vector(
@@ -67,68 +76,94 @@ export default function () {
       });
     }
 
+    // Input handling
     const keys = {};
     window.addEventListener("keydown", (e) => (keys[e.key.toLowerCase()] = true));
     window.addEventListener("keyup", (e) => (keys[e.key.toLowerCase()] = false));
 
-    let lastTime = performance.now();
+    // Handle window resize
+    window.addEventListener('resize', () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      gameMap.viewPort.width = canvas.width;
+      gameMap.viewPort.height = canvas.height;
+      logger.debug("Canvas resized", { width: canvas.width, height: canvas.height });
+    });
 
-    function loop() {
-      // Calcular delta time
-      const now = performance.now();
-      const dt = (now - lastTime) / 1000; // convertir de ms a segundos
-      lastTime = now;
-
-      // Limpiar el canvas
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      // Movement con velocidad base y velocidad rápida
-      const baseSpeed = 2;
-      const sprintSpeed = 4;
-      const currentSpeed = keys["shift"] ? sprintSpeed : baseSpeed;
-
-      if (keys["w"]) flood.position.y -= currentSpeed;
-      if (keys["s"]) flood.position.y += currentSpeed;
-      if (keys["a"]) flood.position.x -= currentSpeed;
-      if (keys["d"]) flood.position.x += currentSpeed;
-
-      // Abilities
-      if (keys["e"]) flood.evolve();
-      if (keys["c"]) {
-        const clone = flood.createClone();
-        if (clone) {
-          clones.push(clone);
-          console.log("Clone added to array, total clones:", clones.length);
-        }
+    function gameLoop(currentTime) {
+      if (!gameLoop.previousTime) {
+        gameLoop.previousTime = currentTime;
+        gameLoop.lag = 0;
       }
-      if (keys["f"]) {
-        // Atacar al enemigo más cercano
-        const nearestEnemy = enemies.reduce((nearest, enemy) => {
-          const dx = enemy.position.x - flood.position.x;
-          const dy = enemy.position.y - flood.position.y;
-          const distance = Math.sqrt(dx * dx + dy * dy);
-          if (!nearest || distance < nearest.distance) {
-            return { enemy, distance };
+
+      const elapsed = currentTime - gameLoop.previousTime;
+      gameLoop.previousTime = currentTime;
+      gameLoop.lag += elapsed;
+
+      while (gameLoop.lag >= MS_PER_UPDATE) {
+        const dt = MS_PER_UPDATE / 1000;
+        const prevPosition = flood.position.clone();
+
+        // Update player movement
+        const baseSpeed = 200;
+        const sprintSpeed = 400;
+        const currentSpeed = keys["shift"] ? sprintSpeed : baseSpeed;
+
+        if (keys["w"]) flood.position.y -= currentSpeed * dt;
+        if (keys["s"]) flood.position.y += currentSpeed * dt;
+        if (keys["a"]) flood.position.x -= currentSpeed * dt;
+        if (keys["d"]) flood.position.x += currentSpeed * dt;
+
+        // Handle collisions
+        handleCollisions(flood, gameMap, prevPosition);
+
+        // Update abilities
+        if (keys["e"]) flood.evolve();
+        if (keys["c"]) {
+          const clone = flood.createClone();
+          if (clone) {
+            clones.push(clone);
+            logger.debug("Clone added to array", { totalClones: clones.length });
           }
-          return nearest;
-        }, null);
-
-        if (nearestEnemy && nearestEnemy.distance < 100) {
-          flood.attack("melee", nearestEnemy.enemy);
         }
+        if (keys["f"]) {
+          const nearestEnemy = enemies.reduce((nearest, enemy) => {
+            const dx = enemy.position.x - flood.position.x;
+            const dy = enemy.position.y - flood.position.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            if (!nearest || distance < nearest.distance) {
+              return { enemy, distance };
+            }
+            return nearest;
+          }, null);
+
+          if (nearestEnemy && nearestEnemy.distance < 100) {
+            flood.attack("melee", nearestEnemy.enemy);
+          }
+        }
+
+        // Update clones
+        clones.forEach(clone => {
+          clone.update(dt, flood, enemies);
+        });
+
+        // Update map
+        gameMap.update(flood.position, MS_PER_UPDATE);
+
+        gameLoop.lag -= MS_PER_UPDATE;
       }
 
-      // Actualizar clones con delta time
-      clones.forEach(clone => {
-        clone.update(dt, flood, enemies);
-      });
+      // Render
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Draw map
+      gameMap.draw(ctx);
 
-      // Dibujar enemigos
+      // Draw enemies
       enemies.forEach(enemy => {
         ctx.fillStyle = "red";
         ctx.fillRect(enemy.position.x, enemy.position.y, enemy.width, enemy.height);
         
-        // Barra de vida del enemigo
         const healthPercentage = enemy.health / 100;
         ctx.fillStyle = "gray";
         ctx.fillRect(enemy.position.x, enemy.position.y - 10, enemy.width, 5);
@@ -136,33 +171,70 @@ export default function () {
         ctx.fillRect(enemy.position.x, enemy.position.y - 10, enemy.width * healthPercentage, 5);
       });
 
-      // Dibujar el jugador
+      // Draw player and clones
       flood.draw(ctx);
+      clones.forEach(clone => clone.draw(ctx));
 
-      // Dibujar los clones
-      clones.forEach(clone => {
-        clone.draw(ctx);
-      });
-
-      // Dibujar texto de estado
+      // Draw status text
       ctx.font = "16px monospace";
       ctx.fillStyle = "white";
       ctx.fillText(`Biomass: ${flood.biomass}`, 20, 30);
       ctx.fillText(`Evo: ${flood.evolution}`, 20, 50);
-      ctx.fillText(`Speed: ${currentSpeed}`, 20, 70);
+      ctx.fillText(`Speed: ${keys["shift"] ? "Sprint" : "Normal"}`, 20, 70);
       ctx.fillText(`Clones: ${clones.length}`, 20, 90);
       ctx.fillText(`Enemies: ${enemies.length}`, 20, 110);
 
-      requestAnimationFrame(loop);
+      requestAnimationFrame(gameLoop);
     }
 
-    // Iniciar el loop
-    loop();
-  }, 100);
+    function handleCollisions(player, gameMap, prevPosition) {
+      for (const boundary of gameMap.boundaries) {
+        if (player.hitbox.collidesWith(boundary)) {
+          resolveCollision(player, boundary, prevPosition);
+        }
+      }
 
-  return `
+      for (const hitbox of gameMap.hitboxes) {
+        if (hitbox.isPhysical && player.hitbox.collidesWith(hitbox)) {
+          resolveCollision(player, hitbox, prevPosition);
+        }
+      }
+    }
+
+    function resolveCollision(player, obstacle, prevPosition) {
+      const currX = player.position.x;
+      const currY = player.position.y;
+
+      player.position.x = currX;
+      player.position.y = prevPosition.y;
+
+      if (player.hitbox.collidesWith(obstacle)) {
+        player.position.x = prevPosition.x;
+        player.position.y = currY;
+
+        if (player.hitbox.collidesWith(obstacle)) {
+          player.position.x = prevPosition.x;
+          player.position.y = prevPosition.y;
+        }
+      }
+    }
+
+    requestAnimationFrame(gameLoop);
+  };
+
+  return [setup, `
     <main class="${styles.container}">
       <canvas id="game"></canvas>
+      <div>
+        <h3 class="${styles.containerH3}">CONTROLS</h3>
+        <ul class="${styles.containerUl}">
+          <li>MOVE: WASD</li>
+          <li>RUN: Hold Shift</li>
+          <li>EVOLVE: E</li>
+          <li>CREATE CLONE: C</li>
+          <li>ATTACK: F</li>
+        </ul>
+      </div>
     </main>
-  `;
+  `];
 }
