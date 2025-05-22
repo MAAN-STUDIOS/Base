@@ -2,6 +2,7 @@
 import { Vector } from "@utils/vector.js";
 import { hitbox } from "@utils/hitbox.js";
 
+
 export class GameObject {
     constructor(options = {}) {
         this.position = options.position || new Vector(0, 0);
