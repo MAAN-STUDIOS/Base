@@ -8,76 +8,95 @@ export class FloodClone extends GameObject {
     this.health = 50;
     this.hitbox = new Hitbox(this);
     this.evolution = options.evolution || 1;
-    this.speed = 1.5;
+    this.speed = 150; // Speed in pixels per second
     this.target = null;
     this.attackRange = 50;
     this.attackCooldown = 0;
-    this.visionRadius = 150; // Radio de detección de enemigos
-    this.followDistance = 100; // Distancia que mantiene del jugador (seguirlo)
-    this.offset = new Vector(0, 0); // Offset para evitar superposición
+    this.visionRadius = 150;
+    this.followDistance = 100;
+    this.offset = new Vector(0, 0);
+    this.player = options.player; // Store reference to the player
   }
 
-  update(player, enemies) {
-    // Actualizar el offset para evitar superposición con otros clones
-    this.updateOffset(player);
-
-    // Buscar enemigos en el radio visual
-    const visibleEnemies = this.findVisibleEnemies(enemies);
-    if (visibleEnemies.length > 0) {
-      this.target = this.findNearestEnemy(visibleEnemies);
-    } else {
-      this.target = null;
+  update(dt, player, enemies) {
+    // Ensure we have a valid player reference
+    this.player = this.player || player;
+    if (!this.player) {
+      console.error("No player reference found for clone");
+      return;
     }
 
+    this._updateOffset(this.player);
+    this._acquireTarget(enemies);
+    
     if (this.target) {
-      // Calcular dirección hacia el objetivo
-      const dx = this.target.position.x - this.position.x;
-      const dy = this.target.position.y - this.position.y;
-      const distance = Math.sqrt(dx * dx + dy * dy);
-
-      // Si está en rango de ataque, atacar
-      if (distance <= this.attackRange) {
-        this.attack(this.target);
-      } else {
-        // Si no está en rango, moverse hacia el objetivo
-        const speed = this.speed;
-        if (dx !== 0) this.position.x += (dx / distance) * speed;
-        if (dy !== 0) this.position.y += (dy / distance) * speed;
-      }
+      this._chaseAndAttack(dt);
     } else {
-      // Si no hay objetivo, seguir al jugador manteniendo la distancia
-      const dx = player.position.x - this.position.x;
-      const dy = player.position.y - this.position.y;
-      const distance = Math.sqrt(dx * dx + dy * dy);
-
-      // Calcular la posición objetivo con el offset
-      const targetX = player.position.x + this.offset.x;
-      const targetY = player.position.y + this.offset.y;
-      
-      // Calcular la distancia a la posición objetivo
-      const targetDx = targetX - this.position.x;
-      const targetDy = targetY - this.position.y;
-      const targetDistance = Math.sqrt(targetDx * targetDx + targetDy * targetDy);
-
-      if (targetDistance > 10) { // Si no está lo suficientemente cerca de su posición objetivo
-        const speed = this.speed;
-        if (targetDx !== 0) this.position.x += (targetDx / targetDistance) * speed;
-        if (targetDy !== 0) this.position.y += (targetDy / targetDistance) * speed;
-      }
+      this._followPlayer(dt, this.player);
     }
   }
 
-  updateOffset(player) {
-    // Calcular un offset basado en el índice del clon en el array de clones
+  _updateOffset(player) {
+    if (!player || !player.clones) {
+      player.clones = [];
+    }
+    
     const index = player.clones.indexOf(this);
     if (index !== -1) {
-      const angle = (index * (2 * Math.PI / 4)) + (performance.now() / 1000); 
+      const angle = (index * (2 * Math.PI / 4)) + (performance.now() / 1000);
+      this.offset.x = Math.cos(angle) * this.followDistance;
+      this.offset.y = Math.sin(angle) * this.followDistance;
+    } else {
+      // If clone is not in the array, add it
+      player.clones.push(this);
+      // Recalculate index after adding
+      const newIndex = player.clones.indexOf(this);
+      const angle = (newIndex * (2 * Math.PI / 4)) + (performance.now() / 1000);
       this.offset.x = Math.cos(angle) * this.followDistance;
       this.offset.y = Math.sin(angle) * this.followDistance;
     }
   }
 
-  findVisibleEnemies(enemies) {
+  _acquireTarget(enemies) {
+    const visibleEnemies = this._findVisibleEnemies(enemies);
+    this.target = visibleEnemies.length > 0 ? this._findNearestEnemy(visibleEnemies) : null;
+  }
+
+  _chaseAndAttack(dt) {
+    const dx = this.target.position.x - this.position.x;
+    const dy = this.target.position.y - this.position.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
+    if (distance <= this.attackRange) {
+      this._attack(this.target);
+    } else {
+      const moveSpeed = this.speed * dt;
+      if (dx !== 0) this.position.x += (dx / distance) * moveSpeed;
+      if (dy !== 0) this.position.y += (dy / distance) * moveSpeed;
+    }
+  }
+
+  _followPlayer(dt, player) {
+    if (!player || !player.position) {
+      console.error("Invalid player reference in _followPlayer");
+      return;
+    }
+
+    const targetX = player.position.x + this.offset.x;
+    const targetY = player.position.y + this.offset.y;
+    
+    const targetDx = targetX - this.position.x;
+    const targetDy = targetY - this.position.y;
+    const targetDistance = Math.sqrt(targetDx * targetDx + targetDy * targetDy);
+
+    if (targetDistance > 10) {
+      const moveSpeed = this.speed * dt;
+      if (targetDx !== 0) this.position.x += (targetDx / targetDistance) * moveSpeed;
+      if (targetDy !== 0) this.position.y += (targetDy / targetDistance) * moveSpeed;
+    }
+  }
+
+  _findVisibleEnemies(enemies) {
     if (!enemies || enemies.length === 0) return [];
 
     return enemies.filter(enemy => {
@@ -88,7 +107,7 @@ export class FloodClone extends GameObject {
     });
   }
 
-  findNearestEnemy(enemies) {
+  _findNearestEnemy(enemies) {
     if (!enemies || enemies.length === 0) return null;
 
     let nearest = null;
@@ -108,7 +127,7 @@ export class FloodClone extends GameObject {
     return nearest;
   }
 
-  attack(target) {
+  _attack(target) {
     const now = performance.now();
     if (now < this.attackCooldown) return;
 
@@ -130,7 +149,7 @@ export class FloodClone extends GameObject {
     // Dibujar la barra de vida
     const healthBarWidth = this.width;
     const healthBarHeight = 5;
-    const healthPercentage = this.health / 50; // 50 es la vida máxima
+    const healthPercentage = this.health / 50;
 
     // Fondo de la barra de vida
     ctx.fillStyle = "red";
@@ -161,6 +180,13 @@ export class FloodClone extends GameObject {
   }
 
   die() {
+    // Remove clone from player's clones array when destroyed
+    if (this.player && this.player.clones) {
+      const index = this.player.clones.indexOf(this);
+      if (index !== -1) {
+        this.player.clones.splice(index, 1);
+      }
+    }
     console.log("Clone destroyed");
   }
 }

@@ -1,292 +1,301 @@
-
-import { FloodPlayer } from "@engine/floodplayer.js";
+import { FloodPlayer } from "@engine/floodPlayer.js";
 import { Vector } from "@utils/vector.js";
-import { ObjectContainer, FloodContainer } from "@engine/objectcontainer.js";
+import { ObjectMap } from "@engine/objectMap.jsx";
+import MapSS from "@assets/map.png";
 import styles from "@screens/styles/game.module.css";
-import eventBus from "../core/utils/eventbus";  
+import logger from "@utils/logger.js";
 
-export default function () {
-  setTimeout(() => {
-    const canvas = document.getElementById("game");
-    if (!canvas) {
-      console.error("Canvas not found!");
-      return;
-    }
-    console.log("Canvas found:", canvas);
-    eventBus.emit("game:menu");
+export default function floodScreen() {
+    const setup = () => {
+        const TARGET_FPS = 60;
+        const MS_PER_UPDATE = 1000 / TARGET_FPS;
 
-    function resizeCanvas() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-      console.log("Canvas resized to:", canvas.width, canvas.height);
-    }
+        const PLAYER_SIZE = 50;
 
-    resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
+        const game = document.getElementById("game");
+        game.width = window.innerWidth;
+        game.height = window.innerHeight;
+        const ctx = game.getContext("2d");
+        logger.debug("Canvas initialized", { width: game.width, height: game.height });
 
-    const ctx = canvas.getContext("2d");
-    if (!ctx) {
-      console.error("Could not get canvas context!");
-      return;
-    }
-    console.log("Canvas context obtained");
+        const gameMap = new ObjectMap(MapSS, game.width, game.height, {
+            tiles_per_row: 1,
+            tile_size: 32,
+            chunk_size: 16,
+            n_loaded_chunks: 2,
+            debug: true,
+            real_position: Vector.zero()
+        });
+        logger.debug("Game map initialized");
 
-    const flood = new FloodPlayer({
-      
-      position: new Vector(
-        canvas.width / 2 - 25,
-        canvas.height / 2 - 25
-      ),
-      width: 50,
-      height: 50,
-      color: "purple"
-    });
-    console.log("Flood player created at:", flood.position);
+        const player = new FloodPlayer({
+            position: new Vector(
+                game.width / 2 - PLAYER_SIZE / 2,
+                game.height / 2 - PLAYER_SIZE / 2
+            ),
+            width: PLAYER_SIZE,
+            height: PLAYER_SIZE,
+            walkSpeed: 600,
+            runSpeed: 1200
+        });
+        logger.debug("Flood player created", { position: player.position });
 
-    const clones = [];
-    const enemies = [];
-    
-    // Crear contenedores para recolectar biomasa
-    const containers = [];
-    
-    // Crear contenedor estándar
-    function createContainer(type, x, y) {
-      const container = type === "flood" 
-        ? new FloodContainer({
-            position: new Vector(x, y),
-            width: 40,
-            height: 40,
-            color: "#8b0000"
-          })
-        : new ObjectContainer({
-            containerType: "crate",
-            position: new Vector(x, y),
-            width: 40,
-            height: 40
-          });
-      
-      container.generateContent();
-      containers.push(container);
-      return container;
-    }
-    
-    // Crear varios contenedores en el mapa
-    createContainer("flood", canvas.width / 2 - 200, canvas.height / 2 - 100);
-    createContainer("flood", canvas.width / 2 + 150, canvas.height / 2 + 100);
-    createContainer("standard", canvas.width / 2 - 100, canvas.height / 2 + 150);
-    createContainer("standard", canvas.width / 2 + 200, canvas.height / 2 - 150);
+        // Arrays for managing game entities
+        const clones = [];
+        const enemies = [];
 
-    // Crear algunos enemigos de prueba
-    for (let i = 0; i < 5; i++) {
-      enemies.push({
-        position: new Vector(
-          Math.random() * canvas.width,
-          Math.random() * canvas.height
-        ),
-        width: 30,
-        height: 30,
-        health: 100,
-        takeDamage(amount) {
-          this.health -= amount;
-          eventBus.emit("human:takeDamage");
-          if (this.health <= 0) {
-            const index = enemies.indexOf(this);
-            if (index > -1) {
-              enemies.splice(index, 1);
+        // Input handling for abilities
+        const abilityKeys = {
+            evolve: false,
+            clone: false,
+            attack: false
+        };
+
+        window.addEventListener('keydown', (e) => {
+            switch (e.key.toLowerCase()) {
+                case 'e':
+                    abilityKeys.evolve = true;
+                    break;
+                case 'c':
+                    abilityKeys.clone = true;
+                    break;
+                case 'f':
+                    abilityKeys.attack = true;
+                    break;
             }
-          }
-        }
-      });
-    }
+        });
 
-    const keys = {};
-    window.addEventListener("keydown", (e) => (keys[e.key.toLowerCase()] = true));
-    window.addEventListener("keyup", (e) => (keys[e.key.toLowerCase()] = false));
-    
-    // Eliminar el manejador de clics ya que ahora la interacción es por proximidad
-    
-    function getPlayerOverlappingContainer() {
-      // Comprobar qué contenedor está bajo el jugador
-      for (const container of containers) {
-        // Verificar si hay solapamiento entre jugador y contenedor
-        const playerCenterX = flood.position.x + flood.width / 2;
-        const playerCenterY = flood.position.y + flood.height / 2;
-        const containerCenterX = container.position.x + container.width / 2;
-        const containerCenterY = container.position.y + container.height / 2;
-        
-        // Calcular la distancia entre centros
-        const distance = Math.sqrt(
-          Math.pow(playerCenterX - containerCenterX, 2) + 
-          Math.pow(playerCenterY - containerCenterY, 2)
-        );
-        
-        // Si el jugador está lo suficientemente cerca del contenedor
-        if (distance < 40) {
-          return container;
-        }
-      }
-      return null;
-    }
-
-    function loop() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      const baseSpeed = 2;
-      const sprintSpeed = 4;
-      const currentSpeed = keys["shift"] ? sprintSpeed : baseSpeed;
-
-      if (keys["w"]) flood.position.y -= currentSpeed;
-      if (keys["s"]) flood.position.y += currentSpeed;
-      if (keys["a"]) flood.position.x -= currentSpeed;
-      if (keys["d"]) flood.position.x += currentSpeed;
-
-      if (keys["e"]) flood.evolve();
-      if (keys["c"]) {
-        const clone = flood.createClone();
-        if (clone) {
-          clones.push(clone);
-        }
-      }
-      
-      // Interacción con contenedores cuando el jugador está encima
-      const containerUnderPlayer = getPlayerOverlappingContainer();
-      
-      // Mostrar indicador visual si hay un contenedor bajo el jugador
-      if (containerUnderPlayer) {
-        ctx.beginPath();
-        ctx.arc(
-          containerUnderPlayer.position.x + containerUnderPlayer.width / 2,
-          containerUnderPlayer.position.y + containerUnderPlayer.height / 2,
-          45, 0, 2 * Math.PI
-        );
-        ctx.strokeStyle = "rgba(255, 255, 255, 0.7)";
-        ctx.lineWidth = 2;
-        ctx.stroke();
-        
-        // Si se presiona F, interactuar con el contenedor
-        if (keys["f"]) {
-          // Reiniciar la tecla para evitar interacciones repetidas
-          keys["f"] = false;
-          
-          if (containerUnderPlayer instanceof FloodContainer) {
-            if (!containerUnderPlayer.isOpen) {
-              containerUnderPlayer.open(flood);
+        window.addEventListener('keyup', (e) => {
+            switch (e.key.toLowerCase()) {
+                case 'e':
+                    abilityKeys.evolve = false;
+                    break;
+                case 'c':
+                    abilityKeys.clone = false;
+                    break;
+                case 'f':
+                    abilityKeys.attack = false;
+                    break;
             }
+        });
+
+        window.addEventListener('resize', () => {
+            game.width = window.innerWidth;
+            game.height = window.innerHeight;
+
+            gameMap.viewPort.width = game.width;
+            gameMap.viewPort.height = game.height;
+
+            logger.debug("Canvas resized", { width: game.width, height: game.height });
+        });
+
+        function gameLoop(currentTime) {
+            if (!gameLoop.previousTime) {
+                gameLoop.previousTime = currentTime;
+                gameLoop.lag = 0;
+            }
+
+            const elapsed = currentTime - gameLoop.previousTime;
+            gameLoop.previousTime = currentTime;
+            gameLoop.lag += elapsed;
+
+            while (gameLoop.lag >= MS_PER_UPDATE) {
+                const dt = MS_PER_UPDATE / 1000;
+
+                const prevPosition = player.real_position.clone();
+
+                // Update player movement
+                player.update(dt);
+                
+                // Handle collisions
+                handleCollisions(player, gameMap, prevPosition);
+                
+                // Handle abilities
+                handleAbilities(player, abilityKeys, clones, enemies);
+                
+                // Update clones
+                clones.forEach((clone, index) => {
+                    if (clone && clone.update) {
+                        clone.update(dt, player, enemies);
+                        
+                        // Remove dead clones
+                        if (clone.health <= 0) {
+                            clones.splice(index, 1);
+                        }
+                    }
+                });
+
+                // Update map with real position
+                gameMap.update(player.real_position, MS_PER_UPDATE);
+
+                gameLoop.lag -= MS_PER_UPDATE;
+            }
+
+            // Rendering
+            ctx.clearRect(0, 0, game.width, game.height);
+            gameMap.draw(ctx);
+            player.draw(ctx);
             
-            // Extraer biomasa si es un contenedor Flood
-            const biomassAmount = containerUnderPlayer.extractBiomass(flood);
-            if (biomassAmount > 0) {
-              flood.biomass += biomassAmount;
-              console.log(`Extracted ${biomassAmount} biomass. Total: ${flood.biomass}`);
+            // Draw clones
+            clones.forEach(clone => {
+                if (clone && clone.draw) {
+                    clone.draw(ctx);
+                }
+            });
+
+            // Draw UI information
+            drawUI(ctx, player, clones, enemies);
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        /**
+         * Handles collision detection and resolution between player and map
+         * @param {FloodPlayer} player - The player to check collisions for
+         * @param {ObjectMap} gameMap - The game map with hitboxes
+         * @param {Vector} prevPosition - Player's position before movement
+         */
+        function handleCollisions(player, gameMap, prevPosition) {
+            for (const boundary of gameMap.boundaries) {
+                if (player.hitbox.collidesWith(boundary)) {
+                    resolveCollision(player, boundary, prevPosition);
+                }
             }
-          } else {
-            // Alternar estado abierto/cerrado
-            if (containerUnderPlayer.isOpen) {
-              containerUnderPlayer.close();
-            } else {
-              containerUnderPlayer.open(flood);
+
+            for (const hitbox of gameMap.hitboxes) {
+                if (hitbox.isPhysical && player.hitbox.collidesWith(hitbox)) {
+                    resolveCollision(player, hitbox, prevPosition);
+                }
             }
-          }
         }
-      }
-      
-      // Ataque al enemigo más cercano
-      if (keys["r"]) {
-        const nearestEnemy = enemies.reduce((nearest, enemy) => {
-          const dx = enemy.position.x - flood.position.x;
-          const dy = enemy.position.y - flood.position.y;
-          const distance = Math.sqrt(dx * dx + dy * dy);
-          if (!nearest || distance < nearest.distance) {
-            return { enemy, distance };
-          }
-          return nearest;
-        }, null);
 
-        if (nearestEnemy && nearestEnemy.distance < 100) {
-          flood.attack("melee", nearestEnemy.enemy);
+        /**
+         * Resolves collision by adjusting player position
+         * @param {FloodPlayer} player - The player object
+         * @param {Hitbox} obstacle - The hitbox player collided with
+         * @param {Vector} prevPosition - Player's position before collision
+         */
+        function resolveCollision(player, obstacle, prevPosition) {
+            const currX = player.real_position.x;
+            const currY = player.real_position.y;
+
+            player.real_position.x = currX;
+            player.real_position.y = prevPosition.y;
+
+            if (player.hitbox.collidesWith(obstacle)) {
+                player.real_position.x = prevPosition.x;
+                player.real_position.y = currY;
+
+                if (player.hitbox.collidesWith(obstacle)) {
+                    player.real_position.x = prevPosition.x;
+                    player.real_position.y = prevPosition.y;
+                }
+            }
+
+            // Keep player visually centered on screen
+            player.position.x = game.width / 2 - PLAYER_SIZE / 2;
+            player.position.y = game.height / 2 - PLAYER_SIZE / 2;
         }
-      }
 
-      clones.forEach(clone => {
-        clone.update(flood, enemies);
-      });
-      
-      // Dibujar contenedores
-      containers.forEach(container => {
-        container.draw(ctx);
-        
-        // Dibujar etiqueta de estado
-        const centerX = container.position.x + container.width / 2;
-        const centerY = container.position.y - 10;
-        
-        ctx.font = "12px monospace";
-        ctx.fillStyle = "white";
-        ctx.textAlign = "center";
-        
-        if (container instanceof FloodContainer) {
-          if (container.biomassAmount > 0) {
-            ctx.fillText("Biomass", centerX, centerY);
-          } else {
-            ctx.fillText("Empty", centerX, centerY);
-          }
-        } else {
-          ctx.fillText(container.isOpen ? "Open" : "Closed", centerX, centerY);
+        /**
+         * Handles ability inputs and execution
+         * @param {FloodPlayer} player - The flood player
+         * @param {Object} abilityKeys - Current state of ability keys
+         * @param {Array} clones - Array of active clones
+         * @param {Array} enemies - Array of enemies
+         */
+        function handleAbilities(player, abilityKeys, clones, enemies) {
+            // Evolution ability
+            if (abilityKeys.evolve) {
+                player.evolve();
+                abilityKeys.evolve = false; // Prevent continuous evolution
+            }
+
+            // Clone creation ability
+            if (abilityKeys.clone) {
+                const clone = player.createClone();
+                if (clone) {
+                    clones.push(clone);
+                    logger.debug("Clone created", { totalClones: clones.length });
+                }
+                abilityKeys.clone = false; // Prevent continuous cloning
+            }
+
+            // Attack ability
+            if (abilityKeys.attack) {
+                const nearestEnemy = findNearestEnemy(player, enemies);
+                if (nearestEnemy && nearestEnemy.distance < 100) {
+                    player.attack("melee", nearestEnemy.enemy);
+                }
+                abilityKeys.attack = false; // Prevent continuous attacking
+            }
         }
-        
-        ctx.textAlign = "left";
-      });
 
-      enemies.forEach(enemy => {
-        ctx.fillStyle = "red";
-        ctx.fillRect(enemy.position.x, enemy.position.y, enemy.width, enemy.height);
-        
-        const healthPercentage = enemy.health / 100;
-        ctx.fillStyle = "gray";
-        ctx.fillRect(enemy.position.x, enemy.position.y - 10, enemy.width, 5);
-        ctx.fillStyle = "green";
-        ctx.fillRect(enemy.position.x, enemy.position.y - 10, enemy.width * healthPercentage, 5);
-      });
+        /**
+         * Finds the nearest enemy to the player
+         * @param {FloodPlayer} player - The flood player
+         * @param {Array} enemies - Array of enemies
+         * @returns {Object|null} Object with enemy and distance, or null if no enemies
+         */
+        function findNearestEnemy(player, enemies) {
+            if (enemies.length === 0) return null;
 
-      flood.draw(ctx);
-      clones.forEach(clone => clone.draw(ctx));
+            return enemies.reduce((nearest, enemy) => {
+                const dx = enemy.position.x - player.real_position.x;
+                const dy = enemy.position.y - player.real_position.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (!nearest || distance < nearest.distance) {
+                    return { enemy, distance };
+                }
+                return nearest;
+            }, null);
+        }
 
-      ctx.font = "16px monospace";
-      ctx.fillStyle = "white";
-      ctx.fillText(`Biomass: ${flood.biomass}`, 20, 30);
-      ctx.fillText(`Evo: ${flood.evolution}`, 20, 50);
-      ctx.fillText(`Speed: ${currentSpeed}`, 20, 70);
-      ctx.fillText(`Clones: ${clones.length}`, 20, 90);
-      ctx.fillText(`Enemies: ${enemies.length}`, 20, 110);
-      
-      // Instrucciones actualizadas
-      ctx.fillText("WASD - Move", 20, canvas.height - 100);
-      ctx.fillText("E - Evolve", 20, canvas.height - 80);
-      ctx.fillText("C - Create clone", 20, canvas.height - 60);
-      ctx.fillText("F - Interact with container/Extract biomass", 20, canvas.height - 40);
-      ctx.fillText("R - Attack enemies", 20, canvas.height - 20);
-      
-      // Ya usamos containerUnderPlayer arriba, no necesitamos declararlo de nuevo
-      if (containerUnderPlayer) {
-        ctx.font = "18px monospace";
-        ctx.fillStyle = "yellow";
-        ctx.textAlign = "center";
-        ctx.fillText("Press F to interact", 
-          canvas.width / 2, 
-          canvas.height - 150);
-        ctx.textAlign = "left";
-      }
+        /**
+         * Draws UI information on the screen
+         * @param {CanvasRenderingContext2D} ctx - The canvas rendering context
+         * @param {FloodPlayer} player - The flood player
+         * @param {Array} clones - Array of active clones
+         * @param {Array} enemies - Array of enemies
+         */
+        function drawUI(ctx, player, clones, enemies) {
+            ctx.font = "16px monospace";
+            ctx.fillStyle = "white";
+            ctx.strokeStyle = "black";
+            ctx.lineWidth = 2;
 
-      requestAnimationFrame(loop);
-      
-    }
+            const uiTexts = [
+                `Biomass: ${player.biomass}`,
+                `Evolution: ${player.evolution}`,
+                `${player.isRunning ? "Running" : "Walking"}`,
+                `Clones: ${clones.length}`,
+                `Enemies: ${enemies.length}`
+            ];
 
-    loop();
-  }, 100);
+            uiTexts.forEach((text, index) => {
+                const y = 30 + (index * 25);
+                ctx.strokeText(text, 20, y);
+                ctx.fillText(text, 20, y);
+            });
+        }
 
-  return `
-    <main class="${styles.container}">
-      <canvas id="game"></canvas>
-    </main>
-  `;
+        requestAnimationFrame(gameLoop);
+    };
 
+    return [setup, `
+        <main class="${styles.container}">
+          <canvas id="game"></canvas>
+          <div>
+            <h3 class="${styles.containerH3}">CONTROLS</h3>
+            <ul class="${styles.containerUl}">
+                <li>MOVE: WASD or Arrow Keys</li>
+                <li>RUN: Hold Shift</li>
+                <li>EVOLVE: E</li>
+                <li>CREATE CLONE: C</li>
+                <li>ATTACK: F</li>
+            </ul>
+          </div>
+        </main>
+   `];
 }
