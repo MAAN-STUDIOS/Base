@@ -1,8 +1,6 @@
 "use strict";
 import { Vector } from "@utils/vector.js";
 import { hitbox } from "@utils/hitbox.js";
-import { Player } from "@engine/objectplayer.js";
-
 
 export class GameObject {
     constructor(options = {}) {
