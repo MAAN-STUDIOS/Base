@@ -3,21 +3,34 @@ import { Vector } from "@utils/vector.js";
 import { ObjectMap } from "@engine/objectMap.jsx";
 import MapSS from "@assets/map.png";
 import styles from "@screens/styles/game.module.css";
+import FloodHUD from "../components/FloodHUD.js";
 import logger from "@utils/logger.js";
 
 export default function floodScreen() {
     const setup = () => {
         const TARGET_FPS = 60;
         const MS_PER_UPDATE = 1000 / TARGET_FPS;
-
         const PLAYER_SIZE = 50;
 
+        // Initialize game container first
+        const gameContainer = document.querySelector(`.${styles.container}`);
+        if (!gameContainer) {
+            logger.error("Game container not found!");
+            return;
+        }
+        logger.debug("Game container found");
+
         const game = document.getElementById("game");
+        if (!game) {
+            logger.error("Game canvas not found!");
+            return;
+        }
         game.width = window.innerWidth;
         game.height = window.innerHeight;
         const ctx = game.getContext("2d");
         logger.debug("Canvas initialized", { width: game.width, height: game.height });
 
+        // Initialize game map
         const gameMap = new ObjectMap(MapSS, game.width, game.height, {
             tiles_per_row: 1,
             tile_size: 32,
@@ -28,6 +41,7 @@ export default function floodScreen() {
         });
         logger.debug("Game map initialized");
 
+        // Create player in center of screen
         const player = new FloodPlayer({
             position: new Vector(
                 game.width / 2 - PLAYER_SIZE / 2,
@@ -39,6 +53,10 @@ export default function floodScreen() {
             runSpeed: 1200
         });
         logger.debug("Flood player created", { position: player.position });
+
+        // Initialize HUD
+        const hud = new FloodHUD(gameContainer);
+        logger.debug("HUD initialized");
 
         // Arrays for managing game entities
         const clones = [];
@@ -103,30 +121,22 @@ export default function floodScreen() {
                 const dt = MS_PER_UPDATE / 1000;
 
                 const prevPosition = player.real_position.clone();
-
-                // Update player movement
                 player.update(dt);
-                
-                // Handle collisions
                 handleCollisions(player, gameMap, prevPosition);
-                
-                // Handle abilities
                 handleAbilities(player, abilityKeys, clones, enemies);
                 
                 // Update clones
                 clones.forEach((clone, index) => {
                     if (clone && clone.update) {
                         clone.update(dt, player, enemies);
-                        
-                        // Remove dead clones
                         if (clone.health <= 0) {
                             clones.splice(index, 1);
                         }
                     }
                 });
 
-                // Update map with real position
                 gameMap.update(player.real_position, MS_PER_UPDATE);
+                hud.update(player);
 
                 gameLoop.lag -= MS_PER_UPDATE;
             }
@@ -142,9 +152,6 @@ export default function floodScreen() {
                     clone.draw(ctx);
                 }
             });
-
-            // Draw UI information
-            drawUI(ctx, player, clones, enemies);
 
             requestAnimationFrame(gameLoop);
         }
@@ -252,50 +259,29 @@ export default function floodScreen() {
             }, null);
         }
 
-        /**
-         * Draws UI information on the screen
-         * @param {CanvasRenderingContext2D} ctx - The canvas rendering context
-         * @param {FloodPlayer} player - The flood player
-         * @param {Array} clones - Array of active clones
-         * @param {Array} enemies - Array of enemies
-         */
-        function drawUI(ctx, player, clones, enemies) {
-            ctx.font = "16px monospace";
-            ctx.fillStyle = "white";
-            ctx.strokeStyle = "black";
-            ctx.lineWidth = 2;
-
-            const uiTexts = [
-                `Biomass: ${player.biomass}`,
-                `Evolution: ${player.evolution}`,
-                `${player.isRunning ? "Running" : "Walking"}`,
-                `Clones: ${clones.length}`,
-                `Enemies: ${enemies.length}`
-            ];
-
-            uiTexts.forEach((text, index) => {
-                const y = 30 + (index * 25);
-                ctx.strokeText(text, 20, y);
-                ctx.fillText(text, 20, y);
-            });
-        }
-
+        // Start the game loop
         requestAnimationFrame(gameLoop);
     };
 
     return [setup, `
         <main class="${styles.container}">
-          <canvas id="game"></canvas>
-          <div>
-            <h3 class="${styles.containerH3}">CONTROLS</h3>
-            <ul class="${styles.containerUl}">
-                <li>MOVE: WASD or Arrow Keys</li>
-                <li>RUN: Hold Shift</li>
-                <li>EVOLVE: E</li>
-                <li>CREATE CLONE: C</li>
-                <li>ATTACK: F</li>
-            </ul>
-          </div>
+            <canvas id="game"></canvas>
         </main>
-   `];
+    `];
+
+    //   return [setup, `
+    //     <main class="${styles.container}">
+    //         <canvas id="game"></canvas>
+    //         <div class="${styles.containerDiv}">
+    //             <h3 class="${styles.containerH3}">CONTROLS</h3>
+    //             <ul class="${styles.containerUl}">
+    //                 <li>MOVE: WASD or Arrow Keys</li>
+    //                 <li>RUN: Hold Shift</li>
+    //                 <li>EVOLVE: E</li>
+    //                 <li>CREATE CLONE: C</li>
+    //                 <li>ATTACK: F</li>
+    //             </ul>
+    //         </div>
+    //     </main>
+    // `];
 }
