@@ -268,20 +268,4 @@ export default function floodScreen() {
             <canvas id="game"></canvas>
         </main>
     `];
-
-    //   return [setup, `
-    //     <main class="${styles.container}">
-    //         <canvas id="game"></canvas>
-    //         <div class="${styles.containerDiv}">
-    //             <h3 class="${styles.containerH3}">CONTROLS</h3>
-    //             <ul class="${styles.containerUl}">
-    //                 <li>MOVE: WASD or Arrow Keys</li>
-    //                 <li>RUN: Hold Shift</li>
-    //                 <li>EVOLVE: E</li>
-    //                 <li>CREATE CLONE: C</li>
-    //                 <li>ATTACK: F</li>
-    //             </ul>
-    //         </div>
-    //     </main>
-    // `];
 }

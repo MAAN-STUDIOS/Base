@@ -5,42 +5,6 @@
   pointer-events: none;
 }
 
-/* Core Stats Section */
-.coreStats {
-  position: absolute;
-  top: 20px;
-  left: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.statBar {
-  width: 200px;
-  height: 20px;
-  background: rgba(0, 0, 0, 0.5);
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: 10px;
-  overflow: hidden;
-}
-
-.statFill {
-  height: 100%;
-  transition: width 0.3s ease;
-}
-
-.healthFill {
-  background: #8B0000; /* Dark Red */
-}
-
-.biomassFill {
-  background: #800080; /* Purple */
-}
-
-.evolutionFill {
-  background: #006400; /* Green */
-}
-
 .statLabel {
   color: white;
   font-size: 14px;
@@ -48,35 +12,6 @@
   text-shadow: 1px 1px 2px black;
 }
 
-/* Clone Abilities Section */
-.cloneAbilities {
-  position: absolute;
-  bottom: 20px;
-  left: 20px;
-  display: flex;
-  gap: 15px;
-}
-
-.cloneSlot {
-  width: 60px;
-  height: 60px;
-  background: rgba(0, 0, 0, 0.5);
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: 8px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-}
-
-.cloneIcon {
-  width: 40px;
-  height: 40px;
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
-}
 
 .cooldownOverlay {
   position: absolute;
@@ -99,62 +34,3 @@
   font-size: 12px;
   text-shadow: 1px 1px 2px black;
 }
-
-/* Mutation Powers Section */
-.mutationPowers {
-  position: absolute;
-  bottom: 20px;
-  right: 20px;
-  display: flex;
-  gap: 15px;
-}
-
-.mutationSlot {
-  width: 50px;
-  height: 50px;
-  background: rgba(0, 0, 0, 0.5);
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-}
-
-.mutationIcon {
-  width: 30px;
-  height: 30px;
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
-}
-
-.usesIndicator {
-  position: absolute;
-  bottom: -15px;
-  left: 50%;
-  transform: translateX(-50%);
-  color: white;
-  font-size: 12px;
-  text-shadow: 1px 1px 2px black;
-}
-
-/* Speed Indicator */
-.speedIndicator {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  color: white;
-  font-size: 14px;
-  text-shadow: 1px 1px 2px black;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.speedIcon {
-  width: 20px;
-  height: 20px;
-  background: url('@assets/icons/speed.png') no-repeat center;
-  background-size: contain;
-} 
