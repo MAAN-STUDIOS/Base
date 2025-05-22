@@ -5,6 +5,9 @@ import MapSS from "@assets/map.png";
 import styles from "@screens/styles/game.module.css";
 import logger from "@utils/logger.js";
 
+/** @type string */
+import HUD from "@assets/HUD/HUD.png"
+
 
 export default function humanScreen() {
     const setup = () => {
@@ -12,6 +15,9 @@ export default function humanScreen() {
         const MS_PER_UPDATE = 1000 / TARGET_FPS;
 
         const PLAYER_SIZE = 50;
+
+        const hud = new Image();
+        hud.src = HUD;
 
         const game = document.getElementById("game");
         game.width = window.innerWidth;
@@ -21,7 +27,7 @@ export default function humanScreen() {
 
         const minimap = document.getElementById("minimap");
         minimap.width = 250;
-        minimap.height = 250;
+        minimap.height = 125;
         const minimapCtx = minimap.getContext("2d");
         logger.debug("Mini map initialized", { width: minimap.width, height: minimap.height });
 
@@ -96,6 +102,14 @@ export default function humanScreen() {
             gameMap.draw(ctx);
             player.draw(ctx);
 
+            ctx.drawImage(
+                hud,
+                0, 0,
+                2304, 1728,
+                0, 0,
+                game.width, game.height
+            )
+
             gameMiniMap.draw(minimapCtx, 1.8);
 
             const minimapPlayerSize = 4;
@@ -108,10 +122,9 @@ export default function humanScreen() {
                 0,
                 Math.PI * 2
             );
-            // minimapCtx.fillRect(minimap.width , minimap.height);
             minimapCtx.fill();
 
-            minimapCtx.strokeStyle = "white";
+            minimapCtx.strokeStyle = "rgba(96,94,94,0.24)";
             minimapCtx.lineWidth = 2;
             minimapCtx.strokeRect(0, 0, minimap.width, minimap.height);
 
@@ -172,13 +185,6 @@ export default function humanScreen() {
           <canvas id="game"></canvas>
           <canvas class="${styles.map}" id="minimap"></canvas>
           <canvas class="${styles.mapBg}"></canvas>
-          <div class="${styles.containerDiv}">
-            <h3 class="${styles.containerH3}">CONTROLS</h3>
-            <ul class="${styles.containerUl}">
-                <li>MOVE: Arrow Keys</li>
-                <li>RUN:  Hold Shift</li>
-            </ul>
-          </div>
         </main>
    `];
 }
