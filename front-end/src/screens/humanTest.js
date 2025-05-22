@@ -4,6 +4,8 @@ import { ObjectMap } from "@engine/objectMap.jsx";
 import MapSS from "@assets/map.png";
 import styles from "@screens/styles/game.module.css";
 import logger from "@utils/logger.js";
+
+/** @type string */
 import HUD from "@assets/HUD/HUD.png"
 
 
