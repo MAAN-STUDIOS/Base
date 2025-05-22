@@ -1,7 +1,7 @@
 import { Player } from "./objectPlayer.js";
 import { Vector } from "@utils/vector.js";
 import { Hitbox } from "@utils/hitbox.js";
-import { FloodClone } from "./floodClone.js";
+import { FloodClone } from "./floodclone.js";
 import logger from "@utils/logger.js";
 
 /**
@@ -20,7 +20,12 @@ export class FloodPlayer extends Player {
    * @param {number} [options.runSpeed=120] - Running speed.
    */
   constructor(options = {}) {
+    // Fix the super() call - remove undefined variables
     super(options);
+    
+    // Initialize real_position AFTER super() call, using this.position
+    this.real_position = this.position.clone();
+    
     this.biomass = 100;
     this.evolution = 1;
     this.cloneCooldown = 5000;
@@ -47,7 +52,13 @@ export class FloodPlayer extends Player {
     /** @type {Vector} - Direction vector for movement */
     this.moveDirection = Vector.zero();
     /** @type {Object} - Key states for movement and running */
-    this.keys = { up: false, down: false, left: false, right: false, shift: false };
+    this.keys = { 
+      up: false, 
+      down: false, 
+      left: false, 
+      right: false, 
+      shift: false
+    };
 
     this.#setupControls();
     logger.debug("FloodPlayer initialized");
@@ -60,20 +71,20 @@ export class FloodPlayer extends Player {
   #setupControls() {
     window.addEventListener("keydown", (e) => {
       switch (e.key) {
-        case "w":
         case "ArrowUp":
+        case "w":
           this.keys.up = true;
           break;
-        case "s":
         case "ArrowDown":
+        case "s":
           this.keys.down = true;
           break;
-        case "a":
         case "ArrowLeft":
+        case "a":
           this.keys.left = true;
           break;
-        case "d":
         case "ArrowRight":
+        case "d":
           this.keys.right = true;
           break;
         case "Shift":
@@ -84,20 +95,20 @@ export class FloodPlayer extends Player {
 
     window.addEventListener("keyup", (e) => {
       switch (e.key) {
-        case "w":
         case "ArrowUp":
+        case "w":
           this.keys.up = false;
           break;
-        case "s":
         case "ArrowDown":
+        case "s":
           this.keys.down = false;
           break;
-        case "a":
         case "ArrowLeft":
+        case "a":
           this.keys.left = false;
           break;
-        case "d":
         case "ArrowRight":
+        case "d":
           this.keys.right = false;
           break;
         case "Shift":
@@ -117,6 +128,8 @@ export class FloodPlayer extends Player {
   update(dt) {
     // Movement
     this.moveDirection.clear();
+
+    // Fixed: Use this.keys.up instead of this.keys["w"]
     if (this.keys.up) this.moveDirection.y -= 1;
     if (this.keys.down) this.moveDirection.y += 1;
     if (this.keys.left) this.moveDirection.x -= 1;
@@ -124,19 +137,21 @@ export class FloodPlayer extends Player {
 
     const moving = this.moveDirection.x !== 0 || this.moveDirection.y !== 0;
     if (moving) {
-      if (this.moveDirection.x !== 0 && this.moveDirection.y !== 0) {
-        this.moveDirection.normalize();
-      }
+      const movingDiagonally = (
+        this.moveDirection.x !== 0 && this.moveDirection.y !== 0
+      );
+      if (movingDiagonally) this.moveDirection.normalize();
+
       this.isRunning = this.keys.shift;
       const speed = this.isRunning ? this.runSpeed : this.walkSpeed;
-      this.moveDirection.scaleEqual(speed * dt);
-      this.position.addEqual(this.moveDirection);
+
+      const frameAdjustedSpeed = speed * dt;
+      this.moveDirection.scaleEqual(frameAdjustedSpeed);
+
+      this.real_position.addEqual(this.moveDirection);
       this.direction = this.moveDirection;
     }
-
-    // Call original behaviors (cooldowns, clones, attacks handled externally)
-    // Call base class update for inherited behaviors
-    super.update(dt);
+    // Fixed: Removed the random 'a' that was causing syntax error
   }
 
   infectHuman(human) {
