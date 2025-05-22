@@ -200,6 +200,8 @@ export class FloodPlayer extends Player {
   }
 
   attack(type, target) {
+    
+
     const now = performance.now();
     const cooldown = this.attackCooldowns[type] || 0;
     if (now < cooldown) return;

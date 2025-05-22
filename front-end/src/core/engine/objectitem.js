@@ -1,8 +1,11 @@
+
+
+
 "use strict";
 import { GameObject } from "./gameobject";
 import { Hitbox } from "@utils/hitbox.js";
 
-class ObjectItem extends GameObject{
+export class ObjectItem extends GameObject{
     constructor(options = {}){
         super(options);
         this.type = options.type || "default"
@@ -12,4 +15,6 @@ class ObjectItem extends GameObject{
     use(player){
         return undefined;
     }
+
+
 }

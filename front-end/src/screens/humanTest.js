@@ -1,6 +1,6 @@
 import { HumanPlayer } from "@engine/humanPlayer.js";
 import { Vector } from "@utils/vector.js";
-import { ObjectMap } from "@engine/objectMap.js";
+import { ObjectMap } from "@engine/objectMap.jsx";
 import MapSS from "@assets/map.png";
 import styles from "@screens/styles/game.module.css";
 import logger from "@utils/logger.js";
@@ -19,13 +19,29 @@ export default function humanScreen() {
         const ctx = game.getContext("2d");
         logger.debug("Canvas initialized", { width: game.width, height: game.height });
 
+        const minimap = document.getElementById("minimap");
+        minimap.width = 250;
+        minimap.height = 250;
+        const minimapCtx = minimap.getContext("2d");
+        logger.debug("Mini map initialized", { width: minimap.width, height: minimap.height });
+
         const gameMap = new ObjectMap(MapSS, game.width, game.height, {
             tiles_per_row: 1,
             tile_size: 32,
             chunk_size: 16,
             n_loaded_chunks: 2,
             debug: true,
-            real_position: Vector.zero()
+            real_position: Vector.zero(),
+            scale: 2
+        });
+        const gameMiniMap = new ObjectMap(MapSS, minimap.width, minimap.height, {
+            tiles_per_row: 1,
+            tile_size: 32,
+            chunk_size: 16,
+            n_loaded_chunks: 2,
+            debug: true,
+            real_position: Vector.zero(),
+            scale: 2
         });
         logger.debug("Game map initialized");
 
@@ -69,13 +85,35 @@ export default function humanScreen() {
                 player.update(dt);
                 handleCollisions(player, gameMap, prevPosition);
                 gameMap.update(player.real_position, MS_PER_UPDATE);
+                gameMiniMap.update(player.real_position, MS_PER_UPDATE);
 
                 gameLoop.lag -= MS_PER_UPDATE;
             }
 
             ctx.clearRect(0, 0, game.width, game.height);
+            minimapCtx.clearRect(0, 0, minimap.width, minimap.height);
+
             gameMap.draw(ctx);
             player.draw(ctx);
+
+            gameMiniMap.draw(minimapCtx, 1.8);
+
+            const minimapPlayerSize = 4;
+            minimapCtx.fillStyle = "#0048ff";
+            minimapCtx.beginPath();
+            minimapCtx.arc(
+                minimap.width / 2,
+                minimap.height / 2,
+                minimapPlayerSize,
+                0,
+                Math.PI * 2
+            );
+            // minimapCtx.fillRect(minimap.width , minimap.height);
+            minimapCtx.fill();
+
+            minimapCtx.strokeStyle = "white";
+            minimapCtx.lineWidth = 2;
+            minimapCtx.strokeRect(0, 0, minimap.width, minimap.height);
 
             requestAnimationFrame(gameLoop);
         }
@@ -132,7 +170,9 @@ export default function humanScreen() {
     return [setup, `
         <main class="${styles.container}">
           <canvas id="game"></canvas>
-          <div>
+          <canvas class="${styles.map}" id="minimap"></canvas>
+          <canvas class="${styles.mapBg}"></canvas>
+          <div class="${styles.containerDiv}">
             <h3 class="${styles.containerH3}">CONTROLS</h3>
             <ul class="${styles.containerUl}">
                 <li>MOVE: Arrow Keys</li>
