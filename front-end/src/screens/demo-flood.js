@@ -61,9 +61,6 @@ function findNearestEnemy(player, enemies) {
     }, null);
 }
 
-
-
-
 /**
  * Generates random waypoints around a center position
  * @param {Vector} center - Center position
@@ -143,14 +140,14 @@ function handleEnemySpawning(currentTime, player, enemies, config, gameMap) {
  * @param {number} dt - Delta time
  * @param {FloodPlayer||Player} player - The flood player
  * @param {Array} enemies - Array of enemies
+ * @param gameEngine
  */
 function updateEnemies(dt, player, enemies, gameEngine) {
     for (let i = enemies.length - 1; i >= 0; i--) {
         const enemy = enemies[i];
         if (enemy && enemy.update) {
-            const prevPos = enemy.position.clone();
             enemy.update(dt, player);
-            gameEngine.handleEnemyCollisions(enemy, gameEngine.map, prevPos);
+            gameEngine.handleEnemyCollisions(enemy, gameEngine.map);
 
             if (enemy.health <= 0) {
                 logger.debug("Enemy defeated", { remainingEnemies: enemies.length - 1 });
@@ -284,8 +281,10 @@ export default function floodScreen() {
     function respawnPlayer() {
         game.player.isDead = false;
         game.player.health = game.player.maxHealth;
-        game.player.real_position = new Vector(0, 0);
-        
+        game.player.real_position = Vector.zero();
+
+        // TODO: Consider it.
+        // game.player.biomass = Math.floor(game.player.biomass * 0.7);
 
         gameState.isGameOver = false;
         gameState.deathScreenShown = false;
@@ -339,7 +338,6 @@ export default function floodScreen() {
         game.on("update", (dt, currentTime) => {
             const playerIsDead = handlePlayerDeath(currentTime);
             if (playerIsDead) {
-                // Optional: Still update enemies but maybe slower
                 updateEnemies(dt * 0.5, game.player, enemies, game);
                 return;
             }
@@ -355,7 +353,7 @@ export default function floodScreen() {
 
 
             for (let i = 0; i < clones.length; ++i) {
-                if (clones[i].isDead == true) {
+                if (clones[i].isDead === true) {
                     clones.splice(i, 1);
                     continue;
                 }
@@ -380,6 +378,7 @@ export default function floodScreen() {
                     if (enemyScreenX >= -enemy.width && enemyScreenX <= game.map.camaraWidth + enemy.width &&
                         enemyScreenY >= -enemy.height && enemyScreenY <= game.map.camaraHeight + enemy.height) {
 
+                        // TODO: Update health bars logic.
                         // const healthBarWidth = enemy.width;
                         // const healthBarHeight = 5;
                         // const healthPercentage = enemy.health / enemy.maxHealth;
@@ -428,6 +427,16 @@ export default function floodScreen() {
             <button id="btn-continue">Continue</button>
             <button id="btn-back-to-play">Back to Play</button>
           </div>
+          
+          <div class=${styles.controls}>
+              <div class=${styles.controlsTitle}>CONTROLES</div>
+              <div class=${styles.controlItem}>Movimiento: ↑ ↓ ← →</div>
+              <div class=${styles.controlItem}>Correr: Shift + Flechas</div>
+              <div class=${styles.controlItem}>Clonar: [C]</div>
+              <div class=${styles.controlItem}>Evolucionar: [E]</div>
+              <div class=${styles.controlItem}>Atacar: [F]</div>
+              <div class=${styles.controlItem}>Reiniciar: [R]</div>
+          </div> 
         </main>
    `];
 }

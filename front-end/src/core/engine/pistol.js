@@ -1,12 +1,22 @@
-import { ShootingSystem } from "./shootingSystem.js";
+import { ShootingSystem } from "@engine/shootingSystem.js";
+
 
 export class Pistol {
-    constructor() {
+    /**
+     *
+     * @param options
+     * @param [options.speed]
+     * @param [options.damage]
+     * @param [options.range]
+     * @param [options.projectileType]
+     *
+     */
+    constructor(options = {}) {
         this.config = {
-            speed: 700,
-            damage: 15,
-            range: 600,
-            projectileType: "bullet"
+            speed: options.speed || 7,
+            damage: options.damage || 15,
+            range: options.range || 600,
+            projectileType: options.projectileType || "bullet"
         };
     }
 

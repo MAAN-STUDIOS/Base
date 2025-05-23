@@ -1,5 +1,5 @@
 import styles from "@screens/styles/floodHUD.module.css";
-import logger from "@utils/logger.js";
+
 
 export default class FloodHUD {
     constructor(gameContainer) {
@@ -20,12 +20,10 @@ export default class FloodHUD {
         this.setupCoreStats();
         this.setupCloneAbilities();
         this.setupMutationPowers();
-        this.setupControls();
 
         this.hudContainer.appendChild(this.statsContainer);
         this.hudContainer.appendChild(this.cloneAbilities);
         this.hudContainer.appendChild(this.mutationPowers);
-        this.hudContainer.appendChild(this.controlsContainer);
 
         this.gameContainer.appendChild(this.hudContainer);
     }
@@ -221,51 +219,6 @@ export default class FloodHUD {
         this.mutationPowers.appendChild(cloneInfoContainer);
     }
 
-    setupControls() {
-        this.controlsContainer = document.createElement('div');
-        this.controlsContainer.className = styles.controls;
-        this.controlsContainer.style.position = 'absolute';
-        this.controlsContainer.style.bottom = '150px';
-        this.controlsContainer.style.left = '20px';
-        this.controlsContainer.style.background = 'rgba(0, 0, 0, 0.7)';
-        this.controlsContainer.style.border = '2px solid rgba(255, 255, 255, 0.3)';
-        this.controlsContainer.style.borderRadius = '8px';
-        this.controlsContainer.style.padding = '15px';
-        this.controlsContainer.style.display = 'flex';
-        this.controlsContainer.style.flexDirection = 'column';
-        this.controlsContainer.style.gap = '8px';
-
-        const title = document.createElement('div');
-        title.textContent = 'CONTROLES';
-        title.style.color = '#77ff00';
-        title.style.fontSize = '16px';
-        title.style.fontWeight = 'bold';
-        title.style.textAlign = 'center';
-        title.style.marginBottom = '5px';
-        title.style.textShadow = '1px 1px 2px black';
-
-        const controls = [
-            'Movimiento: ↑ ↓ ← →',
-            'Correr: Shift + Flechas',
-            'Clonar: [C]',
-            'Evolucionar: [E]',  
-            'Atacar: [F]',
-            'Reiniciar: [R]'
-        ];
-
-        this.controlsContainer.appendChild(title);
-
-        controls.forEach(control => {
-            const controlElement = document.createElement('div');
-            controlElement.textContent = control;
-            controlElement.style.color = 'white';
-            controlElement.style.fontSize = '12px';
-            controlElement.style.textShadow = '1px 1px 2px black';
-            controlElement.style.whiteSpace = 'nowrap';
-            this.controlsContainer.appendChild(controlElement);
-        });
-    }
-
     update(player) {
         const maxHealth = 100 * player.evolution;
         const maxBiomass = 200;
@@ -307,7 +260,7 @@ export default class FloodHUD {
             
             this.cloneHealthContainer.innerHTML = '';
             
-            player.clones.forEach((clone, index) => {
+            player.clones.forEach((clone) => {
                 const healthBar = document.createElement('div');
                 healthBar.style.width = '100%';
                 healthBar.style.height = '12px';

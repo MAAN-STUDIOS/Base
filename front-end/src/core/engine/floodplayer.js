@@ -128,10 +128,7 @@ export class FloodPlayer extends Player {
    * @override
    */
   update(dt) {
-    if (this.isDead) {
-      return;
-    }
-    // Movement
+    if (this.isDead) return;
     this.moveDirection.clear();
 
     if (this.keys.up) this.moveDirection.y -= 1;
@@ -155,10 +152,6 @@ export class FloodPlayer extends Player {
       this.real_position.addEqual(this.moveDirection);
       this.direction = this.moveDirection;
     }
-    if (this.health <= 0) {
-      
-    }
-    // Fixed: Removed the random 'a' that was causing syntax error
   }
 
   infectHuman(human) {
@@ -299,8 +292,9 @@ export class FloodPlayer extends Player {
   }
   die() {
   this.isDead = true;
-  this.deathTime = performance.now();
-  this.respawnDelay = 3000;
+  // TODO: Think this ideas through.
+  // this.deathTime = performance.now();
+  // this.respawnDelay = 3000;
   
 
   this.biomass = 0;

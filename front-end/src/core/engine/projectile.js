@@ -8,11 +8,11 @@ export class Projectile extends GameObject {
         this.direction = direction;
         this.speed = speed;
         this.damage = damage;
-        this.range = range; //antes de desaparecer
+        this.range = range;
         this.traveled = 0;
         this.type = type;
         this.alive = true;
-        this.owner = owner; //human or flood
+        this.owner = owner;
 
         this.hitbox = new Hitbox(this);
     }
@@ -42,15 +42,17 @@ export class Projectile extends GameObject {
         const drawX = screenCenter.x + cameraOffset.x - this.width / 2;
         const drawY = screenCenter.y + cameraOffset.y - this.height / 2;
     
-        //console.log(`Drawing projectile at screen coords: (${drawX.toFixed(2)}, ${drawY.toFixed(2)}), world pos: ${this.position.x.toFixed(2)}, ${this.position.y.toFixed(2)}`);
-    
         ctx.fillStyle = this.color;
         ctx.fillRect(drawX, drawY, this.width, this.height);
     }
-    
 
+
+    /**
+     *
+     * @param {Enemy} target
+     */
     onImpact(target) {
-        target.receiveDamage?.(this.damage);
+        target.takeDamage?.(this.damage);
         this.alive = false;
     }
 }

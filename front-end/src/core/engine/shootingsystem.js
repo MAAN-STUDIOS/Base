@@ -1,7 +1,10 @@
-import { Projectile } from "./projectile.js";
+import { Projectile } from "@engine/projectile.js";
 
-export const ShootingSystem = {
-    projectiles: [],
+
+class ShootingSystemObj {
+    constructor() {
+        this.projectiles = [];
+    }
 
     fire({ origin, direction, weaponConfig, owner }) {
         const proj = new Projectile({
@@ -15,19 +18,25 @@ export const ShootingSystem = {
         });
 
         this.projectiles.push(proj);
-    },
+    }
 
     updateAll(delta) {
-        this.projectiles = this.projectiles.filter(p => p.alive);
-        for (const p of this.projectiles) {
-            p.update(delta);
+        this.projectiles = this.projectiles.filter(p => p && p.alive);
+
+        for (const projectile of this.projectiles) {
+            projectile?.update(delta);
         }
-    },
+
+    }
 
     drawAll(ctx) {
-        //console.log("Active projectiles:", this.projectiles.length);
         for (const p of this.projectiles) {
             p.draw(ctx);
         }
     }
-};
+}
+
+const instance = globalThis.__shootingSystemInstance ?? new ShootingSystemObj();
+globalThis.__shootingSystemInstance = instance;
+
+export { instance as ShootingSystem };

@@ -159,10 +159,8 @@ export class HumanPlayer extends Player {
     }
 
     attack() {
-        if (this.timeSinceLastAttack < this.attackCooldown) {
-            //console.log(`Cooldown activo: ${this.timeSinceLastAttack.toFixed(2)}s / ${this.attackCooldown}s`);
-            return; //en cooldown
-        }
+        const inCooldown = this.timeSinceLastAttack < this.attackCooldown;
+        if (inCooldown) return;
 
         const weapon = this.attackSlots[this.activeSlot];
         if (!weapon || typeof weapon.fire !== "function") return;
@@ -175,8 +173,8 @@ export class HumanPlayer extends Player {
             console.log("No direction to fire");
             return;
         }
-        
-        direction.normalize(); 
+
+        direction.normalize();
         weapon.fire(this.real_position.clone(), direction, this);
 
         this.timeSinceLastAttack = 0;

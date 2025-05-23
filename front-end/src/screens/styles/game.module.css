@@ -66,7 +66,7 @@
     height: 125px;
 }
 
-.mini-menu {
+.mini-menu, .controls {
     position: absolute;
     bottom: 50dvh;
     left: 10px;
@@ -86,4 +86,30 @@
 
 .mini-menu button {
     padding: 6px 9px;
+}
+
+
+.controls {
+    bottom: 150px;
+    left: 20px;
+
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.controlsTitle {
+    color: #77ff00;
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 5px;
+    text-shadow: 1px 1px 2px black;
+}
+
+.controlItem {
+    color: white;
+    font-size: 12px;
+    text-shadow: 1px 1px 2px black;
+    white-space: nowrap;
 }
