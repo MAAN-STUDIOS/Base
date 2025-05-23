@@ -32,6 +32,8 @@ export class FloodPlayer extends Player {
     this.lastCloneTime = 0;
     this.evolutionCooldown = 0;
     this.attackCooldowns = { melee: 0, acid: 0, toxicSmoke: 0, spikes: 0 };
+    this.health = 100;
+    this.maxHealth = 100;
 
     /** @type {string} - Color representation based on evolution */
     this.color = "#8b0000";
@@ -225,6 +227,16 @@ export class FloodPlayer extends Player {
         break;
     }
     logger.debug(`Attack ${type} executed on target`);
+  }
+
+  takeDamage(amount) {
+    this.health -= amount;
+    if (this.health <= 0) {
+      this.health = 0;
+      // TODO: Handle player death
+      logger.debug("Player died!");
+    }
+    logger.debug(`Player took ${amount} damage. Health: ${this.health}/${this.maxHealth}`);
   }
 
   /**

@@ -37,7 +37,7 @@ function initAudio() {
     // Load sounds first
     audioManager.loadSound("clone", cloneSound);
     audioManager.loadSound("humanDamage", playerDamage);
-
+ 
     audioManager
         .loadSound("menu", terrorMusic, { 
             loop: true, 
