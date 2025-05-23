@@ -235,20 +235,19 @@ export default class FloodHUD {
 
     update(player) {
         // Update stat bars with proper max values
-        const maxHealth = 100;
+        const maxHealth = 100 * player.evolution; // Scale max health with evolution
         const maxBiomass = 200;
         
         const healthPercent = (player.health / maxHealth) * 100;
         const biomassPercent = (player.biomass / maxBiomass) * 100;
         
-        this.healthBar.fill.style.width = `${healthPercent}%`;
-        this.biomassBar.fill.style.width = `${biomassPercent}%`;
-        
-
-        // Update health bar with proper max value
+        // Update health bar width and fill
         const healthBarWidth = 200 * player.evolution;
         this.healthBar.bar.style.width = `${healthBarWidth}px`;
-
+        this.healthBar.fill.style.width = `${healthPercent}%`;
+        
+        this.biomassBar.fill.style.width = `${biomassPercent}%`;
+        
         // Update level indicator
         this.levelValue.textContent = player.evolution;
         

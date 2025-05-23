@@ -198,7 +198,7 @@ export class FloodPlayer extends Player {
     this.evolution++;
     this.evolutionCooldown = now + EVOLUTION_COOLDOWN;
     this.cloneCooldown = 0;
-    this.maxHealth += 50;
+    this.maxHealth += 100;
     this.health = this.maxHealth;
     logger.debug(`Evolved to level ${this.evolution}. Max health increased to ${this.maxHealth}`);
   }
