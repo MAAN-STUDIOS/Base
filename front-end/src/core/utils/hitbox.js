@@ -4,13 +4,12 @@
 export class Hitbox {
     /**
      * Constructor de la hitbox
-     * @param {GameObject} gameObject - El GameObject al que pertenece esta hitbox
-     * @param {number} offsetX - Desplazamiento X de la hitbox con respecto a la posición del GameObject
+     * @param {GameObject|Object} gameObject - El GameObject al que pertenece esta hitbox
+     * @param {{isPhysical: boolean}} offsetX - Desplazamiento X de la hitbox con respecto a la posición del GameObject
      * @param {number} offsetY - Desplazamiento Y de la hitbox con respecto a la posición del GameObject
      * @param {number} width - Ancho de la hitbox (si es null, usa el ancho del GameObject)
      * @param {number} height - Alto de la hitbox (si es null, usa el alto del GameObject)
      */
-
     constructor(gameObject, offsetX = 0, offsetY = 0, width = null, height = null) {
 
         this.gameObject = gameObject;
@@ -36,6 +35,7 @@ export class Hitbox {
     }
 
 
+    /** @returns {number} */
     get width() {
         return this._width !== null ? this._width : this.gameObject.width;
     }
@@ -46,6 +46,7 @@ export class Hitbox {
     }
 
 
+    /** @returns {number} */
     get height() {
         return this._height !== null ? this._height : this.gameObject.height;
     }
@@ -163,17 +164,13 @@ export class Hitbox {
 
     
     clear() {
-
         const gameObjectRef = this.gameObject;
-
-       
         if (gameObjectRef) {
             // Si estamos en un motor con un sistema de eventos
             // podríamos desuscribirnos de eventos aquí
             // gameObjectRef.offAllEvents(this);
         }
 
-        
         this.gameObject = null;
         this._width = 0;
         this._height = 0;
