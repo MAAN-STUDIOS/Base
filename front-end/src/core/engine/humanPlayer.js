@@ -43,6 +43,9 @@ export class HumanPlayer extends Player {
         /** @type {string} - Color representation for the player. */
         this.color = "#2a52be";
 
+
+        this.lastDirection = new Vector(1, 0);
+
         /**
          * @type {Object} - Tracks the current state of movement keys.
          * @property {boolean} up - Whether the up key is pressed.
@@ -129,6 +132,10 @@ export class HumanPlayer extends Player {
 
             this.real_position.addEqual(this.moveDirection);
             this.direction = this.moveDirection;
+        }
+
+        if (this.direction.x !== 0 || this.direction.y !== 0) {
+            this.lastDirection = this.direction.clone();
         }
     }
 
