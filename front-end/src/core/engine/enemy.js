@@ -59,13 +59,14 @@ export class Enemy {
     }
 
     update(dt, player) {
-        // Update line of sight cache if player moved
-        if (player.lastPosition && !player.lastPosition.equals(player.position)) {
-            this.lineOfSight.updateLosCache(player.position);
+        const playerWorldPos = player.real_position || player.position;
+        
+        if (player.lastPosition && !player.lastPosition.equals(playerWorldPos)) {
+            this.lineOfSight.updateLosCache(playerWorldPos);
         }
 
-        const distanceToPlayer = this.position.distanceTo(player.position);
-        const hasLosToPlayer = this.lineOfSight.hasLineOfSight(this.position, player.position);
+        const distanceToPlayer = this.position.distanceTo(playerWorldPos);
+        const hasLosToPlayer = this.lineOfSight.hasLineOfSight(this.position, playerWorldPos);
 
         // State machine logic
         switch (this.state) {
@@ -112,51 +113,166 @@ export class Enemy {
     }
 
     updatePursue(dt, player, distanceToPlayer, hasLosToPlayer) {
+        const playerWorldPos = player.real_position || player.position;
+
         if (hasLosToPlayer) {
-            this.lastKnownPlayerPos = player.position.clone();
+            // We can see the player - reset timer and pursue directly
+            this.lastKnownPlayerPos = playerWorldPos.clone();
             
             if (distanceToPlayer <= this.attackRadius) {
                 this.transitionTo(STATES.ATTACK);
             } else {
-                const direction = player.position.sub(this.position);
+                // Move directly toward player
+                const direction = playerWorldPos.sub(this.position);
                 this.moveTowards(direction, dt);
             }
         } else {
-            this.transitionTo(STATES.SEARCH);
+            // No line of sight - pursue last known position for up to 5 seconds
+            if (this.lastKnownPlayerPos) {
+                const direction = this.lastKnownPlayerPos.sub(this.position);
+                const distanceToLastKnown = direction.magnitude();
+                
+                // If we've reached the last known position or it's been 5+ seconds, search
+                if (distanceToLastKnown < 10 || this.stateTimer >= 5) {
+                    this.transitionTo(STATES.SEARCH);
+                } else {
+                    // Keep moving toward last known position
+                    this.moveTowards(direction, dt);
+                }
+            } else {
+                // No last known position, go to search immediately
+                this.transitionTo(STATES.SEARCH);
+            }
         }
 
+        // Always check for retreat condition
         if (this.health <= this.retreatHealthThreshold) {
             this.transitionTo(STATES.RETREAT);
         }
     }
 
+    // updateSearch(dt, player, distanceToPlayer, hasLosToPlayer) {
+    //     const playerWorldPos = player.real_position || player.position;
+        
+    //     if (hasLosToPlayer) {
+    //         this.transitionTo(STATES.PURSUE);
+    //         return;
+    //     }
+
+    //     if (!this.searchTarget) {
+    //         this.searchTarget = this.lineOfSight.findNearestValidTile(
+    //             this.position,
+    //             this.lastKnownPlayerPos || playerWorldPos
+    //         );
+    //     }
+
+    //     if (this.searchTarget) {
+    //         const direction = this.searchTarget.sub(this.position);
+    //         if (direction.magnitude() < 5) {
+    //             this.searchTarget = null;
+    //         } else {
+    //             this.moveTowards(direction, dt);
+    //         }
+    //     }
+
+    //     // Give up searching after 5 seconds
+    //     if (this.stateTimer > 5) {
+    //         this.transitionTo(STATES.IDLE);
+    //     }
+    // }
+
     updateSearch(dt, player, distanceToPlayer, hasLosToPlayer) {
-        if (hasLosToPlayer) {
-            this.transitionTo(STATES.PURSUE);
-            return;
+        const playerWorldPos = player.real_position || player.position;
+      
+        // 1) Only resume PURSUE if we both see the player and they're within chaseRadius
+        if (hasLosToPlayer && distanceToPlayer <= this.chaseRadius) {
+          this.transitionTo(STATES.PURSUE);
+          return;
         }
-
+      
+        // 2) If we have no last known spot, go idle
+        if (!this.lastKnownPlayerPos) {
+          this.transitionTo(STATES.IDLE);
+          return;
+        }
+      
+        // 3) Timeout out of SEARCH after 5 seconds
+        if (this.stateTimer >= 5) {
+          this.lastKnownPlayerPos = null;
+          this.searchTarget       = null;
+          this.transitionTo(STATES.IDLE);
+          return;
+        }
+      
+        // 4) Pick a search tile if needed
         if (!this.searchTarget) {
-            this.searchTarget = this.lineOfSight.findNearestValidTile(
-                this.position,
-                this.lastKnownPlayerPos || player.position
-            );
+          this.searchTarget = this.lineOfSight.findNearestValidTile(
+            this.position,
+            this.lastKnownPlayerPos
+          );
         }
+      
+        // 5) If no tile is ever valid, bail to IDLE
+        if (!this.searchTarget) {
+          this.transitionTo(STATES.IDLE);
+          return;
+        }
+      
+        // 6) Move toward that tile
+        const toTarget = this.searchTarget.sub(this.position);
+        if (toTarget.magnitude() < 5) {
+          this.searchTarget = null;  // reached it, wait for LOS or timeout
+        } else {
+          this.moveTowards(toTarget, dt);
+        }
+      
+        // 7) Still retreat if health is low
+        if (this.health <= this.retreatHealthThreshold) {
+          this.transitionTo(STATES.RETREAT);
+        }
+      }
 
-        if (this.searchTarget) {
-            const direction = this.searchTarget.sub(this.position);
-            if (direction.magnitude() < 5) {
-                this.searchTarget = null;
-            } else {
-                this.moveTowards(direction, dt);
-            }
+    updatePursue(dt, player, distanceToPlayer, hasLosToPlayer) {
+        const playerWorldPos = player.real_position || player.position;
+      
+        // 1) If the player ran outside chaseRange, start SEARCH
+        if (distanceToPlayer > this.chaseRadius) {
+          this.transitionTo(STATES.SEARCH);
+          return;
         }
+      
+        // 2) If we still have LOS, pursue directly
+        if (hasLosToPlayer) {
+          this.lastKnownPlayerPos = playerWorldPos.clone();
+          if (distanceToPlayer <= this.attackRadius) {
+            this.transitionTo(STATES.ATTACK);
+          } else {
+            const direction = playerWorldPos.sub(this.position);
+            this.moveTowards(direction, dt);
+          }
+          return;
+        }
+      
+        // 3) No LOS — head to last known spot for up to 5s
+        if (this.lastKnownPlayerPos) {
+          const toLast = this.lastKnownPlayerPos.sub(this.position);
+          const distLast = toLast.magnitude();
+          if (distLast < 10 || this.stateTimer >= 5) {
+            this.transitionTo(STATES.SEARCH);
+          } else {
+            this.moveTowards(toLast, dt);
+          }
+        } else {
+          // never saw the player? go straight to SEARCH
+          this.transitionTo(STATES.SEARCH);
+        }
+        
+        // 4) Retreat if needed
+        if (this.health <= this.retreatHealthThreshold) {
+          this.transitionTo(STATES.RETREAT);
+        }
+      }
 
-        // Give up searching after 5 seconds
-        if (this.stateTimer > 5) {
-            this.transitionTo(STATES.IDLE);
-        }
-    }
 
     updateAttack(dt, player, distanceToPlayer, hasLosToPlayer) {
         if (!hasLosToPlayer) {
@@ -181,12 +297,14 @@ export class Enemy {
     }
 
     updateRetreat(dt, player, distanceToPlayer, hasLosToPlayer) {
+        const playerWorldPos = player.real_position || player.position;
+
         if (this.health > this.retreatHealthThreshold && distanceToPlayer > this.retreatDistance) {
             this.transitionTo(STATES.IDLE);
             return;
         }
 
-        const direction = this.position.subtract(player.position);
+        const direction = this.position.sub(playerWorldPos);
         this.moveTowards(direction, dt);
     }
 
@@ -208,9 +326,13 @@ export class Enemy {
     }
 
     draw(ctx) {
+        this.drawAtPosition(ctx, this.position.x, this.position.y);
+    }
+
+    drawAtPosition(ctx, screenX, screenY) {
         // Draw enemy body
         ctx.fillStyle = this.getStateColor();
-        ctx.fillRect(this.position.x - this.width/2, this.position.y - this.height/2, this.width, this.height);
+        ctx.fillRect(screenX - this.width/2, screenY - this.height/2, this.width, this.height);
 
         // Draw health bar
         const healthBarWidth = this.width;
@@ -219,33 +341,24 @@ export class Enemy {
         
         ctx.fillStyle = 'red';
         ctx.fillRect(
-            this.position.x - healthBarWidth/2,
-            this.position.y - this.height/2 - 10,
+            screenX - healthBarWidth/2,
+            screenY - this.height/2 - 10,
             healthBarWidth,
             healthBarHeight
         );
         
         ctx.fillStyle = 'green';
         ctx.fillRect(
-            this.position.x - healthBarWidth/2,
-            this.position.y - this.height/2 - 10,
+            screenX - healthBarWidth/2,
+            screenY - this.height/2 - 10,
             healthBarWidth * healthPercentage,
             healthBarHeight
         );
 
-        // Draw debug info
-        if (this.searchTarget) {
-            ctx.strokeStyle = 'yellow';
-            ctx.beginPath();
-            ctx.moveTo(this.position.x, this.position.y);
-            ctx.lineTo(this.searchTarget.x, this.searchTarget.y);
-            ctx.stroke();
-        }
-
         // Draw state radius
         ctx.strokeStyle = this.getStateColor();
         ctx.beginPath();
-        ctx.arc(this.position.x, this.position.y, this.chaseRadius, 0, Math.PI * 2);
+        ctx.arc(screenX, screenY, this.chaseRadius, 0, Math.PI * 2);
         ctx.stroke();
     }
 
@@ -260,3 +373,4 @@ export class Enemy {
         }
     }
 }
+

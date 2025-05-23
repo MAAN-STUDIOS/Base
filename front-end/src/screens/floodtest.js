@@ -278,7 +278,27 @@ export default function floodScreen() {
             // Draw enemies
             enemies.forEach(enemy => {
                 if (enemy && enemy.draw) {
-                    enemy.draw(ctx);
+
+                    // Calculate enemy position relative to camera/viewport
+                    const enemyScreenX = enemy.position.x - player.real_position.x + (game.width / 2);
+                    const enemyScreenY = enemy.position.y - player.real_position.y + (game.height / 2);
+
+                    // Only draw if enemy is visible on screen
+                    if (enemyScreenX >= -enemy.width && enemyScreenX <= game.width + enemy.width &&
+                        enemyScreenY >= -enemy.height && enemyScreenY <= game.height + enemy.height) {
+
+                        // Draw health bar
+                        const healthBarWidth = enemy.width;
+                        const healthBarHeight = 5;
+                        const healthPercentage = enemy.health / enemy.maxHealth;
+
+                        // Draw debug info
+                        ctx.fillStyle = "white";
+                        ctx.font = "12px Arial";
+                        ctx.fillText(`Enemy: ${enemy.health}/${enemy.maxHealth}`, enemyScreenX + 10, enemyScreenY + 10);
+
+                        enemy.drawAtPosition(ctx, enemyScreenX, enemyScreenY);
+                    }
                 }
             });
             
