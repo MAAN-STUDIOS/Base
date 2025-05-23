@@ -20,7 +20,7 @@ export class Enemy {
             height = 32,
             health = 100,
             speed = 200,
-            damage = 10,
+            damage = 1,
             chaseRadius = 300,
             attackRadius = 50,
             retreatHealthThreshold = 30,
@@ -28,6 +28,7 @@ export class Enemy {
         } = config;
 
         this.position = position;
+        this.prevPosition = position.clone();
         this.width = width;
         this.height = height;
         this.health = health;
@@ -64,6 +65,7 @@ export class Enemy {
      */
     update(dt, player) {
         const playerWorldPos = player.real_position.clone();
+        this.prevPosition = this.position.clone();
         
         // if (player.lastPosition && !player.lastPosition.equals(playerWorldPos)) {
         //     this.lineOfSight.updateLosCache(playerWorldPos);

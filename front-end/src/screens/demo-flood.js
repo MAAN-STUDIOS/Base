@@ -144,17 +144,19 @@ function handleEnemySpawning(currentTime, player, enemies, config, gameMap) {
  * @param {FloodPlayer||Player} player - The flood player
  * @param {Array} enemies - Array of enemies
  */
-function updateEnemies(dt, player, enemies) {
+function updateEnemies(dt, player, enemies, gameEngine) {
     for (let i = enemies.length - 1; i >= 0; i--) {
         const enemy = enemies[i];
         if (enemy && enemy.update) {
+            const prevPos = enemy.position.clone();
             enemy.update(dt, player);
+            gameEngine.handleEnemyCollisions(enemy, gameEngine.map, prevPos);
 
             if (enemy.health <= 0) {
                 logger.debug("Enemy defeated", { remainingEnemies: enemies.length - 1 });
                 enemies.splice(i, 1);
 
-                player.biomass += 15;
+                player.biomass += 20;
                 logger.debug(`Player gained biomass! Total: ${player.biomass}`);
             }
         }
@@ -187,7 +189,10 @@ export default function floodScreen() {
         player: {
             type: "flood",
             size: 50,
-            position: Vector.zero()
+            position: Vector.zero(),
+            walkSpeed: 20,
+            runSpeed: 50,
+
         },
         map: {
             spriteSheet: mapsSpriteSheet,
@@ -199,7 +204,7 @@ export default function floodScreen() {
                 chunk_size: 16,
                 n_loaded_chunks: 5,
                 debug: true,
-                debug_info: true
+                debug_info: false
             }
         },
         miniMap: {
@@ -244,8 +249,8 @@ export default function floodScreen() {
             width: 32,
             height: 32,
             health: 100,
-            speed: 6,
-            damage: 10,
+            speed: 20,
+            damage: 1,
             chaseRadius: 200,
             attackRadius: 40,
             retreatHealthThreshold: 30,
@@ -277,16 +282,11 @@ export default function floodScreen() {
     }
 
     function respawnPlayer() {
-        // Reset player state
         game.player.isDead = false;
         game.player.health = game.player.maxHealth;
-        game.player.real_position = new Vector(0, 0); // Reset to spawn point
-        game.player.position = new Vector(0, 0);
+        game.player.real_position = new Vector(0, 0);
+        
 
-        // Optional: Reset some biomass as penalty
-        game.player.biomass = Math.floor(game.player.biomass * 0.7);
-
-        // Reset game state
         gameState.isGameOver = false;
         gameState.deathScreenShown = false;
 
@@ -340,13 +340,13 @@ export default function floodScreen() {
             const playerIsDead = handlePlayerDeath(currentTime);
             if (playerIsDead) {
                 // Optional: Still update enemies but maybe slower
-                updateEnemies(dt * 0.5, game.player, enemies);
+                updateEnemies(dt * 0.5, game.player, enemies, game);
                 return;
             }
             handleAbilities(game.player, abilityKeys, clones, enemies);
 
             handleEnemySpawning(currentTime, game.player, enemies, enemyConfig, game.map);
-            updateEnemies(dt, game.player, enemies);
+            updateEnemies(dt, game.player, enemies, game);
             if (abilityKeys.restart && gameState.isGameOver) {
                 respawnPlayer();
                 abilityKeys.restart = false;

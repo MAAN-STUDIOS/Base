@@ -68,6 +68,8 @@ export class Engine {
             this._world.map.width / 2 - this._player.size / 2,
             this._world.map.height / 2 - this._player.size / 2
         );
+        this._player.walkSpeed = options.player.walkSpeed || 70;
+        this._player.runSpeed = options.player.runSpeed || 140;
 
         this._player.obj = this.#initPlayer(this._player.position, (options.player.type || "human"));
         this._player.functionalities = {};
@@ -125,9 +127,10 @@ export class Engine {
 
         this.onUpdates = [];
         this.onRenders = [];
-
-        /** @type {[function(Hitbox): [Hitbox, boolean], function(Hitbox, Hitbox, Player): void][]} */
+        this.onCollision = [];
         this.onCollisionChecks = [];
+        this.floodWalkSpeed = options.player.walkSpeed || 0;
+        this.floodRunSpeed = options.player.runSpeed || 0;
 
         logger.info("Engine created.");
     }
@@ -178,6 +181,9 @@ export class Engine {
             case "render":
             case "draw":
                 this.onRenders.push(callback);
+                return true;
+            case "collision":
+                this.onCollision.push(callback);
                 return true;
             case "collisionCheck":
                 this.onCollisionChecks.push(callback);
@@ -304,8 +310,8 @@ export class Engine {
                     position: initialPosition,
                     width: this._player.size,
                     height: this._player.size,
-                    walkSpeed: 70,
-                    runSpeed: 90
+                    walkSpeed: this._player.walkSpeed,
+                    runSpeed: this._player.runSpeed,
                 });
                 logger.debug("Flood player Created");
                 break;
@@ -362,7 +368,7 @@ export class Engine {
                 const [hb, collidesWithObj] = collisionCheck?.(objHitbox);
 
                 if (collidesWithObj) {
-                    onCollision(objHitbox, hb, this.player);
+                    onCollision(objHitbox, hb);
                 }
             }
         }
@@ -373,6 +379,38 @@ export class Engine {
                 this.#resolveCollision(player, hb, prevPosition);
                 playerHitbox.x = player.real_position.x - this._player.size / 2;
                 playerHitbox.y = player.real_position.y - this._player.size / 2;
+            }
+        }
+    }
+    handleEnemyCollisions(enemy, gameMap, prevPosition) {
+        const enemyHitbox = {
+            x: enemy.position.x - enemy.width / 2,
+            y: enemy.position.y - enemy.height / 2,
+            width: enemy.width,
+            height: enemy.height,
+            collidesWith: function (other) {
+                return (
+                    this.x < other.x + other.width &&
+                    this.x + this.width > other.x &&
+                    this.y < other.y + other.height &&
+                    this.y + this.height > other.y
+                );
+            }
+        };
+
+        for (const boundary of gameMap.boundaries) {
+            if (enemyHitbox.collidesWith(boundary)) {
+                this.#resolveEnemyCollision(enemy, boundary, prevPosition);
+                enemyHitbox.x = enemy.position.x - enemy.width / 2;
+                enemyHitbox.y = enemy.position.y - enemy.height / 2;
+            }
+        }
+
+        for (const objHitbox of gameMap.hitboxes) {
+            if (enemyHitbox.collidesWith(objHitbox)) {
+                this.#resolveEnemyCollision(enemy, objHitbox, prevPosition);
+                enemyHitbox.x = enemy.position.x - enemy.width / 2;
+                enemyHitbox.y = enemy.position.y - enemy.height / 2;
             }
         }
     }
@@ -414,6 +452,40 @@ export class Engine {
             if (testHitbox.collidesWith(obstacle)) {
                 player.real_position.x = prevPosition.x;
                 player.real_position.y = prevPosition.y;
+            }
+        }
+    }
+    #resolveEnemyCollision(enemy, obstacle, prevPosition) {
+        const currX = enemy.position.x;
+        const currY = enemy.position.y;
+
+        const testHitbox = {
+            width: enemy.width,
+            height: enemy.height,
+            collidesWith: function (other) {
+                return (
+                    this.x < other.x + other.width &&
+                    this.x + this.width > other.x &&
+                    this.y < other.y + other.height &&
+                    this.y + this.height > other.y
+                );
+            }
+        };
+
+        enemy.position.x = currX;
+        enemy.position.y = prevPosition.y;
+        testHitbox.x = enemy.position.x - enemy.width / 2;
+        testHitbox.y = enemy.position.y - enemy.height / 2;
+
+        if (testHitbox.collidesWith(obstacle)) {
+            enemy.position.x = prevPosition.x;
+            enemy.position.y = currY;
+            testHitbox.x = enemy.position.x - enemy.width / 2;
+            testHitbox.y = enemy.position.y - enemy.height / 2;
+
+            if (testHitbox.collidesWith(obstacle)) {
+                enemy.position.x = prevPosition.x;
+                enemy.position.y = prevPosition.y;
             }
         }
     }

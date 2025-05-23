@@ -8,7 +8,6 @@ export default class FloodHUD {
     }
 
     setup() {
-        // Create HUD container
         this.hudContainer = document.createElement('div');
         this.hudContainer.className = styles.container;
         this.hudContainer.style.position = 'absolute';
@@ -17,21 +16,18 @@ export default class FloodHUD {
         this.hudContainer.style.width = '100%';
         this.hudContainer.style.height = '100%';
         this.hudContainer.style.pointerEvents = 'none';
-        logger.debug("HUD container created");
 
-        // Create and setup all HUD elements
         this.setupCoreStats();
         this.setupCloneAbilities();
         this.setupMutationPowers();
+        this.setupControls();
 
-        // Add all elements to container
         this.hudContainer.appendChild(this.statsContainer);
         this.hudContainer.appendChild(this.cloneAbilities);
         this.hudContainer.appendChild(this.mutationPowers);
+        this.hudContainer.appendChild(this.controlsContainer);
 
-        // Add HUD to game container
         this.gameContainer.appendChild(this.hudContainer);
-        logger.debug("HUD added to game container");
     }
 
     setupCoreStats() {
@@ -44,17 +40,14 @@ export default class FloodHUD {
         this.statsContainer.style.flexDirection = 'column';
         this.statsContainer.style.gap = '10px';
 
-        // Health bar
         this.healthBar = this.createStatBar('Vida', '#16742d');
         this.statsContainer.appendChild(this.healthBar.label);
         this.statsContainer.appendChild(this.healthBar.bar);
         
-        // Biomass bar
         this.biomassBar = this.createStatBar('Biomasa', '#77ff00');
         this.statsContainer.appendChild(this.biomassBar.label);
         this.statsContainer.appendChild(this.biomassBar.bar);
 
-        // Level indicator
         this.levelContainer = document.createElement('div');
         this.levelContainer.style.display = 'flex';
         this.levelContainer.style.alignItems = 'center';
@@ -156,7 +149,6 @@ export default class FloodHUD {
         cooldown.style.textAlign = 'center';
         cooldown.style.padding = '2px 0';
         
-        // Cost and key container
         const costKeyContainer = document.createElement('div');
         costKeyContainer.style.position = 'absolute';
         costKeyContainer.style.top = '-20px';
@@ -176,7 +168,6 @@ export default class FloodHUD {
         cost.style.textShadow = '1px 1px 2px black';
         
         const key = document.createElement('div');
-        // Set keys based on index
         const keyText = index === 0 ? 'C' : (index === 1 ? 'E' : 'F');
         key.textContent = `[${keyText}]`;
         key.style.color = 'white';
@@ -202,14 +193,12 @@ export default class FloodHUD {
         this.mutationPowers.style.display = 'flex';
         this.mutationPowers.style.gap = '15px';
 
-        // Clone info container
         const cloneInfoContainer = document.createElement('div');
         cloneInfoContainer.style.display = 'flex';
         cloneInfoContainer.style.flexDirection = 'column';
         cloneInfoContainer.style.alignItems = 'center';
         cloneInfoContainer.style.gap = '5px';
 
-        // Clone count
         this.cloneCount = document.createElement('div');
         this.cloneCount.style.color = '#77ff00';
         this.cloneCount.style.fontSize = '16px';
@@ -217,7 +206,6 @@ export default class FloodHUD {
         this.cloneCount.style.textShadow = '1px 1px 2px black';
         this.cloneCount.textContent = 'Clones: 0';
 
-        // Clone health bars container
         this.cloneHealthContainer = document.createElement('div');
         this.cloneHealthContainer.style.display = 'flex';
         this.cloneHealthContainer.style.flexDirection = 'column';
@@ -233,26 +221,67 @@ export default class FloodHUD {
         this.mutationPowers.appendChild(cloneInfoContainer);
     }
 
+    setupControls() {
+        this.controlsContainer = document.createElement('div');
+        this.controlsContainer.className = styles.controls;
+        this.controlsContainer.style.position = 'absolute';
+        this.controlsContainer.style.bottom = '150px';
+        this.controlsContainer.style.left = '20px';
+        this.controlsContainer.style.background = 'rgba(0, 0, 0, 0.7)';
+        this.controlsContainer.style.border = '2px solid rgba(255, 255, 255, 0.3)';
+        this.controlsContainer.style.borderRadius = '8px';
+        this.controlsContainer.style.padding = '15px';
+        this.controlsContainer.style.display = 'flex';
+        this.controlsContainer.style.flexDirection = 'column';
+        this.controlsContainer.style.gap = '8px';
+
+        const title = document.createElement('div');
+        title.textContent = 'CONTROLES';
+        title.style.color = '#77ff00';
+        title.style.fontSize = '16px';
+        title.style.fontWeight = 'bold';
+        title.style.textAlign = 'center';
+        title.style.marginBottom = '5px';
+        title.style.textShadow = '1px 1px 2px black';
+
+        const controls = [
+            'Movimiento: ↑ ↓ ← →',
+            'Correr: Shift + Flechas',
+            'Clonar: [C]',
+            'Evolucionar: [E]',  
+            'Atacar: [F]',
+            'Reiniciar: [R]'
+        ];
+
+        this.controlsContainer.appendChild(title);
+
+        controls.forEach(control => {
+            const controlElement = document.createElement('div');
+            controlElement.textContent = control;
+            controlElement.style.color = 'white';
+            controlElement.style.fontSize = '12px';
+            controlElement.style.textShadow = '1px 1px 2px black';
+            controlElement.style.whiteSpace = 'nowrap';
+            this.controlsContainer.appendChild(controlElement);
+        });
+    }
+
     update(player) {
-        // Update stat bars with proper max values
-        const maxHealth = 100 * player.evolution; // Scale max health with evolution
+        const maxHealth = 100 * player.evolution;
         const maxBiomass = 200;
         
         const healthPercent = (player.health / maxHealth) * 100;
         const biomassPercent = (player.biomass / maxBiomass) * 100;
         
-        // Update health bar width and fill
         const healthBarWidth = 200 * player.evolution;
         this.healthBar.bar.style.width = `${healthBarWidth}px`;
         this.healthBar.fill.style.width = `${healthPercent}%`;
         
         this.biomassBar.fill.style.width = `${biomassPercent}%`;
         
-        // Update level indicator
         this.levelValue.textContent = player.evolution;
         
-        // Update clone slots with proper costs and cooldowns
-        const cloneCosts = [25, 50, 75]; // Costs for each clone type
+        const cloneCosts = [25, 50, 75];
         const now = performance.now();
         
         this.cloneSlots.forEach((slot, index) => {
@@ -273,14 +302,11 @@ export default class FloodHUD {
             }
         });
 
-        // Update clone info
         if (player.clones) {
             this.cloneCount.textContent = `Clones: ${player.clones.length}`;
             
-            // Clear existing health bars
             this.cloneHealthContainer.innerHTML = '';
             
-            // Add health bars for each clone
             player.clones.forEach((clone, index) => {
                 const healthBar = document.createElement('div');
                 healthBar.style.width = '100%';
@@ -303,13 +329,5 @@ export default class FloodHUD {
             this.cloneCount.textContent = 'Clones: 0';
             this.cloneHealthContainer.innerHTML = '';
         }
-        
-        // logger.debug("HUD updated", {
-        //     healthPercent,
-        //     biomassPercent,
-        //     evolution: player.evolution,
-        //     biomass: player.biomass,
-        //     activeClones: player.clones?.length || 0
-        // });
     }
-} 
+}
