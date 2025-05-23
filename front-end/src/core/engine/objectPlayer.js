@@ -17,6 +17,7 @@ export class Player extends GameObject {
         this.attackSlots = attackSlots;   // Dos ranuras de arma
         this.activeSlot = 0;              // Índice 0 o 1
         this.direction = direction;       // Dirección de ataque/mirada
+        this.real_position = Vector.zero();
     }
 
     interact(obj) {

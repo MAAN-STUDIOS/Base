@@ -174,7 +174,7 @@ export class FloodPlayer extends Player {
       height: this.height,
       color: this.color,
       evolution: this.evolution,
-      player: this
+      _player: this
     });
 
     // Ensure the clone is added to our clones array

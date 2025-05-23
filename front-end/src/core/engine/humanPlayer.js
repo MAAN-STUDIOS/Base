@@ -13,39 +13,34 @@ export class HumanPlayer extends Player {
     /**
      * Creates a new human-controlled player.
      * @param position
-     * @param width
-     * @param height
      * @param {Object} options - Configuration options for the player.
      * @param {Vector} [options.position] - Initial position of the player.
      * @param {number|null} [options.width] - Width of the player.
      * @param {number|null} [options.height] - Height of the player.
-     * @param {number|null} [options.walkSpeed=12] - Walk speed.
-     * @param {number|null} [options.runSpeed=120] - Run speed.
+     * @param {number|null} [options.walkSpeed=70] - Walk speed.
+     * @param {number|null} [options.runSpeed=walkSpeed + 20] - Run speed.
      */
-    constructor(position, width, height = null, options = {}) {
+    constructor(position, options = {}) {
         // Example set up
         // TODO: Improve when implement game engine.
-        super({ position, width, height: height ? height : width, ...options });
-    
-        // Use the provided position instead of always Vector.zero()
-        this.real_position = position.clone();
-    
-        /** @type {string} - Color representation for the player. */
-        this.color = "#2a52be";
-    
-        /** @type {number} - Base movement speed when walking. */
+        super({ position, ...options });
+
         this.walkSpeed = options.walkSpeed || 12;
-    
-        /** @type {number} - Increased movement speed when running. */
-        this.runSpeed = options.runSpeed || 120;
-    
-        /** @type {boolean} - Flag indicating if the player is currently running. */
+        this.runSpeed = options.runSpeed || this.walkSpeed + 50;
         this.isRunning = false;
-    
+
         /** @type {Hitbox} - Collision detection box for the player. */
         this.hitbox = new Hitbox(this);
+
+        /** @type {Vector} */
+        this.real_position = position.clone();
+
+        /** @type {Vector} */
         this.moveDirection = Vector.zero();
-    
+
+        /** @type {string} - Color representation for the player. */
+        this.color = "#2a52be";
+
         /**
          * @type {Object} - Tracks the current state of movement keys.
          * @property {boolean} up - Whether the up key is pressed.
@@ -61,7 +56,7 @@ export class HumanPlayer extends Player {
             right: false,
             shift: false
         };
-    
+
         this.#setupControls();
         logger.debug("HumanPlayer initialized");
     }
@@ -72,54 +67,29 @@ export class HumanPlayer extends Player {
      * @private
      */
     #setupControls() {
-        window.addEventListener('keydown', (e) => {
-            switch (e.key) {
-                case 'w':
-                case 'ArrowUp':
-                    this.keys.up = true;
-                    break;
-                case 's':
-                case 'ArrowDown':
-                    this.keys.down = true;
-                    break;
-                case 'a':
-                case 'ArrowLeft':
-                    this.keys.left = true;
-                    break;
-                case 'd':
-                case 'ArrowRight':
-                    this.keys.right = true;
-                    break;
-                case 'Shift':
-                    this.keys.shift = true;
-                    break;
+        const partialListener = (state) => {
+            return (e) => {
+                const key = e.key
+                if (key === `W` || key === 'w' || key === 'ArrowUp') {
+                    this.keys.up = state;
+                }
+                if (key === `S` || key === 's' || key === 'ArrowDown') {
+                    this.keys.down = state;
+                }
+                if (key === `A` || key === 'a' || key === 'ArrowLeft') {
+                    this.keys.left = state;
+                }
+                if (key === `D` || key === 'd' || key === 'ArrowRight') {
+                    this.keys.right = state;
+                }
+                if (key === 'Shift') {
+                    this.keys.shift = state;
+                }
             }
-        });
+        }
 
-        window.addEventListener('keyup', (e) => {
-            switch (e.key) {
-                case 'w':
-                case 'ArrowUp':
-                    this.keys.up = false;
-                    break;
-                case 's':
-                case 'ArrowDown':
-                    this.keys.down = false;
-                    break;
-                case 'a':
-                case 'ArrowLeft':
-                    this.keys.left = false;
-                    break;
-                case 'd':
-                case 'ArrowRight':
-                    this.keys.right = false;
-                    break;
-                case 'Shift':
-                    this.keys.shift = false;
-                    break;
-            }
-        });
-
+        window.addEventListener('keydown', partialListener(true));
+        window.addEventListener('keyup',  partialListener(false));
         logger.debug("HumanPlayer controls setup");
     }
 

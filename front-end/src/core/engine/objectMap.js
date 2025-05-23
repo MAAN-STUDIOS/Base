@@ -30,18 +30,18 @@ export class ObjectMap {
      * @param {string|Object} source - The URL or source object for the map spritesheet
      * @param {number} width - Viewport width in pixels
      * @param {number} height - Viewport height in pixels
+     * @param {Vector} [real_position=Vector.zero()] - Initial position in world coordinates
      * @param {Object} options - Configuration options
      * @param {number} [options.tiles_per_row=8] - Number of tiles per row in the spritesheet
      * @param {number} [options.tile_size=32] - Size of each tile in pixels
      * @param {number} [options.chunk_size=16] - Size of each chunk in tiles
      * @param {number} [options.n_loaded_chunks=1] - Radius of chunks to keep loaded around player
      * @param {boolean} [options.debug=false] - Whether to draw debug information
-     * @param {Vector} [options.real_position=Vector.zero()] - Initial position in world coordinates
      * @param {number[]} [options.solidTilesID=[1]] - TilesID that the player cannot walk over.
      * @param {number} [options.scale=2] - Scalar to scale the map.
-     * @param {number} [options.debug_info=false] - debug info.
+     * @param {boolean} [options.debug_info=false] - debug info.
      */
-    constructor(source, width, height, options = {}) {
+    constructor(source, width, height, real_position, options = {}) {
         this.spriteSheet = new Image();
         this.spriteSheet.src = source;
         this.spriteSheet.onload = () => logger.info("Map spritesheet loaded");
@@ -55,16 +55,16 @@ export class ObjectMap {
         this.chunks_loaded = new Map();
 
         /** @type {Vector} Current chunk coordinates */
-        this.current_chunk = new Vector(0, 0); // Initialize with invalid chunk to force first load
+        this.current_chunk = Vector.zero(); // NOTE: Initialize with invalid chunk to force first load
 
-        /** @type {Object} Visible area dimensions */
+        /** @type {{width: number, height: number}} Visible area dimensions */
         this.viewPort = {
             width: width,
             height: height
         };
 
         /** @type {Vector} Position in world coordinates */
-        this.real_position = options.real_position || Vector.zero();
+        this.real_position = real_position || Vector.zero();
 
         /** @type {Hitbox[]} Array of boundary hitboxes */
         this.boundaries = [];
@@ -90,7 +90,6 @@ export class ObjectMap {
         /** @type {number} Radius of chunks to keep loaded around player */
         this.n_loaded_chunks = options.n_loaded_chunks || 1;
 
-        this.scale = options.scale || 2;
         /** @type {boolean} Whether to show debug visualization */
         this.debug = options.debug || false;
 
@@ -124,27 +123,23 @@ export class ObjectMap {
      * @param {number} dt - Delta time in ms !Important.
      */
     update(targetPosition, dt) {
+        this.real_position.addEqual(targetPosition.subEqual(this.real_position));
 
-        this.real_position.lerpEqual(targetPosition, 0.1);
-    
         const playerChunk = this.#resolveChunk(this.real_position);
-    
 
         if (!this.current_chunk.equals(playerChunk)) {
             logger.info(`Moving from chunk ${this.current_chunk} to ${playerChunk}`);
             this.#loadChunks(playerChunk);
-    
 
             const loadedChunks = Array.from(this.chunks_loaded.keys())
-                .filter(key => this.chunks_loaded.get(key) !== null) // Solo chunks completamente cargados
+                .filter(key => this.chunks_loaded.get(key) !== null)
                 .map(key => {
                     const [x, y] = key.split(',').map(Number);
                     return new Vector(x, y);
                 });
-    
+
             this.#attachHitboxes(loadedChunks);
         }
-    
 
         this.timeSinceLastCheck = (this.timeSinceLastCheck || 0) + dt;
         if (this.timeSinceLastCheck > this.boundaryCheckCooldown) {
@@ -158,79 +153,29 @@ export class ObjectMap {
      * Only draws chunks and tiles that are visible in the viewport
      *
      * @param {CanvasRenderingContext2D} ctx - The 2D rendering context
-     * @param {number||null} scale
      */
-    draw(ctx, scale = null) {
+    draw(ctx) {
         if (!this.isLoaded) return;
-    
 
-        const originalScale = this.scale;
-        if (scale) {
-            this.scale = scale;
-        }
-    
         const startChunkX = this.#getStartChunk(this.real_position.x);
         const startChunkY = this.#getStartChunk(this.real_position.y);
-    
+
         const endChunkX = this.#getEndChunk(this.real_position.x, this.viewPort.width);
         const endChunkY = this.#getEndChunk(this.real_position.y, this.viewPort.height);
-    
+
         for (let y = startChunkY; y <= endChunkY; ++y) {
             for (let x = startChunkX; x <= endChunkX; ++x) {
                 this.#drawChunk(ctx, x, y);
             }
         }
-    
 
         if (this.debug) {
-
             this.#drawChunkBoundaries(ctx, startChunkX, startChunkY, endChunkX, endChunkY);
-
-
-            ctx.save();
-            ctx.strokeStyle = 'rgba(255, 0, 0, 0.8)';
-            ctx.fillStyle = 'rgba(255, 0, 0, 0.3)';
-            ctx.lineWidth = 2;
-
-            for (let hb of this.hitboxes) {
-
-                const screenX = hb.x - this.real_position.x + this.viewPort.width / 2;
-                const screenY = hb.y - this.real_position.y + this.viewPort.height / 2;
-    
-
-                if (screenX + hb.width >= 0 && screenX <= this.viewPort.width &&
-                    screenY + hb.height >= 0 && screenY <= this.viewPort.height) {
-                    ctx.fillRect(screenX, screenY, hb.width, hb.height);
-                    ctx.strokeRect(screenX, screenY, hb.width, hb.height);
-                }
-            }
-    
-
-            ctx.strokeStyle = 'rgba(0, 255, 0, 0.8)';
-            ctx.fillStyle = 'rgba(0, 255, 0, 0.3)';
-            for (let boundary of this.boundaries) {
-
-                const screenX = boundary.x - this.real_position.x + this.viewPort.width / 2;
-                const screenY = boundary.y - this.real_position.y + this.viewPort.height / 2;
-    
-                if (screenX + boundary.width >= 0 && screenX <= this.viewPort.width &&
-                    screenY + boundary.height >= 0 && screenY <= this.viewPort.height) {
-                    ctx.fillRect(screenX, screenY, boundary.width, boundary.height);
-                    ctx.strokeRect(screenX, screenY, boundary.width, boundary.height);
-                }
-            }
-            ctx.restore();
-    
-
-
+            this.#drawInnerBoundaries(ctx);
         }
+
         if (this.debug_info) {
             this.#drawDebugInfo(ctx);
-        }
-    
-
-        if (scale) {
-            this.scale = originalScale;
         }
     }
 
@@ -376,12 +321,12 @@ export class ObjectMap {
     }
 
     /**
- * Creates hitboxes for solid tiles in specified chunks
- * @private
- * @param {Array<Vector>} chunks - Array of chunk coordinates to process
- */
+     * Creates hitboxes for solid tiles in specified chunks
+     * @private
+     * @param {Array<Vector>} chunks - Array of chunk coordinates to process
+     */
     #attachHitboxes(chunks) {
-        this.hitboxes = [];
+        this.hitboxes = []; // NOTE: If performance critical improve.
 
         for (let chunkPos of chunks) {
             const chunkKey = this.#genChunKey(chunkPos.x, chunkPos.y);
@@ -392,33 +337,31 @@ export class ObjectMap {
 
             const chunkWorld = this.#chunkToWorld(chunkPos);
 
-
             for (let tileY = 0; tileY < this.chunk_size; tileY++) {
                 for (let tileX = 0; tileX < this.chunk_size; tileX++) {
                     const tileIndex = tileY * this.chunk_size + tileX;
                     const tileId = chunkData[tileIndex];
 
-
                     if (!this.solidTilesID.includes(tileId)) continue;
-
 
                     const tileWorldX = chunkWorld.x + tileX * this.tile_size;
                     const tileWorldY = chunkWorld.y + tileY * this.tile_size;
 
-
-
+                    // NOTE: If scale change, apply scale to hbs to match visual size.
                     const tileWrapper = {
                         position: new Vector(tileWorldX, tileWorldY),
-                        width: this.tile_size * this.scale,  // Apply scale to match visual size
-                        height: this.tile_size * this.scale  // Apply scale to match visual size
+                        width: this.tile_size,
+                        height: this.tile_size
                     };
 
                     const hb = new Hitbox(tileWrapper, {
                         isPhysical: true
                     });
 
-                    hb.tileId = tileId; // For debugging
-                    hb.chunkCoords = chunkPos; // For debugging
+                    // NOTE: Debugging info
+                    hb.tileId = tileId;
+                    hb.chunkCoords = chunkPos;
+
                     this.hitboxes.push(hb);
                 }
             }
@@ -436,7 +379,7 @@ export class ObjectMap {
      * @returns {number[]} Fallback chunk data as tile indices
      */
     #createFallbackChunk(chunkKey) {
-
+        // TODO: Impl new fallback chunk / pattern / idk
         const tiles = [];
         for (let i = 0; i < this.chunk_size * this.chunk_size; ++i) {
             const x = i % this.chunk_size;
@@ -519,23 +462,23 @@ export class ObjectMap {
     #drawTile(ctx, chunk, tileX, tileY, chunkWorldX, chunkWorldY) {
         const tileIndex = tileY * this.chunk_size + tileX;
         const tileId = chunk[tileIndex];
-    
-        if (tileId === 0) return; // Skip empty tiles (0)
-    
+
+        if (tileId === 0) return; // NOTE: Skip empty tiles (0)
+
         const srcX = (tileId % this.tiles_per_row) * this.tile_size;
         const srcY = Math.floor(tileId / this.tiles_per_row) * this.tile_size;
-    
+
 
         const tileWorldX = chunkWorldX + tileX * this.tile_size;
         const tileWorldY = chunkWorldY + tileY * this.tile_size;
 
         const destX = tileWorldX - this.real_position.x + this.viewPort.width / 2;
         const destY = tileWorldY - this.real_position.y + this.viewPort.height / 2;
-    
+
         ctx.drawImage(
             this.spriteSheet,
             srcX, srcY, this.tile_size, this.tile_size,
-            destX, destY, this.tile_size * this.scale, this.tile_size * this.scale
+            destX, destY, this.tile_size, this.tile_size
         );
     }
 
@@ -580,7 +523,7 @@ export class ObjectMap {
             (axisPosition - halfViewport - worldPosition) / this.tile_size)
         );
     }
-    
+
 
     /**
      * Calculates the ending tile index for rendering within a chunk on one axis
@@ -611,20 +554,61 @@ export class ObjectMap {
         ctx.save();
         ctx.strokeStyle = 'rgba(255,0,0,0.5)';
         ctx.lineWidth = 2;
-    
+
         for (let y = startY; y <= endY; y++) {
             for (let x = startX; x <= endX; x++) {
                 const chunkWorldX = x * this.chunk_size * this.tile_size;
                 const chunkWorldY = y * this.chunk_size * this.tile_size;
-                
 
                 const screenX = chunkWorldX - this.real_position.x + this.viewPort.width / 2;
                 const screenY = chunkWorldY - this.real_position.y + this.viewPort.height / 2;
-                
+
                 ctx.strokeRect(screenX, screenY, this.chunk_size * this.tile_size, this.chunk_size * this.tile_size);
             }
         }
-    
+
+        ctx.restore();
+    }
+
+    /**
+     * Draws the inner boundaries (hitboxes and map boundaries) on the canvas.
+     *
+     * This method is used for debugging purposes to visualize the hitboxes and boundaries
+     * within the viewport. It draws red rectangles for hitboxes and green rectangles for boundaries.
+     * NOTE: pass debug=true in options to enable.
+     *
+     * @private
+     * @param {CanvasRenderingContext2D} ctx - The 2D rendering context of the canvas.
+     */
+    #drawInnerBoundaries(ctx) {
+        ctx.save();
+        ctx.strokeStyle = 'rgba(255, 0, 0, 0.8)';
+        ctx.fillStyle = 'rgba(255, 0, 0, 0.3)';
+        ctx.lineWidth = 2;
+
+        for (let hb of this.hitboxes) {
+            const screenX = hb.x - this.real_position.x + this.viewPort.width / 2;
+            const screenY = hb.y - this.real_position.y + this.viewPort.height / 2;
+
+            if (screenX + hb.width >= 0 && screenX <= this.viewPort.width &&
+                screenY + hb.height >= 0 && screenY <= this.viewPort.height) {
+                ctx.fillRect(screenX, screenY, hb.width, hb.height);
+                ctx.strokeRect(screenX, screenY, hb.width, hb.height);
+            }
+        }
+
+        ctx.strokeStyle = 'rgba(0, 255, 0, 0.8)';
+        ctx.fillStyle = 'rgba(0, 255, 0, 0.3)';
+        for (let boundary of this.boundaries) {
+            const screenX = boundary.x - this.real_position.x + this.viewPort.width / 2;
+            const screenY = boundary.y - this.real_position.y + this.viewPort.height / 2;
+
+            if (screenX + boundary.width >= 0 && screenX <= this.viewPort.width &&
+                screenY + boundary.height >= 0 && screenY <= this.viewPort.height) {
+                ctx.fillRect(screenX, screenY, boundary.width, boundary.height);
+                ctx.strokeRect(screenX, screenY, boundary.width, boundary.height);
+            }
+        }
         ctx.restore();
     }
 

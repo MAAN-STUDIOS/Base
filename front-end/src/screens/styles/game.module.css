@@ -65,3 +65,25 @@
     width: 250px;
     height: 125px;
 }
+
+.mini-menu {
+    position: absolute;
+    bottom: 50dvh;
+    left: 10px;
+
+    z-index: 4;
+    padding: 15px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+
+    border-radius: var(--spacing-xs);
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(3px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.mini-menu button {
+    padding: 6px 9px;
+}

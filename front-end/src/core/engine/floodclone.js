@@ -15,7 +15,7 @@ export class FloodClone extends GameObject {
     this.visionRadius = 150;
     this.followDistance = 100;
     this.offset = new Vector(0, 0);
-    this.player = options.player; // Store reference to the player
+    this._player = options._player; // Store reference to the player
   }
 
   update(dt, player, enemies) {
@@ -136,14 +136,20 @@ export class FloodClone extends GameObject {
   }
 
   draw(ctx) {
+    const screenOffset = {};
+    screenOffset.x = ctx.canvas.width / 2;
+    screenOffset.y = ctx.canvas.height / 2;
+
     // Dibujar el clon
     ctx.fillStyle = this.color;
-    ctx.fillRect(this.position.x, this.position.y, this.width, this.height);
+    ctx.fillRect(this.position.x + screenOffset.x , this.position.y + screenOffset.y , this.width, this.height);
+
 
     // Dibujar el radio visual (solo para debug)
     ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
     ctx.beginPath();
-    ctx.arc(this.position.x + this.width/2, this.position.y + this.height/2, this.visionRadius, 0, 2 * Math.PI);
+    ctx.arc(this.position.x + screenOffset.x  + this.width/2, this.position.y + screenOffset.y  + this.height/2, this.visionRadius, 0, 2 * Math.PI);
+
     ctx.stroke();
 
     // Dibujar la barra de vida
@@ -153,11 +159,13 @@ export class FloodClone extends GameObject {
 
     // Fondo de la barra de vida
     ctx.fillStyle = "red";
-    ctx.fillRect(this.position.x, this.position.y - 10, healthBarWidth, healthBarHeight);
+    ctx.fillRect(this.position.x + screenOffset.x , this.position.y + screenOffset.y  - 10, healthBarWidth, healthBarHeight);
+
 
     // Vida actual
     ctx.fillStyle = "green";
-    ctx.fillRect(this.position.x, this.position.y - 10, healthBarWidth * healthPercentage, healthBarHeight);
+    ctx.fillRect(this.position.x + screenOffset.x , this.position.y + screenOffset.y  - 10, healthBarWidth * healthPercentage, healthBarHeight);
+
 
     // Dibujar cooldown de ataque
     const now = performance.now();
@@ -165,10 +173,12 @@ export class FloodClone extends GameObject {
     const attackCooldownPercentage = attackCooldownRemaining / 1000;
 
     ctx.fillStyle = "gray";
-    ctx.fillRect(this.position.x, this.position.y - 15, healthBarWidth, 2);
+    ctx.fillRect(this.position.x + screenOffset.x , this.position.y + screenOffset.y  - 15, healthBarWidth, 2);
+
     if (attackCooldownRemaining > 0) {
       ctx.fillStyle = "blue";
-      ctx.fillRect(this.position.x, this.position.y - 15, healthBarWidth * (1 - attackCooldownPercentage), 2);
+      ctx.fillRect(this.position.x - screenOffset.x , this.position.y - screenOffset.y  - 15, healthBarWidth * (1 - attackCooldownPercentage), 2);
+
     }
   }
 
