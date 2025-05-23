@@ -26,25 +26,26 @@ export class HumanPlayer extends Player {
         // Example set up
         // TODO: Improve when implement game engine.
         super({ position, width, height: height ? height : width, ...options });
-
+    
+        // Use the provided position instead of always Vector.zero()
         this.real_position = position.clone();
-
+    
         /** @type {string} - Color representation for the player. */
         this.color = "#2a52be";
-
+    
         /** @type {number} - Base movement speed when walking. */
         this.walkSpeed = options.walkSpeed || 12;
-
+    
         /** @type {number} - Increased movement speed when running. */
         this.runSpeed = options.runSpeed || 120;
-
+    
         /** @type {boolean} - Flag indicating if the player is currently running. */
         this.isRunning = false;
-
+    
         /** @type {Hitbox} - Collision detection box for the player. */
         this.hitbox = new Hitbox(this);
         this.moveDirection = Vector.zero();
-
+    
         /**
          * @type {Object} - Tracks the current state of movement keys.
          * @property {boolean} up - Whether the up key is pressed.
@@ -60,7 +61,7 @@ export class HumanPlayer extends Player {
             right: false,
             shift: false
         };
-
+    
         this.#setupControls();
         logger.debug("HumanPlayer initialized");
     }
