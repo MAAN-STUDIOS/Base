@@ -265,50 +265,6 @@ export class Enemy {
             this.transitionTo(STATES.RETREAT);
         }
     }
-    // updateAttack(dt, player, distanceToPlayer, hasLosToPlayer) {
-    //     this.stateTimer += dt;
-      
-    //     if (!hasLosToPlayer) {
-    //       this.transitionTo(STATES.SEARCH);
-    //       return;
-    //     }
-      
-    //     // 3) If the player is now outside attack range but still in chase range, go pursue
-    //     if (distanceToPlayer > this.attackRadius && distanceToPlayer <= this.chaseRadius) {
-    //       this.transitionTo(STATES.PURSUE);
-    //       return;
-    //     }
-      
-    //     // 4) If they’re completely out of chase range, go idle or search
-    //     if (distanceToPlayer > this.chaseRadius) {
-    //       this.transitionTo(STATES.SEARCH);
-    //       return;
-    //     }
-      
-    //     // 5) Perform the actual attack once per second
-    //     const ATTACK_INTERVAL = 1; // seconds
-    //     if (this.stateTimer >= ATTACK_INTERVAL) {
-    //       logger.debug(
-    //         `Enemy.attack → damage=${this.damage}, ` +
-    //         `dist=${distanceToPlayer.toFixed(1)}, ` +
-    //         `hasLOS=${hasLosToPlayer}`
-    //       );
-      
-    //       // Safely call takeDamage if it exists
-    //       if (typeof player.takeDamage === "function") {
-    //         player.takeDamage(this.damage);
-    //       } else {
-    //         logger.warn("Enemy.attack: player.takeDamage not found");
-    //       }
-      
-    //       this.stateTimer = 0;
-    //     }
-      
-    //     // 6) Check for retreat
-    //     if (this.health <= this.retreatHealthThreshold) {
-    //       this.transitionTo(STATES.RETREAT);
-    //     }
-    //   }
 
     updateRetreat(dt, player, distanceToPlayer, hasLosToPlayer) {
         const playerWorldPos = player.real_position || player.position;

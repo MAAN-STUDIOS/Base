@@ -244,6 +244,11 @@ export default class FloodHUD {
         this.healthBar.fill.style.width = `${healthPercent}%`;
         this.biomassBar.fill.style.width = `${biomassPercent}%`;
         
+
+        // Update health bar with proper max value
+        const healthBarWidth = 200 * player.evolution;
+        this.healthBar.bar.style.width = `${healthBarWidth}px`;
+
         // Update level indicator
         this.levelValue.textContent = player.evolution;
         
