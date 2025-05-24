@@ -61,6 +61,9 @@ function findNearestEnemy(player, enemies) {
     }, null);
 }
 
+
+
+
 /**
  * Generates random waypoints around a center position
  * @param {Vector} center - Center position
@@ -170,11 +173,15 @@ function partialAbilities(state, abilityKeys) {
             case 'f':
                 abilityKeys.attack = state;
                 break;
+            case 'r':
+                abilityKeys.restart = state;
+                break;
         }
     }
 }
 
 export default function floodScreen() {
+
     const game = new Engine({
         fps: 60,
         player: {
@@ -209,6 +216,11 @@ export default function floodScreen() {
             }
         }
     });
+    const gameState = {
+        isGameOver: false,
+        respawnTime: 0,
+        deathScreenShown: false
+    };
 
     /** @type {FloodClone[]} */
     const clones = [];
@@ -219,7 +231,8 @@ export default function floodScreen() {
     const abilityKeys = {
         evolve: false,
         clone: false,
-        attack: false
+        attack: false,
+        restart: false
     };
 
     const enemyConfig = {
@@ -239,6 +252,75 @@ export default function floodScreen() {
             retreatDistance: 100
         }
     };
+    function handlePlayerDeath(currentTime) {
+        if (!game.player.isDead) return false;
+
+        // First time dying
+        if (!gameState.isGameOver) {
+            gameState.isGameOver = true;
+            gameState.respawnTime = currentTime + 3000; // 3 second respawn
+
+            //logger.debug("Player died! Respawning in 3 seconds...");
+
+            clones.length = 0;
+
+            enemies.splice(0, Math.floor(enemies.length / 2));
+        }
+
+        // Check if respawn time has passed
+        if (currentTime >= gameState.respawnTime) {
+            respawnPlayer();
+            return false;
+        }
+
+        return true; // Still dead
+    }
+
+    function respawnPlayer() {
+        // Reset player state
+        game.player.isDead = false;
+        game.player.health = game.player.maxHealth;
+        game.player.real_position = new Vector(0, 0); // Reset to spawn point
+        game.player.position = new Vector(0, 0);
+
+        // Optional: Reset some biomass as penalty
+        game.player.biomass = Math.floor(game.player.biomass * 0.7);
+
+        // Reset game state
+        gameState.isGameOver = false;
+        gameState.deathScreenShown = false;
+
+        logger.debug("Player respawned!");
+    }
+
+    function showDeathScreen(ctx, timeLeft) {
+        const canvasWidth = ctx.canvas.width;
+        const canvasHeight = ctx.canvas.height;
+
+       
+        ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+        ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+        ctx.fillStyle = "red";
+        ctx.font = "48px 'Press Start 2P', monospace"; 
+        ctx.textAlign = "center";
+        ctx.fillText("YOU DIED", canvasWidth / 2, canvasHeight / 2 - 50);
+
+      
+        ctx.fillStyle = "white";
+        ctx.font = "20px 'Press Start 2P', monospace";
+        ctx.fillText(`Respawning in ${Math.ceil(timeLeft / 1000)}s`,
+            canvasWidth / 2, canvasHeight / 2 + 20);
+
+       
+        ctx.font = "12px 'Press Start 2P', monospace"; 
+        ctx.fillText("Press R to restart immediately",
+            canvasWidth / 2, canvasHeight / 2 + 60);
+
+        ctx.textAlign = "left"; 
+    }
+
+
 
     const setup = () => {
         const map = document.getElementById("game");
@@ -253,13 +335,30 @@ export default function floodScreen() {
 
         game.init(map, minimap);
 
+
         game.on("update", (dt, currentTime) => {
+            const playerIsDead = handlePlayerDeath(currentTime);
+            if (playerIsDead) {
+                // Optional: Still update enemies but maybe slower
+                updateEnemies(dt * 0.5, game.player, enemies);
+                return;
+            }
             handleAbilities(game.player, abilityKeys, clones, enemies);
 
             handleEnemySpawning(currentTime, game.player, enemies, enemyConfig, game.map);
             updateEnemies(dt, game.player, enemies);
+            if (abilityKeys.restart && gameState.isGameOver) {
+                respawnPlayer();
+                abilityKeys.restart = false;
+            }
+
+
 
             for (let i = 0; i < clones.length; ++i) {
+                if (clones[i].isDead == true) {
+                    clones.splice(i, 1);
+                    continue;
+                }
                 if (clones[i] && clones[i].update) {
                     clones[i].update(dt, game.player, enemies);
                     if (clones[i].health <= 0) {
@@ -286,7 +385,7 @@ export default function floodScreen() {
                         // const healthPercentage = enemy.health / enemy.maxHealth;
 
                         ctx.fillStyle = "white";
-                        ctx.font = "12px Arial";
+                        ctx.font = "16px monospace";
                         ctx.fillText(`Enemy: ${enemy.health}/${enemy.maxHealth}`, enemyScreenX + 10, enemyScreenY + 10);
 
                         enemy.drawAtPosition(ctx, enemyScreenX, enemyScreenY);
@@ -298,6 +397,10 @@ export default function floodScreen() {
                 if (clone && clone.draw) {
                     clone.draw(ctx);
                 }
+            }
+            if (gameState.isGameOver) {
+                const timeLeft = gameState.respawnTime - performance.now();
+                showDeathScreen(ctx, Math.max(0, timeLeft));
             }
         });
 
