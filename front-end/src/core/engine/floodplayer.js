@@ -26,7 +26,7 @@ export class FloodPlayer extends Player {
     // Initialize real_position AFTER super() call, using this.position
     this.real_position = this.position.clone();
     
-    this.biomass = 100;
+    this.biomass = 0;
     this.evolution = 1;
     this.cloneCooldown = 5000;
     this.lastCloneTime = 0;
@@ -134,7 +134,6 @@ export class FloodPlayer extends Player {
     // Movement
     this.moveDirection.clear();
 
-    // Fixed: Use this.keys.up instead of this.keys["w"]
     if (this.keys.up) this.moveDirection.y -= 1;
     if (this.keys.down) this.moveDirection.y += 1;
     if (this.keys.left) this.moveDirection.x -= 1;
