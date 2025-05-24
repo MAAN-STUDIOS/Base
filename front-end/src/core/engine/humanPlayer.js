@@ -56,7 +56,9 @@ export class HumanPlayer extends Player {
             down: false,
             left: false,
             right: false,
-            shift: false
+            shift: false,
+            f: false,
+            space: false
         };
 
         this.#setupControls();
@@ -87,11 +89,14 @@ export class HumanPlayer extends Player {
                 if (key === 'Shift') {
                     this.keys.shift = state;
                 }
+                if (state && (key === ' ' || key === 'f')) {
+                    this.attack();
+                }
             }
         }
 
         window.addEventListener('keydown', partialListener(true));
-        window.addEventListener('keyup',  partialListener(false));
+        window.addEventListener('keyup', partialListener(false));
         logger.debug("HumanPlayer controls setup");
     }
 

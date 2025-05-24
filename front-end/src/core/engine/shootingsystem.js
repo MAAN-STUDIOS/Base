@@ -5,7 +5,7 @@ export const ShootingSystem = {
 
     fire({ origin, direction, weaponConfig, owner }) {
         const proj = new Projectile({
-            position: origin.clone(),
+            position: origin.clone(), //del jugador
             direction: direction.clone(),
             speed: weaponConfig.speed || 700,
             damage: weaponConfig.damage || 10,
@@ -25,6 +25,7 @@ export const ShootingSystem = {
     },
 
     drawAll(ctx) {
+        console.log("Active projectiles:", this.projectiles.length);
         for (const p of this.projectiles) {
             p.draw(ctx);
         }
