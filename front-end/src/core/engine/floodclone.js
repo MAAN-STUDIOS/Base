@@ -225,6 +225,7 @@ export class FloodClone extends GameObject {
   }
 
   die() {
+    this.isDead = true;
     if (this.player && this.player.clones) {
       const index = this.player.clones.indexOf(this);
       if (index !== -1) {

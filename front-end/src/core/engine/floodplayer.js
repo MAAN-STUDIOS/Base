@@ -128,6 +128,9 @@ export class FloodPlayer extends Player {
    * @override
    */
   update(dt) {
+    if (this.isDead) {
+      return;
+    }
     // Movement
     this.moveDirection.clear();
 
@@ -153,6 +156,9 @@ export class FloodPlayer extends Player {
       this.real_position.addEqual(this.moveDirection);
       this.direction = this.moveDirection;
     }
+    if (this.health <= 0) {
+      
+    }
     // Fixed: Removed the random 'a' that was causing syntax error
   }
 
@@ -171,7 +177,7 @@ export class FloodPlayer extends Player {
     
     // Create clone with proper initialization
     const clone = new FloodClone({
-      position: new Vector(this.position.x + 50, this.position.y),
+      position: new Vector(this.real_position.x + 50, this.real_position.y),
       width: this.width,
       height: this.height,
       color: this.color,
@@ -237,6 +243,7 @@ export class FloodPlayer extends Player {
       this.health = 0;
       // TODO: Handle player death
       logger.debug("Player died!");
+      this.die();
     }
     logger.debug(`Player took ${amount} damage. Health: ${this.health}/${this.maxHealth}`);
   }
@@ -291,4 +298,18 @@ export class FloodPlayer extends Player {
       }
     });
   }
+  die() {
+  this.isDead = true;
+  this.deathTime = performance.now();
+  this.respawnDelay = 3000;
+  
+
+  this.biomass = 0;
+  
+  
+  this.clones.forEach(clone => clone.die());
+  this.clones = [];
+  
+  logger.debug("Player died! Respawning in 3 seconds...");
+}
 }
