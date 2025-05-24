@@ -304,12 +304,12 @@ export default class FloodHUD {
             this.cloneHealthContainer.innerHTML = '';
         }
         
-        logger.debug("HUD updated", { 
-            healthPercent, 
-            biomassPercent, 
-            evolution: player.evolution,
-            biomass: player.biomass,
-            activeClones: player.clones?.length || 0
-        });
+        // logger.debug("HUD updated", {
+        //     healthPercent,
+        //     biomassPercent,
+        //     evolution: player.evolution,
+        //     biomass: player.biomass,
+        //     activeClones: player.clones?.length || 0
+        // });
     }
 } 

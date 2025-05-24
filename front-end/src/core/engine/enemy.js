@@ -1,6 +1,4 @@
-import { Vector } from "@utils/vector.js";
 import { LineOfSight } from "./lineOfSight.js";
-import logger from "@utils/logger.js";
 
 const STATES = {
     IDLE: 'IDLE',
@@ -284,7 +282,6 @@ export class Enemy {
     }
 
     transitionTo(newState) {
-        logger.debug(`Enemy transitioning from ${this.state} to ${newState}`);
         this.state = newState;
         this.stateTimer = 0;
         this.searchTarget = null;
@@ -292,7 +289,6 @@ export class Enemy {
 
     takeDamage(amount) {
         this.health = Math.max(0, this.health - amount);
-        logger.debug(`Enemy took ${amount} damage. Health: ${this.health}`);
     }
 
     draw(ctx) {

@@ -1,6 +1,6 @@
 import { FloodPlayer } from "@engine/floodPlayer.js";
 import { Vector } from "@utils/vector.js";
-import { ObjectMap } from "@engine/objectMap.jsx";
+import { ObjectMap } from "@engine/objectMap.js";
 import { Enemy } from "@engine/enemy.js";
 import MapSS from "@assets/map.png";
 import styles from "@screens/styles/game.module.css";

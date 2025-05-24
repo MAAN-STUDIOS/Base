@@ -114,6 +114,14 @@ export class ObjectMap {
         return this.spriteSheet.complete;
     }
 
+    get camaraWidth() {
+        return this.viewPort.width;
+    }
+
+    get camaraHeight() {
+        return this.viewPort.height;
+    }
+
     /**
      * Updates map state based on player position
      * Handles chunk loading and boundary updates
@@ -367,7 +375,7 @@ export class ObjectMap {
             }
         }
 
-        logger.debug(`Created ${this.hitboxes.length} collision hitboxes`);
+        // logger.debug(`Created ${this.hitboxes.length} collision hitboxes`);
     }
 
     /**
@@ -410,7 +418,7 @@ export class ObjectMap {
 
             if (distance > this.n_loaded_chunks) {
                 this.chunks_loaded.delete(key);
-                logger.debug(`Removed distant chunk at ${key}`);
+                // logger.debug(`Removed distant chunk at ${key}`);
             }
         }
     }
@@ -673,7 +681,7 @@ export class ObjectMap {
     #mountChunk(data, chunkKey) {
         if (data) {
             this.chunks_loaded.set(chunkKey, data);
-            logger.info(`Loaded chunk at ${chunkKey}`);
+            // logger.info(`Loaded chunk at ${chunkKey}`);
             return;
         }
 
@@ -755,7 +763,7 @@ export class ObjectMap {
                 boundary.isPhysical = true;
                 this.boundaries.push(boundary);
 
-                logger.debug(`Boundary created ${boundary}`);
+                // logger.debug(`Boundary created ${boundary}`);
             }
         }
     }

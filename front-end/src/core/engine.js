@@ -196,6 +196,10 @@ export class Engine {
         return this._player.obj;
     }
 
+    get map() {
+        return this._world.map.obj;
+    }
+
     get world_position() {
         return this._world.map.obj.real_position.clone();
     }
@@ -206,7 +210,7 @@ export class Engine {
         this.lag += Math.min(frame_time, this.max_frame_time);
 
         while (this.lag >= this._ms_fps) {
-            this.#update(this._ms_fps);
+            this.#update(this._ms_fps, currentTime);
             this.lag -= this._ms_fps;
         }
 
@@ -214,13 +218,13 @@ export class Engine {
         this.currentFrameID = requestAnimationFrame(this.#gameLoop.bind(this));
     }
 
-    #update(dt) {
+    #update(dt, currentTime) {
         const prevPosition = this._player.obj.real_position.clone(); // WARNING: You must clone the vector!!
 
         this._player.obj.update(dt);
 
         for (let update of this.onUpdates) {
-            update?.(dt);
+            update?.(dt, currentTime);
         }
 
         this.#handleCollisions(this._player.obj, this._world.map.obj, prevPosition.clone());

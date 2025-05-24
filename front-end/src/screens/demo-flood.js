@@ -5,6 +5,7 @@ import styles from "@screens/styles/game.module.css";
 import mapsSpriteSheet from "@assets/map.png";
 import logger from "@utils/logger.js";
 import FloodHUD from "@/components/FloodHUD.js";
+import { Enemy } from "@engine/enemy.js";
 
 
 /**
@@ -18,26 +19,24 @@ function handleAbilities(player, abilityKeys, clones, enemies) {
     // Evolution ability
     if (abilityKeys.evolve) {
         player.evolve();
-        abilityKeys.evolve = false; // Prevent continuous evolution
+        abilityKeys.evolve = false;
     }
 
-    // Clone creation ability
     if (abilityKeys.clone) {
         const clone = player.createClone();
         if (clone) {
             clones.push(clone);
             logger.debug("Clone created", { totalClones: clones.length });
         }
-        abilityKeys.clone = false; // Prevent continuous cloning
+        abilityKeys.clone = false;
     }
 
-    // Attack ability
     if (abilityKeys.attack) {
         const nearestEnemy = findNearestEnemy(player, enemies);
         if (nearestEnemy && nearestEnemy.distance < 100) {
             player.attack("melee", nearestEnemy.enemy);
         }
-        abilityKeys.attack = false; // Prevent continuous attacking
+        abilityKeys.attack = false;
     }
 }
 
@@ -60,6 +59,104 @@ function findNearestEnemy(player, enemies) {
         }
         return nearest;
     }, null);
+}
+
+/**
+ * Generates random waypoints around a center position
+ * @param {Vector} center - Center position
+ * @param {number} count - Number of waypoints
+ * @param {number} radius - Patrol radius
+ * @returns {Array<Vector>} Array of waypoint positions
+ */
+function generateRandomWaypoints(center, count, radius) {
+    const waypoints = [];
+
+    for (let i = 0; i < count; i++) {
+        const angle = (i / count) * Math.PI * 2 + (Math.random() - 0.5) * 0.5; // Add some randomness
+        const distance = radius * (0.5 + Math.random() * 0.5); // Random distance within radius
+
+        const x = center.x + Math.cos(angle) * distance;
+        const y = center.y + Math.sin(angle) * distance;
+        waypoints.push(new Vector(x, y));
+    }
+
+    return waypoints;
+}
+
+/**
+ * Spawns a random enemy around the player
+ * @param {FloodPlayer} player - The flood player
+ * @param {Array} enemies - Array of current enemies
+ * @param {Object} config - Enemy configuration
+ * @param {ObjectMap} gameMap - The game map
+ */
+function spawnRandomEnemy(player, enemies, config, gameMap) {
+    const angle = Math.random() * Math.PI * 2;
+    const distance = config.spawnRadius + Math.random() * 200;
+
+    const spawnX = player.real_position.x + Math.cos(angle) * distance;
+    const spawnY = player.real_position.y + Math.sin(angle) * distance;
+    const spawnPosition = new Vector(spawnX, spawnY);
+
+    const waypoints = generateRandomWaypoints(spawnPosition, 3, 80);
+    const homePoint = new Vector(spawnPosition.x, spawnPosition.y);
+
+    const enemy = new Enemy({
+        position: spawnPosition,
+        waypoints: waypoints,
+        homePoint: homePoint,
+        tileGrid: gameMap,
+        obstacles: gameMap.hitboxes || [],
+        ...config.enemySettings
+    });
+
+    enemies.push(enemy);
+    logger.debug("Random enemy spawned", {
+        position: spawnPosition,
+        totalEnemies: enemies.length
+    });
+}
+
+/**
+ * Handles random enemy spawning around the player
+ * @param {number} currentTime - Current game time
+ * @param {FloodPlayer} player - The flood player
+ * @param {Array} enemies - Array of current enemies
+ * @param {Object} config - Enemy configuration
+ * @param {ObjectMap} gameMap - The game map
+ */
+function handleEnemySpawning(currentTime, player, enemies, config, gameMap) {
+    if (currentTime - config.lastSpawnTime > config.spawnInterval &&
+        enemies.length < config.maxEnemies) {
+
+        spawnRandomEnemy(player, enemies, config, gameMap);
+        config.lastSpawnTime = currentTime;
+    }
+}
+
+/**
+ * Updates all enemies and removes dead ones
+ * @param {number} dt - Delta time
+ * @param {FloodPlayer} player - The flood player
+ * @param {Array} enemies - Array of enemies
+ */
+function updateEnemies(dt, player, enemies) {
+    for (let i = enemies.length - 1; i >= 0; i--) {
+        const enemy = enemies[i];
+        if (enemy && enemy.update) {
+            enemy.update(dt, player);
+
+            // Remove dead enemies
+            if (enemy.health <= 0) {
+                logger.debug("Enemy defeated", { remainingEnemies: enemies.length - 1 });
+                enemies.splice(i, 1);
+
+                // Give player biomass for killing enemy
+                player.biomass += 15;
+                logger.debug(`Player gained biomass! Total: ${player.biomass}`);
+            }
+        }
+    }
 }
 
 function partialAbilities(state, abilityKeys) {
@@ -122,6 +219,24 @@ export default function floodScreen() {
         attack: false
     };
 
+    const enemyConfig = {
+        spawnRadius: 500, // How far from player to spawn enemies
+        maxEnemies: 5, // Maximum enemies on screen
+        spawnInterval: 3000, // Milliseconds between spawns
+        lastSpawnTime: 0,
+        enemySettings: {
+            width: 32,
+            height: 32,
+            health: 100,
+            speed: 150,
+            damage: 10,
+            chaseRadius: 200,
+            attackRadius: 40,
+            retreatHealthThreshold: 30,
+            retreatDistance: 100
+        }
+    };
+
     const setup = () => {
         const map = document.getElementById("game");
         const minimap = document.getElementById("minimap");
@@ -135,24 +250,50 @@ export default function floodScreen() {
 
         game.init(map, minimap);
 
-        game.on("update", (dt) => {
+        game.on("update", (dt, currentTime) => {
             handleAbilities(game.player, abilityKeys, clones, enemies);
-            clones.forEach((clone, index) => {
-                if (clone && clone.update) {
-                    clone.update(dt, game.player, enemies);
-                    if (clone.health <= 0) {
-                        clones.splice(index, 1);
+
+            handleEnemySpawning(currentTime, game.player, enemies, enemyConfig, game.map);
+            updateEnemies(dt, game.player, enemies);
+
+            for (let i = 0; i < clones.length; ++i) {
+                if (clones[i] && clones[i].update) {
+                    clones[i].update(dt, game.player, enemies);
+                    if (clones[i].health <= 0) {
+                        clones.splice(i, 1);
                     }
                 }
-            });
+            }
         });
 
-        game.on("render",(ctx) => {
-            clones.forEach(clone => {
+        game.on("render", (ctx) => {
+            for (let enemy of enemies) {
+                if (enemy && enemy.draw) {
+
+                    const enemyScreenX = enemy.position.x - game.player.real_position.x + (game.map.width / 2);
+                    const enemyScreenY = enemy.position.y - game.player.real_position.y + (game.map.height / 2);
+
+                    if (enemyScreenX >= -enemy.width && enemyScreenX <= game.map.camaraWidth + enemy.width &&
+                        enemyScreenY >= -enemy.height && enemyScreenY <= game.map.camaraHeight + enemy.height) {
+
+                        const healthBarWidth = enemy.width;
+                        const healthBarHeight = 5;
+                        const healthPercentage = enemy.health / enemy.maxHealth;
+
+                        ctx.fillStyle = "white";
+                        ctx.font = "12px Arial";
+                        ctx.fillText(`Enemy: ${enemy.health}/${enemy.maxHealth}`, enemyScreenX + 10, enemyScreenY + 10);
+
+                        enemy.drawAtPosition(ctx, enemyScreenX, enemyScreenY);
+                    }
+                }
+            }
+
+            for (let clone of clones) {
                 if (clone && clone.draw) {
                     clone.draw(ctx);
                 }
-            });
+            }
             hud.update(game.player);
         });
 
