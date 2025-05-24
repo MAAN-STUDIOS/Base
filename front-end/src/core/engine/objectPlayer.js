@@ -27,8 +27,15 @@ export class Player extends GameObject {
 
     attack() {
         const weapon = this.attackSlots[this.activeSlot];
-        if (weapon && typeof weapon.fire === "function") {
-            weapon.fire(this.position, this.direction);
+        if (!weapon || typeof weapon.fire !== "function") return;
+
+        const direction = this.direction.clone();
+        if (direction.x === 0 && direction.y === 0) {
+            console.warn("No direction to fire");
+            return;
         }
+        
+        direction.normalize(); 
+        weapon.fire(this.real_position.clone(), direction, this);
     }
 }
