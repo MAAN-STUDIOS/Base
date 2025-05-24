@@ -70,7 +70,7 @@ export class Enemy {
 
         const distanceToPlayer = this.position.distanceTo(playerWorldPos);
         // const hasLosToPlayer = this.lineOfSight.hasLineOfSight(this.position, playerWorldPos);
-        const hasLosToPlayer = false;
+        const hasLosToPlayer = true;
 
         // State machine logic
         switch (this.state) {
