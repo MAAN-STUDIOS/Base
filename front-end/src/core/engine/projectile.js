@@ -34,11 +34,20 @@ export class Projectile extends GameObject {
     }
 
     draw(ctx) {
-        if (this.alive) {
-            console.log("Drawing projectile at", this.position);
-            super.draw(ctx);
-        }
+        if (!this.alive || !this.owner) return;
+    
+        const screenCenter = new Vector(ctx.canvas.width / 2, ctx.canvas.height / 2);
+        const cameraOffset = new Vector(this.position.x - this.owner.real_position.x, this.position.y - this.owner.real_position.y);
+          
+        const drawX = screenCenter.x + cameraOffset.x - this.width / 2;
+        const drawY = screenCenter.y + cameraOffset.y - this.height / 2;
+    
+        //console.log(`Drawing projectile at screen coords: (${drawX.toFixed(2)}, ${drawY.toFixed(2)}), world pos: ${this.position.x.toFixed(2)}, ${this.position.y.toFixed(2)}`);
+    
+        ctx.fillStyle = this.color;
+        ctx.fillRect(drawX, drawY, this.width, this.height);
     }
+    
 
     onImpact(target) {
         target.receiveDamage?.(this.damage);

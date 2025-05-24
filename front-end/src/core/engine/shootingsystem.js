@@ -25,7 +25,7 @@ export const ShootingSystem = {
     },
 
     drawAll(ctx) {
-        console.log("Active projectiles:", this.projectiles.length);
+        //console.log("Active projectiles:", this.projectiles.length);
         for (const p of this.projectiles) {
             p.draw(ctx);
         }
