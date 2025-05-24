@@ -45,6 +45,8 @@ export class HumanPlayer extends Player {
         /** @type {Hitbox} - Collision detection box for the player. */
         this.hitbox = new Hitbox(this);
         this.moveDirection = Vector.zero();
+
+        this.lastDirection = new Vector(1, 0);
     
         /**
          * @type {Object} - Tracks the current state of movement keys.
@@ -158,6 +160,10 @@ export class HumanPlayer extends Player {
 
             this.real_position.addEqual(this.moveDirection);
             this.direction = this.moveDirection;
+        }
+
+        if (this.direction.x !== 0 || this.direction.y !== 0) {
+            this.lastDirection = this.direction.clone();
         }
     }
 

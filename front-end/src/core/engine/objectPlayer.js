@@ -29,7 +29,10 @@ export class Player extends GameObject {
         const weapon = this.attackSlots[this.activeSlot];
         if (!weapon || typeof weapon.fire !== "function") return;
 
-        const direction = this.direction.clone();
+        let direction = this.direction.clone();
+        if (direction.x === 0 && direction.y === 0 && this.lastDirection) {
+            direction = this.lastDirection.clone();
+        }
         if (direction.x === 0 && direction.y === 0) {
             console.warn("No direction to fire");
             return;
