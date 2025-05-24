@@ -364,7 +364,7 @@ export class Engine {
                 const [hb, collidesWithObj] = collisionCheck?.(objHitbox);
 
                 if (collidesWithObj) {
-                    onCollision(objHitbox, hb);
+                    onCollision(objHitbox, hb, this.player);
                 }
             }
         }
