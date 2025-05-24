@@ -10,7 +10,7 @@ import { Enemy } from "@engine/enemy.js";
 
 /**
  * Handles ability inputs and execution
- * @param {FloodPlayer} player - The flood player
+ * @param {FloodPlayer||Player} player - The flood player
  * @param {Object} abilityKeys - Current state of ability keys
  * @param {Array} clones - Array of active clones
  * @param {Array} enemies - Array of enemies
@@ -42,7 +42,7 @@ function handleAbilities(player, abilityKeys, clones, enemies) {
 
 /**
  * Finds the nearest enemy to the player
- * @param {FloodPlayer} player - The flood player
+ * @param {FloodPlayer||Player} player - The flood player
  * @param {Array} enemies - Array of enemies
  * @returns {Object|null} Object with enemy and distance, or null if no enemies
  */
@@ -72,8 +72,8 @@ function generateRandomWaypoints(center, count, radius) {
     const waypoints = [];
 
     for (let i = 0; i < count; i++) {
-        const angle = (i / count) * Math.PI * 2 + (Math.random() - 0.5) * 0.5; // Add some randomness
-        const distance = radius * (0.5 + Math.random() * 0.5); // Random distance within radius
+        const angle = (i / count) * Math.PI * 2 + (Math.random() - 0.5) * 0.5;
+        const distance = radius * (0.5 + Math.random() * 0.5);
 
         const x = center.x + Math.cos(angle) * distance;
         const y = center.y + Math.sin(angle) * distance;
@@ -120,15 +120,16 @@ function spawnRandomEnemy(player, enemies, config, gameMap) {
 /**
  * Handles random enemy spawning around the player
  * @param {number} currentTime - Current game time
- * @param {FloodPlayer} player - The flood player
+ * @param {FloodPlayer||Player} player - The flood player
  * @param {Array} enemies - Array of current enemies
  * @param {Object} config - Enemy configuration
  * @param {ObjectMap} gameMap - The game map
  */
 function handleEnemySpawning(currentTime, player, enemies, config, gameMap) {
-    if (currentTime - config.lastSpawnTime > config.spawnInterval &&
-        enemies.length < config.maxEnemies) {
+    const timeToSpawn = currentTime - config.lastSpawnTime > config.spawnInterval;
+    const notReachMaxEnemies = enemies.length < config.maxEnemies;
 
+    if (timeToSpawn && notReachMaxEnemies) {
         spawnRandomEnemy(player, enemies, config, gameMap);
         config.lastSpawnTime = currentTime;
     }
@@ -137,7 +138,7 @@ function handleEnemySpawning(currentTime, player, enemies, config, gameMap) {
 /**
  * Updates all enemies and removes dead ones
  * @param {number} dt - Delta time
- * @param {FloodPlayer} player - The flood player
+ * @param {FloodPlayer||Player} player - The flood player
  * @param {Array} enemies - Array of enemies
  */
 function updateEnemies(dt, player, enemies) {
@@ -146,12 +147,10 @@ function updateEnemies(dt, player, enemies) {
         if (enemy && enemy.update) {
             enemy.update(dt, player);
 
-            // Remove dead enemies
             if (enemy.health <= 0) {
                 logger.debug("Enemy defeated", { remainingEnemies: enemies.length - 1 });
                 enemies.splice(i, 1);
 
-                // Give player biomass for killing enemy
                 player.biomass += 15;
                 logger.debug(`Player gained biomass! Total: ${player.biomass}`);
             }
@@ -211,8 +210,12 @@ export default function floodScreen() {
         }
     });
 
+    /** @type {FloodClone[]} */
     const clones = [];
+
+    /** @type {Enemy[]} */
     const enemies = [];
+
     const abilityKeys = {
         evolve: false,
         clone: false,
@@ -221,14 +224,14 @@ export default function floodScreen() {
 
     const enemyConfig = {
         spawnRadius: 500, // How far from player to spawn enemies
-        maxEnemies: 5, // Maximum enemies on screen
+        maxEnemies: 2, // Maximum enemies on screen
         spawnInterval: 3000, // Milliseconds between spawns
         lastSpawnTime: 0,
         enemySettings: {
             width: 32,
             height: 32,
             health: 100,
-            speed: 150,
+            speed: 6,
             damage: 10,
             chaseRadius: 200,
             attackRadius: 40,
@@ -264,21 +267,23 @@ export default function floodScreen() {
                     }
                 }
             }
+
+            hud.update(game.player);
         });
 
         game.on("render", (ctx) => {
             for (let enemy of enemies) {
                 if (enemy && enemy.draw) {
 
-                    const enemyScreenX = enemy.position.x - game.player.real_position.x + (game.map.width / 2);
-                    const enemyScreenY = enemy.position.y - game.player.real_position.y + (game.map.height / 2);
+                    const enemyScreenX = enemy.position.x - game.player.real_position.x + (game.map.camaraWidth / 2);
+                    const enemyScreenY = enemy.position.y - game.player.real_position.y + (game.map.camaraHeight / 2);
 
                     if (enemyScreenX >= -enemy.width && enemyScreenX <= game.map.camaraWidth + enemy.width &&
                         enemyScreenY >= -enemy.height && enemyScreenY <= game.map.camaraHeight + enemy.height) {
 
-                        const healthBarWidth = enemy.width;
-                        const healthBarHeight = 5;
-                        const healthPercentage = enemy.health / enemy.maxHealth;
+                        // const healthBarWidth = enemy.width;
+                        // const healthBarHeight = 5;
+                        // const healthPercentage = enemy.health / enemy.maxHealth;
 
                         ctx.fillStyle = "white";
                         ctx.font = "12px Arial";
@@ -294,7 +299,6 @@ export default function floodScreen() {
                     clone.draw(ctx);
                 }
             }
-            hud.update(game.player);
         });
 
         window.addEventListener('keydown', partialAbilities(true, abilityKeys));

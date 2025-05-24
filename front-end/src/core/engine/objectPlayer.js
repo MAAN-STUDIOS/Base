@@ -20,7 +20,7 @@ export class Player extends GameObject {
         this.real_position = position|| Vector.zero();
     }
 
-    get realPosition() {
+    get world_position() {
         return this.real_position.clone();
     }
 

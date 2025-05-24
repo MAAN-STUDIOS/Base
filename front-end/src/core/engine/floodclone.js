@@ -8,15 +8,15 @@ export class FloodClone extends GameObject {
     this.health = 50;
     this.hitbox = new Hitbox(this);
     this.evolution = options.evolution || 1;
-    this.speed = 350; // Speed in pixels per second
+    this.speed = 150;
     this.target = null;
     this.visionRadius = 150;
-    this.attackRange = 50; // Smaller attack range, needs to get closer to attack
+    this.attackRange = 50;
     this.attackCooldown = 0;
     this.followDistance = 100;
     this.offset = new Vector(0, 0);
-    this.player = options.player; // Store reference to the player
-    this.real_position = this.position.clone(); // Add real_position for world coordinates
+    this.player = options.player;
+    this.real_position = this.position.clone();
   }
 
   update(dt, player, enemies) {
@@ -152,7 +152,6 @@ export class FloodClone extends GameObject {
   }
 
   draw(ctx) {
-    // Calculate screen position based on player's position
     const screenX = this.real_position.x - this.player.real_position.x + ctx.canvas.width / 2;
     const screenY = this.real_position.y - this.player.real_position.y + ctx.canvas.height / 2;
 
@@ -160,13 +159,11 @@ export class FloodClone extends GameObject {
     ctx.fillStyle = this.color;
     ctx.fillRect(screenX, screenY, this.width, this.height);
 
-    // Draw vision radius (debug)
     ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
     ctx.beginPath();
     ctx.arc(screenX + this.width/2, screenY + this.height/2, this.visionRadius, 0, 2 * Math.PI);
     ctx.stroke();
 
-    // Draw health bar
     const healthBarWidth = this.width;
     const healthBarHeight = 5;
     const healthPercentage = this.health / 50;
