@@ -1,5 +1,7 @@
 // import { LineOfSight } from "./lineOfSight.js";
 
+import { Hitbox } from "@utils/hitbox.js";
+
 const STATES = {
     IDLE: 'IDLE',
     PURSUE: 'PURSUE',
@@ -14,8 +16,6 @@ export class Enemy {
             position,
             waypoints = [],
             homePoint,
-            tileGrid,
-            // obstacles = [],
             width = 32,
             height = 32,
             health = 100,
@@ -27,7 +27,6 @@ export class Enemy {
             retreatDistance = 150
         } = config;
 
-        // Basic properties
         this.position = position;
         this.width = width;
         this.height = height;
@@ -36,7 +35,6 @@ export class Enemy {
         this.speed = speed;
         this.damage = damage;
 
-        // State machine properties
         this.state = STATES.IDLE;
         this.waypoints = waypoints;
         this.currentWaypointIndex = 0;
@@ -45,15 +43,18 @@ export class Enemy {
         this.searchTarget = null;
         this.stateTimer = 0;
 
-        // Combat properties
         this.chaseRadius = chaseRadius;
         this.attackRadius = attackRadius;
         this.retreatHealthThreshold = retreatHealthThreshold;
         this.retreatDistance = retreatDistance;
 
-        // Line of sight system
+        this.hitbox = new Hitbox(this);
+
         // this.lineOfSight = new LineOfSight(tileGrid, obstacles);
-        this.tileGrid = tileGrid;
+    }
+
+    collidesWith(hb) {
+        return this.hitbox.collidesWith(hb);
     }
 
     /**
@@ -72,7 +73,6 @@ export class Enemy {
         // const hasLosToPlayer = this.lineOfSight.hasLineOfSight(this.position, playerWorldPos);
         const hasLosToPlayer = true;
 
-        // State machine logic
         switch (this.state) {
             case STATES.IDLE:
                 this.updateIdle(dt, player, distanceToPlayer, hasLosToPlayer);
@@ -91,7 +91,6 @@ export class Enemy {
                 break;
         }
 
-        // Update state timer
         this.stateTimer += dt;
     }
 
@@ -131,36 +130,29 @@ export class Enemy {
         const playerWorldPos = player.real_position.clone();
 
         if (hasLosToPlayer) {
-            // We can see the player - reset timer and pursue directly
             this.lastKnownPlayerPos = playerWorldPos.clone();
 
             if (distanceToPlayer <= this.attackRadius) {
                 this.transitionTo(STATES.ATTACK);
             } else {
-                // Move directly toward player
                 const direction = playerWorldPos.sub(this.position);
                 this.moveTowards(direction, dt);
             }
         } else {
-            // No line of sight - pursue last known position for up to 5 seconds
             if (this.lastKnownPlayerPos) {
                 const direction = this.lastKnownPlayerPos.sub(this.position);
                 const distanceToLastKnown = direction.magnitude();
 
-                // If we've reached the last known position, or it's been 5+ seconds, search
                 if (distanceToLastKnown < 10 || this.stateTimer >= 5) {
                     this.transitionTo(STATES.SEARCH);
                 } else {
-                    // Keep moving toward last known position
                     this.moveTowards(direction, dt);
                 }
             } else {
-                // No last known position, go to search immediately
                 this.transitionTo(STATES.SEARCH);
             }
         }
 
-        // Always check for retreat condition
         if (this.health <= this.retreatHealthThreshold) {
             this.transitionTo(STATES.RETREAT);
         }
@@ -359,4 +351,3 @@ export class Enemy {
         }
     }
 }
-

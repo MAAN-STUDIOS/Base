@@ -353,17 +353,25 @@ export class Engine {
             }
         }
 
-        for (const hitbox of gameMap.hitboxes) {
-            if (hitbox.isPhysical && playerHitbox.collidesWith(hitbox)) {
-                this.#resolveCollision(player, hitbox, prevPosition);
+        for (const objHitbox of gameMap.hitboxes) {
+            if (playerHitbox.collidesWith(objHitbox)) {
+                this.#resolveCollision(player, objHitbox, prevPosition);
                 playerHitbox.x = player.real_position.x - this._player.size / 2;
                 playerHitbox.y = player.real_position.y - this._player.size / 2;
+            }
+
+            for (let [collisionCheck, onCollision] of this.onCollisionChecks) {
+                const [hb, collidesWithObj] = collisionCheck?.(objHitbox);
+
+                if (collidesWithObj) {
+                    onCollision(objHitbox, hb);
+                }
             }
         }
 
         for (let collisionCheck of this.onCollisionChecks) {
-            const [hb, collision] = collisionCheck?.(playerHitbox);
-            if (collision) {
+            const [hb, collidesWithPlayer] = collisionCheck?.(playerHitbox);
+            if (collidesWithPlayer) {
                 this.#resolveCollision(player, hb, prevPosition);
                 playerHitbox.x = player.real_position.x - this._player.size / 2;
                 playerHitbox.y = player.real_position.y - this._player.size / 2;
@@ -382,8 +390,8 @@ export class Engine {
         const currY = player.real_position.y;
 
         const testHitbox = {
-            width: this._player.size,
-            height: this._player.size,
+            width: player.width,
+            height: player.height,
             collidesWith: function (other) {
                 return (
                     this.x < other.x + other.width &&
