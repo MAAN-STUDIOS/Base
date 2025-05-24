@@ -29,6 +29,8 @@ export class HumanPlayer extends Player {
         this.runSpeed = options.runSpeed || this.walkSpeed + 50;
         this.isRunning = false;
 
+        this.oxygen = 100;
+
         /** @type {Hitbox} - Collision detection box for the player. */
         this.hitbox = new Hitbox(this);
 

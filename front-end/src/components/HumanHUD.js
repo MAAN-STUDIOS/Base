@@ -1,13 +1,12 @@
 import logger from "@utils/logger.js";
 
-export default class HumanHUD {
+export class HumanHUD {
     constructor(gameContainer) {
         this.gameContainer = gameContainer;
         this.setup();
     }
 
     setup() {
-        // Create HUD container
         this.hudContainer = document.createElement('div');
         this.hudContainer.className = styles.container;
         this.hudContainer.style.position = 'absolute';
@@ -18,13 +17,10 @@ export default class HumanHUD {
         this.hudContainer.style.pointerEvents = 'none';
         logger.debug("HUD container created");
 
-        // Create and setup all HUD elements
         this.setupCoreStats();
 
-        // Add all elements to container
         this.hudContainer.appendChild(this.statsContainer);
 
-        // Add HUD to game container
         this.gameContainer.appendChild(this.hudContainer);
         logger.debug("HUD added to game container");
     }
@@ -39,12 +35,10 @@ export default class HumanHUD {
         this.statsContainer.style.flexDirection = 'column';
         this.statsContainer.style.gap = '10px';
 
-        // Health bar
         this.healthBar = this.createStatBar('Vida', '#FF0000');
         this.statsContainer.appendChild(this.healthBar.label);
         this.statsContainer.appendChild(this.healthBar.bar);
-        
-        // Oxigen bar
+
         this.oxygenBar = this.createStatBar('Oxígeno', '##5ac3e7');
         this.statsContainer.appendChild(this.oxygenBar.label);
         this.statsContainer.appendChild(this.oxygenBar.bar);
@@ -76,30 +70,31 @@ export default class HumanHUD {
 
         bar.appendChild(fill);
         return { bar, fill, label: labelElement };
-    }       
-}
+    }
 
-    update(player){
-        // Update stat bars 
+    /**
+     *
+     * @param {HumanPlayer} player
+     */
+    update(player) {
         const maxHealth = 100;
         const maxOxygen = 200;
-        
+
         const healthPercent = (player.health / maxHealth) * 100;
         const oxygenPercent = (player.oxygen / maxOxygen) * 100;
-        
-        // Update health bar width and fill
+
         const healthBarWidth = 200 * player.evolution;
         this.healthBar.bar.style.width = `${healthBarWidth}px`;
         this.healthBar.fill.style.width = `${healthPercent}%`;
-        
+
         this.oxygenBar.fill.style.width = `${oxygenPercent}%`;
-        
-    }    
-        logger.debug("HUD updated", { 
-            healthPercent, 
-            oxygenPercent, 
-            evolution: player.evolution,
-            biomass: player.oxygen,
-            activeClones: player.clones?.length || 0
-});
-    
+        //
+        // logger.debug("HUD updated", {
+        //     healthPercent,
+        //     oxygenPercent,
+        //     evolution: player.evolution,
+        //     biomass: player.oxygen,
+        //     activeClones: player.clones?.length || 0
+        // });
+    }
+}
