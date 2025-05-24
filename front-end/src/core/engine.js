@@ -125,7 +125,8 @@ export class Engine {
 
         this.onUpdates = [];
         this.onRenders = [];
-        this.onCollision = [];
+
+        /** @type {[function(Hitbox): [Hitbox, boolean], function(Hitbox, Hitbox, Player): void][]} */
         this.onCollisionChecks = [];
 
         logger.info("Engine created.");
@@ -177,9 +178,6 @@ export class Engine {
             case "render":
             case "draw":
                 this.onRenders.push(callback);
-                return true;
-            case "collision":
-                this.onCollision.push(callback);
                 return true;
             case "collisionCheck":
                 this.onCollisionChecks.push(callback);
