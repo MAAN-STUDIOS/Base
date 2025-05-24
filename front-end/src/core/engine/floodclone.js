@@ -8,14 +8,15 @@ export class FloodClone extends GameObject {
     this.health = 50;
     this.hitbox = new Hitbox(this);
     this.evolution = options.evolution || 1;
-    this.speed = 150; // Speed in pixels per second
+    this.speed = 350; // Speed in pixels per second
     this.target = null;
-    this.attackRange = 50;
-    this.attackCooldown = 0;
     this.visionRadius = 150;
+    this.attackRange = 50; // Smaller attack range, needs to get closer to attack
+    this.attackCooldown = 0;
     this.followDistance = 100;
     this.offset = new Vector(0, 0);
     this.player = options.player; // Store reference to the player
+    this.real_position = this.position.clone(); // Add real_position for world coordinates
   }
 
   update(dt, player, enemies) {
@@ -63,36 +64,44 @@ export class FloodClone extends GameObject {
   }
 
   _chaseAndAttack(dt) {
-    const dx = this.target.position.x - this.position.x;
-    const dy = this.target.position.y - this.position.y;
+    if (!this.target) return;
+
+    const dx = this.target.position.x - this.real_position.x;
+    const dy = this.target.position.y - this.real_position.y;
     const distance = Math.sqrt(dx * dx + dy * dy);
 
     if (distance <= this.attackRange) {
+      // Attack if in range
       this._attack(this.target);
     } else {
+      // Move towards target
       const moveSpeed = this.speed * dt;
-      if (dx !== 0) this.position.x += (dx / distance) * moveSpeed;
-      if (dy !== 0) this.position.y += (dy / distance) * moveSpeed;
+      const normalizedDx = dx / distance;
+      const normalizedDy = dy / distance;
+      this.real_position.x += normalizedDx * moveSpeed;
+      this.real_position.y += normalizedDy * moveSpeed;
     }
   }
 
   _followPlayer(dt, player) {
-    if (!player || !player.position) {
+    if (!player || !player.real_position) {
       console.error("Invalid player reference in _followPlayer");
       return;
     }
 
-    const targetX = player.position.x + this.offset.x;
-    const targetY = player.position.y + this.offset.y;
+    const targetX = player.real_position.x + this.offset.x;
+    const targetY = player.real_position.y + this.offset.y;
     
-    const targetDx = targetX - this.position.x;
-    const targetDy = targetY - this.position.y;
+    const targetDx = targetX - this.real_position.x;
+    const targetDy = targetY - this.real_position.y;
     const targetDistance = Math.sqrt(targetDx * targetDx + targetDy * targetDy);
 
     if (targetDistance > 10) {
       const moveSpeed = this.speed * dt;
-      if (targetDx !== 0) this.position.x += (targetDx / targetDistance) * moveSpeed;
-      if (targetDy !== 0) this.position.y += (targetDy / targetDistance) * moveSpeed;
+      const normalizedDx = targetDx / targetDistance;
+      const normalizedDy = targetDy / targetDistance;
+      this.real_position.x += normalizedDx * moveSpeed;
+      this.real_position.y += normalizedDy * moveSpeed;
     }
   }
 
@@ -100,10 +109,10 @@ export class FloodClone extends GameObject {
     if (!enemies || enemies.length === 0) return [];
 
     return enemies.filter(enemy => {
-      const dx = enemy.position.x - this.position.x;
-      const dy = enemy.position.y - this.position.y;
+      const dx = enemy.position.x - this.real_position.x;
+      const dy = enemy.position.y - this.real_position.y;
       const distance = Math.sqrt(dx * dx + dy * dy);
-      return distance <= this.visionRadius;
+      return distance <= this.visionRadius && enemy.health > 0;
     });
   }
 
@@ -114,8 +123,8 @@ export class FloodClone extends GameObject {
     let minDistance = Infinity;
 
     for (const enemy of enemies) {
-      const dx = enemy.position.x - this.position.x;
-      const dy = enemy.position.y - this.position.y;
+      const dx = enemy.position.x - this.real_position.x;
+      const dy = enemy.position.y - this.real_position.y;
       const distance = Math.sqrt(dx * dx + dy * dy);
 
       if (distance < minDistance) {
@@ -131,45 +140,60 @@ export class FloodClone extends GameObject {
     const now = performance.now();
     if (now < this.attackCooldown) return;
 
-    target.takeDamage?.(10);
-    this.attackCooldown = now + 2000; // 2 segundos de cooldown
+    // Deal damage to the target
+    if (target && typeof target.takeDamage === 'function') {
+      target.takeDamage(10);
+      this.attackCooldown = now + 1000; // 1 second cooldown
+      console.log("Clone attacked enemy", { 
+        targetHealth: target.health,
+        cooldown: this.attackCooldown - now 
+      });
+    }
   }
 
   draw(ctx) {
-    // Dibujar el clon
-    ctx.fillStyle = this.color;
-    ctx.fillRect(this.position.x, this.position.y, this.width, this.height);
+    // Calculate screen position based on player's position
+    const screenX = this.real_position.x - this.player.real_position.x + ctx.canvas.width / 2;
+    const screenY = this.real_position.y - this.player.real_position.y + ctx.canvas.height / 2;
 
-    // Dibujar el radio visual (solo para debug)
+    // Draw clone
+    ctx.fillStyle = this.color;
+    ctx.fillRect(screenX, screenY, this.width, this.height);
+
+    // Draw vision radius (debug)
     ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
     ctx.beginPath();
-    ctx.arc(this.position.x + this.width/2, this.position.y + this.height/2, this.visionRadius, 0, 2 * Math.PI);
+    ctx.arc(screenX + this.width/2, screenY + this.height/2, this.visionRadius, 0, 2 * Math.PI);
     ctx.stroke();
 
-    // Dibujar la barra de vida
+    // Draw health bar
     const healthBarWidth = this.width;
     const healthBarHeight = 5;
     const healthPercentage = this.health / 50;
 
-    // Fondo de la barra de vida
     ctx.fillStyle = "red";
-    ctx.fillRect(this.position.x, this.position.y - 10, healthBarWidth, healthBarHeight);
+    ctx.fillRect(screenX, screenY - 10, healthBarWidth, healthBarHeight);
 
-    // Vida actual
     ctx.fillStyle = "green";
-    ctx.fillRect(this.position.x, this.position.y - 10, healthBarWidth * healthPercentage, healthBarHeight);
+    ctx.fillRect(screenX, screenY - 10, healthBarWidth * healthPercentage, healthBarHeight);
 
-    // Dibujar cooldown de ataque
+    // Draw attack cooldown
     const now = performance.now();
     const attackCooldownRemaining = Math.max(0, this.attackCooldown - now);
     const attackCooldownPercentage = attackCooldownRemaining / 1000;
 
     ctx.fillStyle = "gray";
-    ctx.fillRect(this.position.x, this.position.y - 15, healthBarWidth, 2);
+    ctx.fillRect(screenX, screenY - 15, healthBarWidth, 2);
     if (attackCooldownRemaining > 0) {
       ctx.fillStyle = "blue";
-      ctx.fillRect(this.position.x, this.position.y - 15, healthBarWidth * (1 - attackCooldownPercentage), 2);
+      ctx.fillRect(screenX, screenY - 15, healthBarWidth * (1 - attackCooldownPercentage), 2);
     }
+
+    // Draw attack range (debug)
+    ctx.strokeStyle = "rgba(255, 0, 0, 0.2)";
+    ctx.beginPath();
+    ctx.arc(screenX + this.width/2, screenY + this.height/2, this.attackRange, 0, 2 * Math.PI);
+    ctx.stroke();
   }
 
   takeDamage(amount) {
