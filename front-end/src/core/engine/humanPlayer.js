@@ -47,6 +47,9 @@ export class HumanPlayer extends Player {
         this.moveDirection = Vector.zero();
 
         this.lastDirection = new Vector(1, 0);
+
+        this.attackCooldown = 0.3;
+        this.timeSinceLastAttack = this.attackCooldown;
     
         /**
          * @type {Object} - Tracks the current state of movement keys.
@@ -138,6 +141,7 @@ export class HumanPlayer extends Player {
      * @override
      */
     update(dt) {
+        this.timeSinceLastAttack += dt;
         this.moveDirection.clear();
 
         if (this.keys.up) this.moveDirection.y -= 1;
@@ -182,6 +186,11 @@ export class HumanPlayer extends Player {
     }
 
     attack() {
+        if (this.timeSinceLastAttack < this.attackCooldown) {
+            //console.log(`Cooldown activo: ${this.timeSinceLastAttack.toFixed(2)}s / ${this.attackCooldown}s`);
+            return; //en cooldown
+        }
+
         const weapon = this.attackSlots[this.activeSlot];
         if (!weapon || typeof weapon.fire !== "function") return;
 
@@ -190,11 +199,13 @@ export class HumanPlayer extends Player {
             direction = this.lastDirection.clone();
         }
         if (direction.x === 0 && direction.y === 0) {
-            console.warn("No direction to fire");
+            console.log("No direction to fire");
             return;
         }
         
         direction.normalize(); 
         weapon.fire(this.real_position.clone(), direction, this);
+
+        this.timeSinceLastAttack = 0;
     }
 }
