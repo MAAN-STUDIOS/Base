@@ -103,6 +103,15 @@ export class ObjectMap {
 
         const initialChunk = this.#resolveChunk(this.real_position);
         this.#loadChunks(initialChunk);
+        setTimeout(() => {
+            const loadedChunks = Array.from(this.chunks_loaded.keys())
+                .filter(key => this.chunks_loaded.get(key) !== null)
+                .map(key => {
+                    const [x, y] = key.split(',').map(Number);
+                    return new Vector(x, y);
+                });
+            this.#attachHitboxes(loadedChunks);
+        }, 100);
     }
 
     /**
