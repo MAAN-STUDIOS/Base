@@ -4,8 +4,8 @@ import { Vector } from "@utils/vector.js";
 
 export class Projectile extends GameObject {
     constructor({ position, direction, speed, damage, range, type = "bullet", owner = null }) {
-        super({ position, width: 6, height: 6, color: "yellow" });
-        this.direction = direction.normalized();
+        super({ position, width: 10, height: 10, color: "yellow" });
+        this.direction = direction;
         this.speed = speed;
         this.damage = damage;
         this.range = range; //antes de desaparecer
@@ -34,7 +34,10 @@ export class Projectile extends GameObject {
     }
 
     draw(ctx) {
-        if (this.alive) super.draw(ctx);
+        if (this.alive) {
+            console.log("Drawing projectile at", this.position);
+            super.draw(ctx);
+        }
     }
 
     onImpact(target) {

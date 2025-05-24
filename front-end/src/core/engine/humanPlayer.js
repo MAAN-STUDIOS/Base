@@ -59,7 +59,9 @@ export class HumanPlayer extends Player {
             down: false,
             left: false,
             right: false,
-            shift: false
+            shift: false,
+            f: false,
+            space: false
         };
     
         this.#setupControls();
@@ -92,6 +94,10 @@ export class HumanPlayer extends Player {
                     break;
                 case 'Shift':
                     this.keys.shift = true;
+                    break;
+                case ' ':
+                case 'f':
+                    this.attack();
                     break;
             }
         });

@@ -4,6 +4,8 @@ import { ObjectMap } from "@engine/objectMap.jsx";
 import MapSS from "@assets/map.png";
 import styles from "@screens/styles/game.module.css";
 import logger from "@utils/logger.js";
+import { Pistol } from "@engine/pistol.js";
+import { ShootingSystem } from "@engine/shootingsystem.js";
 
 /** @type string */
 import HUD from "@assets/HUD/HUD.png"
@@ -30,11 +32,14 @@ export default function humanScreen() {
         const minimapCtx = minimap.getContext("2d");
         logger.debug("Mini map initialized", { width: minimap.width, height: minimap.height });
 
+        const pistol = new Pistol();
+
         const player = new HumanPlayer(
             Vector.zero(), // Start at world origin
             PLAYER_SIZE, PLAYER_SIZE, {
                 walkSpeed: 600,
-                runSpeed: 1200
+                runSpeed: 1200,
+                attackSlots: [pistol] 
             }
         );
         logger.debug("Human player created", { position: player.real_position });
@@ -89,6 +94,8 @@ export default function humanScreen() {
                 const prevPosition = player.real_position.clone();
 
                 player.update(dt);
+
+                ShootingSystem.updateAll(dt);
                 
                 handleCollisions(player, gameMap, prevPosition);
                 
@@ -123,6 +130,8 @@ export default function humanScreen() {
                 screenCenterY - PLAYER_SIZE / 2 - 5
             );
             ctx.restore();
+
+            ShootingSystem.drawAll(ctx);
 
             ctx.drawImage(
                 hud,
