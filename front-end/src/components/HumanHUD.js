@@ -39,7 +39,7 @@ export class HumanHUD {
         this.statsContainer.appendChild(this.healthBar.label);
         this.statsContainer.appendChild(this.healthBar.bar);
 
-        this.oxygenBar = this.createStatBar('Oxígeno', '##5ac3e7');
+        this.oxygenBar = this.createStatBar('Oxígeno', '#5ac3e7');
         this.statsContainer.appendChild(this.oxygenBar.label);
         this.statsContainer.appendChild(this.oxygenBar.bar);
     }

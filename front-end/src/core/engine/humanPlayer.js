@@ -29,6 +29,7 @@ export class HumanPlayer extends Player {
         this.runSpeed = options.runSpeed || this.walkSpeed + 50;
         this.isRunning = false;
 
+        this.health = 100;
         this.oxygen = 100;
 
         /** @type {Hitbox} - Collision detection box for the player. */
@@ -142,6 +143,11 @@ export class HumanPlayer extends Player {
         if (this.direction.x !== 0 || this.direction.y !== 0) {
             this.lastDirection = this.direction.clone();
         }
+        //Reduccion de salud 
+        if (this.isDamaged && this.health > 0) {
+            this.health -= this.healthDamage;
+            if (this.health < 0) this.health = 0;
+        }
     }
 
     /**
@@ -153,9 +159,17 @@ export class HumanPlayer extends Player {
     draw(ctx) {
         super.draw(ctx);
 
+        //Barra de vida 
+        ctx.fillStyle = "white";
+        ctx.fillRect(0, 0, this.health, 100);
+        
+        //Barra de oxigeno 
+        //ctx.fillStyle = "#5ac3e7";
+
         ctx.font = "16px monospace";
         ctx.fillStyle = "white";
         ctx.fillText(`${this.isRunning ? "Running" : "Walking"}`, this.position.x, this.position.y - 15);
+
     }
 
     attack() {
