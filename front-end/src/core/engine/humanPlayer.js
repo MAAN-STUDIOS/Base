@@ -48,6 +48,7 @@ export class HumanPlayer extends Player {
 
         this.attackCooldown = 0.3;
         this.timeSinceLastAttack = this.attackCooldown;
+        this.mouseDirection = new Vector(1, 0);
 
 
         /**
@@ -158,6 +159,23 @@ export class HumanPlayer extends Player {
         ctx.fillText(`${this.isRunning ? "Running" : "Walking"}`, this.position.x, this.position.y - 15);
     }
 
+    initMouseTracking() {
+        const canvas = document.querySelector("canvas");
+    
+        canvas.addEventListener("mousemove", (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+    
+            const screenCenter = new Vector(canvas.width / 2, canvas.height / 2);
+            const offset = new Vector(mouseX - screenCenter.x, mouseY - screenCenter.y);
+    
+            if (offset.x !== 0 || offset.y !== 0) {
+                this.mouseDirection = offset.normalize();
+            }
+        });
+    }
+    
     attack() {
         const inCooldown = this.timeSinceLastAttack < this.attackCooldown;
         if (inCooldown) return;
@@ -165,16 +183,18 @@ export class HumanPlayer extends Player {
         const weapon = this.attackSlots[this.activeSlot];
         if (!weapon || typeof weapon.fire !== "function") return;
 
-        let direction = this.direction.clone();
-        if (direction.x === 0 && direction.y === 0 && this.lastDirection) {
-            direction = this.lastDirection.clone();
-        }
-        if (direction.x === 0 && direction.y === 0) {
-            console.log("No direction to fire");
-            return;
-        }
+        // let direction = this.direction.clone();
+        // if (direction.x === 0 && direction.y === 0 && this.lastDirection) {
+        //     direction = this.lastDirection.clone();
+        // }
+        // if (direction.x === 0 && direction.y === 0) {
+        //     console.log("No direction to fire");
+        //     return;
+        // }
 
-        direction.normalize();
+        // direction.normalize();
+
+        const direction = this.mouseDirection.clone();
         weapon.fire(this.real_position.clone(), direction, this);
 
         this.timeSinceLastAttack = 0;
