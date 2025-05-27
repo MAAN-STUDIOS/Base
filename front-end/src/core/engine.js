@@ -267,6 +267,8 @@ export class Engine {
         );
         this._world.map.ctx.restore();
 
+        this._player.obj.draw(this._world.map.ctx)
+
         this._world.miniMap.obj.draw(this._world.miniMap.ctx);
 
         const minimapPlayerSize = 4;
