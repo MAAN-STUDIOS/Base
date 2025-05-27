@@ -153,7 +153,7 @@ export default function humanScreen() {
                 chunk_size: 16,
                 n_loaded_chunks: 5,
                 debug: true,
-                debug_info: true
+                debug_info: false
             }
         },
         miniMap: {
