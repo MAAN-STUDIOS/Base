@@ -46,10 +46,12 @@ export class HumanPlayer extends Player {
 
         this.lastDirection = new Vector(1, 0);
 
-        this.attackCooldown = 0.3;
+        //this.attackCooldown = 0.3;
         this.timeSinceLastAttack = this.attackCooldown;
         this.mouseDirection = new Vector(1, 0);
 
+        this.attackSlots = options.attackSlots || [];
+        this.activeSlot = 0;
 
         /**
          * @type {Object} - Tracks the current state of movement keys.
@@ -99,6 +101,15 @@ export class HumanPlayer extends Player {
                 }
                 if (state && (key === ' ' || key === 'f')) {
                     this.attack();
+                }
+                if (key === '1') {
+                    this.activeSlot = 0;
+                }
+                if (key === '2') {
+                    this.activeSlot = 1;
+                }
+                if (key === '3') {
+                    this.activeSlot = 2;
                 }
             }
         }
@@ -157,6 +168,8 @@ export class HumanPlayer extends Player {
         ctx.font = "16px monospace";
         ctx.fillStyle = "white";
         ctx.fillText(`${this.isRunning ? "Running" : "Walking"}`, this.position.x, this.position.y - 15);
+        const weapon = this.attackSlots[this.activeSlot];
+        ctx.fillText(`Weapon: ${weapon.constructor.name}`, this.position.x, this.position.y - 30);
     }
 
     initMouseTracking() {
@@ -177,11 +190,11 @@ export class HumanPlayer extends Player {
     }
     
     attack() {
-        const inCooldown = this.timeSinceLastAttack < this.attackCooldown;
-        if (inCooldown) return;
-
         const weapon = this.attackSlots[this.activeSlot];
         if (!weapon || typeof weapon.fire !== "function") return;
+
+        const cooldown = weapon.config.cooldown || 0.3;
+        if (this.timeSinceLastAttack < cooldown) return;
 
         // let direction = this.direction.clone();
         // if (direction.x === 0 && direction.y === 0 && this.lastDirection) {
