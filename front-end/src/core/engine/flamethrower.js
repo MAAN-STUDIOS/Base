@@ -21,7 +21,10 @@ export class Flamethrower {
     }
 
     fire(origin, direction, owner = null) {
-        if (this.cooldownTimer < this.config.cooldown) return;
+        if (this.cooldownTimer < this.config.cooldown){
+            console.log('En cooldown');
+            return;
+        }
 
         const baseAngle = Math.atan2(direction.y, direction.x);
 

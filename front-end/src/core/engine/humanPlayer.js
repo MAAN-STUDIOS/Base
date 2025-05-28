@@ -65,7 +65,7 @@ export class HumanPlayer extends Player {
         this.lastDirection = new Vector(1, 0);
 
         //this.attackCooldown = 0.3;
-        this.timeSinceLastAttack = this.attackCooldown;
+        //this.timeSinceLastAttack = this.attackCooldown;
         this.mouseDirection = new Vector(1, 0);
 
         this.attackSlots = options.attackSlots || [];
@@ -147,7 +147,6 @@ export class HumanPlayer extends Player {
      * @override
      */
     update(dt) {
-        this.timeSinceLastAttack += dt;
         this.moveDirection.clear();
 
         if (this.keys.up) this.moveDirection.y -= 1;
@@ -276,8 +275,8 @@ export class HumanPlayer extends Player {
         const weapon = this.attackSlots[this.activeSlot];
         if (!weapon || typeof weapon.fire !== "function") return;
 
-        const cooldown = weapon.config.cooldown || 0.3;
-        if (this.timeSinceLastAttack < cooldown) return;
+        //const cooldown = weapon.config.cooldown || 0.3;
+        //if (this.timeSinceLastAttack < cooldown) return;
 
         // let direction = this.direction.clone();
         // if (direction.x === 0 && direction.y === 0 && this.lastDirection) {
@@ -293,7 +292,7 @@ export class HumanPlayer extends Player {
         const direction = this.mouseDirection.clone();
         weapon.fire(this.real_position.clone(), direction, this);
 
-        this.timeSinceLastAttack = 0;
+        //this.timeSinceLastAttack = 0;
     }
 
     takeDamage(amount) {

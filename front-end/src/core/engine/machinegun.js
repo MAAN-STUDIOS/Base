@@ -24,7 +24,10 @@ export class MachineGun {
     }
 
     fire(origin, direction, owner = null) {
-        if (this.cooldownTimer < this.config.cooldown) return;
+        if (this.cooldownTimer < this.config.cooldown){
+            console.log('En cooldown');
+            return;
+        }
 
         ShootingSystem.fire({
             origin: origin.clone(),
@@ -32,7 +35,7 @@ export class MachineGun {
             weaponConfig: this.config,
             owner
         });
-        
+
         this.cooldownTimer = 0;
     }
 }
