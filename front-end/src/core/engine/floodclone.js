@@ -1,11 +1,12 @@
 import { GameObject } from "./gameobject.js";
 import { Hitbox } from "@utils/hitbox.js";
 import { Vector } from "@utils/vector.js";
+import logger from "@utils/logger.js";
 
 export class FloodClone extends GameObject {
   constructor(options = {}) {
     super(options);
-    this.health = 50;
+    this.health = 80;
     this.hitbox = new Hitbox(this);
     this.evolution = options.evolution || 1;
     this.speed = 150;
@@ -22,6 +23,7 @@ export class FloodClone extends GameObject {
     this.followSpeed = 50;
     this.urgentFollowSpeed = 80;
     this.urgentDistance = 10000;
+    this.isDead = false;
   }
 
   update(dt, player, enemies) {
@@ -217,12 +219,15 @@ export class FloodClone extends GameObject {
     }
   }
 
+
   takeDamage(amount) {
     this.health -= amount;
     if (this.health <= 0) {
+      this.health = 0;
       this.die();
     }
   }
+
 
   die() {
     this.isDead = true;

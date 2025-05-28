@@ -140,13 +140,15 @@ function handleEnemySpawning(currentTime, player, enemies, config, gameMap) {
  * @param {number} dt - Delta time
  * @param {FloodPlayer||Player} player - The flood player
  * @param {Array} enemies - Array of enemies
+ * @param {Array} clones - Array of active clones
  * @param gameEngine
  */
-function updateEnemies(dt, player, enemies, gameEngine) {
+function updateEnemies(dt, player, enemies, clones, gameEngine) {
     for (let i = enemies.length - 1; i >= 0; i--) {
         const enemy = enemies[i];
         if (enemy && enemy.update) {
-            enemy.update(dt, player);
+            // Pass clones array to enemy update
+            enemy.update(dt, player, clones);
             gameEngine.handleEnemyCollisions(enemy, gameEngine.map);
 
             if (enemy.health <= 0) {
@@ -338,20 +340,23 @@ export default function floodScreen() {
         game.on("update", (dt, currentTime) => {
             const playerIsDead = handlePlayerDeath(currentTime);
             if (playerIsDead) {
-                updateEnemies(dt * 0.5, game.player, enemies, game);
+                // Pass clones array even when player is dead
+                updateEnemies(dt * 0.5, game.player, enemies, clones, game);
                 return;
             }
+            
             handleAbilities(game.player, abilityKeys, clones, enemies);
-
             handleEnemySpawning(currentTime, game.player, enemies, enemyConfig, game.map);
-            updateEnemies(dt, game.player, enemies, game);
+            
+            // Pass clones array to updateEnemies
+            updateEnemies(dt, game.player, enemies, clones, game);
+            
             if (abilityKeys.restart && gameState.isGameOver) {
                 respawnPlayer();
                 abilityKeys.restart = false;
             }
-
-
-
+        
+            // Rest of your clone update logic...
             for (let i = 0; i < clones.length; ++i) {
                 if (clones[i].isDead === true) {
                     clones.splice(i, 1);
@@ -364,7 +369,7 @@ export default function floodScreen() {
                     }
                 }
             }
-
+        
             hud.update(game.player);
         });
 

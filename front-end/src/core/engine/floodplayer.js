@@ -221,10 +221,6 @@ export class FloodPlayer extends Player {
         target.status = "confused";
         this.attackCooldowns.toxicSmoke = now + 3000;
         break;
-      case "spikes":
-        target.takeDamage?.(10);
-        this.attackCooldowns.spikes = now + 1500;
-        break;
     }
     logger.debug(`Attack ${type} executed on target`);
   }
@@ -248,7 +244,6 @@ export class FloodPlayer extends Player {
   draw(ctx) {
     const colors = ["#8b0000", "#b80000", "#ff3030"];
     this.color = colors[this.evolution - 1];
-    super.draw(ctx);
 
     ctx.font = "12px monospace";
     ctx.fillStyle = "white";
@@ -292,14 +287,7 @@ export class FloodPlayer extends Player {
   }
   die() {
   this.isDead = true;
-  // TODO: Think this ideas through.
-  // this.deathTime = performance.now();
-  // this.respawnDelay = 3000;
-  
-
   this.biomass = 0;
-  
-  
   this.clones.forEach(clone => clone.die());
   this.clones = [];
   
