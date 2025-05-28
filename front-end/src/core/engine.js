@@ -10,6 +10,7 @@ import { Pistol } from "@engine/pistol.js";
 import { Shotgun } from "@engine/shotgun.js";
 import { MachineGun } from "@engine/machinegun.js";
 import { ShootingSystem } from "@engine/shootingsystem.js";
+import { Flamethrower } from "@engine/flamethrower.js";
 
 
 /**
@@ -303,7 +304,8 @@ export class Engine {
             attackSlots: [
                 new Pistol({ speed: 130 }),
                 new Shotgun({ projectileCount: 2, spread: 90 }),
-                new MachineGun({ speed: 170})]
+                new MachineGun({ speed: 170}),
+                new Flamethrower({speed: 150})]
         }
         let obj;
 
