@@ -29,7 +29,25 @@ export class HumanPlayer extends Player {
         this.runSpeed = options.runSpeed || this.walkSpeed + 50;
         this.isRunning = false;
 
-        this.oxygen = 100;
+        //Set up 
+        this.maxHealth = 100;
+        this.maxOxygen = 100;
+        this.health = this.maxHealth;
+        this.oxygen = this.maxOxygen;
+
+        //Estados iniciales 
+        this.isDamaged = false; //Daño a salud 
+        this.isReduce = false;  //Reducción de oxígeno 
+
+        //Tasas de uso REVISAR 
+        this.oxygenUse = 10;       //Uso de oxígeno al correr  
+        this.oxygenReload = 0.3;  //Recarga de oxígeno al dejar de correr 
+        this.healthDamage = 1;    //Daño del flood hacia humano 
+        this.healthRecover = 0.4;   //Recarga de salud al no recibir daño
+
+        this.healthTimer = 0;
+        this.oxygenTimer = 0;
+
 
         /** @type {Hitbox} - Collision detection box for the player. */
         this.hitbox = new Hitbox(this);
@@ -96,7 +114,7 @@ export class HumanPlayer extends Player {
                 if (key === `D` || key === 'd' || key === 'ArrowRight') {
                     this.keys.right = state;
                 }
-                if (key === 'Shift') {
+                if (key === 'Shift') {            
                     this.keys.shift = state;
                 }
                 if (state && (key === ' ' || key === 'f')) {
@@ -141,7 +159,8 @@ export class HumanPlayer extends Player {
             );
             if (movingDiagonally) this.moveDirection.normalize();
 
-            this.isRunning = this.keys.shift;
+            // Corregido: Solo puede correr si tiene oxígeno
+            this.isRunning = this.keys.shift && this.oxygen > 0;
             const speed = this.isRunning ? this.runSpeed : this.walkSpeed;
 
             const frameAdjustedSpeed = speed * dt;
@@ -149,12 +168,42 @@ export class HumanPlayer extends Player {
 
             this.real_position.addEqual(this.moveDirection);
             this.direction = this.moveDirection;
+        } else {
+            // Cuando no se mueve, no está corriendo
+            this.isRunning = false;
         }
 
         if (this.direction.x !== 0 || this.direction.y !== 0) {
             this.lastDirection = this.direction.clone();
         }
+
+        // Corregido: Sistema de oxígeno
+        if (this.isRunning) {
+            // Consume oxígeno solo cuando está corriendo
+            this.oxygenTimer += dt;
+            if (this.oxygenTimer >= 5.0) {
+                this.oxygen -= this.oxygenUse;
+                if (this.oxygen < 0) this.oxygen = 0;
+                this.oxygenTimer = 0;
+            }
+        } else if (this.oxygen < this.maxOxygen) {
+            // Regenera oxígeno solo cuando NO está corriendo
+            this.oxygen += this.oxygenReload * dt;
+            if (this.oxygen > this.maxOxygen) this.oxygen = this.maxOxygen;
+        }
+
+        // Sistema de salud
+        if (this.health < this.maxHealth) {
+            this.healthTimer += dt;
+            if (this.healthTimer >= 3.0) {
+                this.health += 1;
+                if (this.health > this.maxHealth) this.health = this.maxHealth;
+                this.healthTimer = 0;
+            }
+        } 
     }
+
+
 
     /**
      * Renders the player on the canvas.
@@ -163,13 +212,44 @@ export class HumanPlayer extends Player {
      * @override
      */
     draw(ctx) {
-        super.draw(ctx);
+        //super.draw(ctx);
 
+        //Barra de vida dinámica
+        const healthPercentage = this.health / this.maxHealth;
+        ctx.fillStyle = "red"; 
+        ctx.fillRect(25, 5, 250 * healthPercentage, 20);   
+
+        ctx.fillStyle = "white";
+        ctx.fillText("Salud", 280, 20); 
+        
+        // Borde de la barra de salud
+        ctx.strokeStyle = "white";
+        ctx.strokeRect(25, 5, 250, 20);
+        
+        ctx.fillStyle = "white";
+        
+        //Barra de oxígeno dinámica
+        const oxygenPercentage = this.oxygen / this.maxOxygen;
+        ctx.fillStyle = "#5ac3e7";
+        ctx.fillRect(25, 30, 200 * oxygenPercentage, 20); 
+
+        ctx.fillStyle = "white";
+        ctx.fillText("Oxígeno", 230, 45);
+
+        
+        // Borde de la barra de oxígeno
+        ctx.strokeStyle = "white";
+        ctx.strokeRect(25, 30, 200, 20);
+        
+        ctx.fillStyle = "white";
+        
         ctx.font = "16px monospace";
         ctx.fillStyle = "white";
         ctx.fillText(`${this.isRunning ? "Running" : "Walking"}`, this.position.x, this.position.y - 15);
+
         const weapon = this.attackSlots[this.activeSlot];
         ctx.fillText(`Weapon: ${weapon.constructor.name}`, this.position.x, this.position.y - 30);
+
     }
 
     initMouseTracking() {
@@ -212,4 +292,10 @@ export class HumanPlayer extends Player {
 
         this.timeSinceLastAttack = 0;
     }
+
+    takeDamage(amount) {
+        this.health -= amount;
+        if (this.health < 0) this.health = 0;
+    }
 }
+
