@@ -168,6 +168,10 @@ export default function humanScreen() {
                 debug: true,
                 debug_info: false
             }
+        },
+        HUD: {
+            width: 1152,
+            height: 864
         }
     });
 
