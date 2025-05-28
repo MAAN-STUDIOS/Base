@@ -11,6 +11,8 @@ import audioManager from "@utils/audiomanager.js";
 import cloneSound from "@/assets/sfx/clone.wav";
 import terrorMusic from "@/assets/sfx/Terror.mp3";
 import playerDamage from "@/assets/sfx/player_damage.wav";
+import screenLogin from "@screens/login.js";
+import screenCreateAccount from "@screens/createAccount.js";
 
 // Register all screens
 registerScreen('menu', screenMenu);
@@ -20,6 +22,8 @@ registerScreen('flood', screenFloodTest);
 registerScreen('human', screenHumanDemo);
 registerScreen(404, screenPageNotFound);
 registerScreen('credits', screenCredits);
+registerScreen('login', screenLogin);
+registerScreen('create-account', screenCreateAccount);
 
 document.addEventListener("click", function unlockAudio() {
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();

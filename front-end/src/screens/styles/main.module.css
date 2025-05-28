@@ -13,3 +13,51 @@
   color: #cccccc;
   text-align: center;
 }
+
+.credentialsSection {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;        
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: rgba(0,0,0,0.4);
+  border-radius: 8px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  text-align: left;
+}
+
+.formGroup label {
+  font-size: 0.8rem;
+  color: #cccccc;
+  margin-bottom: 0.5rem;
+}
+
+.formGroup input {
+  padding: 0.8rem 1rem;
+  border: 2px solid #cccccc;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.6);
+  color: #cccccc;
+  font-size: 0.8rem;
+  font-family: 'Press Start 2P', monospace;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.formGroup input::placeholder {
+  color: rgba(204, 204, 204, 0.6);
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.8rem;
+}
+
+.formGroup input:focus {
+  outline: none;
+  border-color: #ffffff;
+  box-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+}
+
