@@ -19,14 +19,23 @@ export class Pistol {
             projectileType: options.projectileType || "bullet",
             cooldown: options.cooldown || 0.3
         };
+        this.cooldownTimer = this.config.cooldown;
     }
 
+    update(dt) {
+        this.cooldownTimer += dt;
+      }
+
     fire(origin, direction, owner = null) {
+        if (this.cooldownTimer < this.config.cooldown) return;
+
         ShootingSystem.fire({
             origin,
             direction,
             weaponConfig: this.config,
             owner
         });
+
+        this.cooldownTimer = 0;
     }
 }

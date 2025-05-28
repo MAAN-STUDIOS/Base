@@ -21,9 +21,16 @@ export class Shotgun {
             spread: options.spread || 35, 
             cooldown: options.cooldown || 1.0
         };
+        this.cooldownTimer = this.config.cooldown;
+    }
+
+    update(dt) {
+        this.cooldownTimer += dt;
     }
 
     fire(origin, direction, owner = null) {
+        if (this.cooldownTimer < this.config.cooldown) return;
+
         const baseAngle = Math.atan2(direction.y, direction.x);
         const spreadInRadians = (this.config.spread * Math.PI) / 180;
 
@@ -41,5 +48,6 @@ export class Shotgun {
                 owner
             });
         }
+        this.cooldownTimer = 0;
     }
 }

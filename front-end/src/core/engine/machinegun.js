@@ -16,14 +16,23 @@ export class MachineGun {
             projectileType: options.projectileType || "bullet",
             cooldown: options.cooldown || 0.1
         };
+        this.cooldownTimer = this.config.cooldown;
+    }
+
+    update(dt) {
+        this.cooldownTimer += dt;
     }
 
     fire(origin, direction, owner = null) {
+        if (this.cooldownTimer < this.config.cooldown) return;
+
         ShootingSystem.fire({
             origin: origin.clone(),
             direction: direction.clone(),
             weaponConfig: this.config,
             owner
         });
+        
+        this.cooldownTimer = 0;
     }
 }
