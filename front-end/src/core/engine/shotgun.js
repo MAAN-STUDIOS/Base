@@ -13,12 +13,12 @@ export class Shotgun {
      */
     constructor(options = {}) {
         this.config = {
-            speed: options.speed || 6,
+            speed: options.speed || 120,
             damage: options.damage || 10,
             range: options.range || 400,
             projectileType: options.projectileType || "pellet",
             projectileCount: options.projectileCount || 2,
-            spread: options.spread || 35, 
+            spread: options.spread || 15, 
             cooldown: options.cooldown || 10
         };
         this.cooldownTimer = this.config.cooldown;

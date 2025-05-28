@@ -13,7 +13,7 @@ export class Pistol {
      */
     constructor(options = {}) {
         this.config = {
-            speed: options.speed || 7,
+            speed: options.speed || 130,
             damage: options.damage || 15,
             range: options.range || 600,
             projectileType: options.projectileType || "bullet",

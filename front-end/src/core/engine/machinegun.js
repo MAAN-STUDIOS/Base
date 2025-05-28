@@ -10,7 +10,7 @@ export class MachineGun {
      */
     constructor(options = {}) {
         this.config = {
-            speed: options.speed || 9,
+            speed: options.speed || 170,
             damage: options.damage || 6,
             range: options.range || 700,
             projectileType: options.projectileType || "bullet",

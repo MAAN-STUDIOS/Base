@@ -5,13 +5,13 @@ import { Vector } from "@utils/vector.js";
 export class Flamethrower {
     constructor(options = {}) {
         this.config = {
-            speed: options.speed || 5,
+            speed: options.speed || 150,
             damage: options.damage || 3,
             range: options.range || 200,
             projectileType: options.projectileType || "flame",
             projectileCount: options.projectileCount || 4,
             spread: options.spread || 0.4,
-            cooldown: options.cooldown || 5
+            cooldown: options.cooldown || 15
         };
         this.cooldownTimer = this.config.cooldown;
     }
