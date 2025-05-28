@@ -9,14 +9,15 @@ export class Pistol {
      * @param [options.damage]
      * @param [options.range]
      * @param [options.projectileType]
-     *
+     * @param [options.cooldown]
      */
     constructor(options = {}) {
         this.config = {
             speed: options.speed || 7,
             damage: options.damage || 15,
             range: options.range || 600,
-            projectileType: options.projectileType || "bullet"
+            projectileType: options.projectileType || "bullet",
+            cooldown: options.cooldown || 0.3
         };
     }
 
