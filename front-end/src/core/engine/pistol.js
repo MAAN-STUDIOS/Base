@@ -17,7 +17,7 @@ export class Pistol {
             damage: options.damage || 15,
             range: options.range || 600,
             projectileType: options.projectileType || "bullet",
-            cooldown: options.cooldown || 0.3
+            cooldown: options.cooldown || 5
         };
         this.cooldownTimer = this.config.cooldown;
     }
@@ -27,6 +27,7 @@ export class Pistol {
       }
 
     fire(origin, direction, owner = null) {
+        console.log(this.cooldownTimer);
         if (this.cooldownTimer < this.config.cooldown){
             console.log('En cooldown');
             return;

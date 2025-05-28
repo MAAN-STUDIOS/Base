@@ -11,7 +11,7 @@ export class Flamethrower {
             projectileType: options.projectileType || "flame",
             projectileCount: options.projectileCount || 4,
             spread: options.spread || 0.4,
-            cooldown: options.cooldown || 0.05
+            cooldown: options.cooldown || 5
         };
         this.cooldownTimer = this.config.cooldown;
     }

@@ -19,7 +19,7 @@ export class Shotgun {
             projectileType: options.projectileType || "pellet",
             projectileCount: options.projectileCount || 2,
             spread: options.spread || 35, 
-            cooldown: options.cooldown || 1.0
+            cooldown: options.cooldown || 10
         };
         this.cooldownTimer = this.config.cooldown;
     }

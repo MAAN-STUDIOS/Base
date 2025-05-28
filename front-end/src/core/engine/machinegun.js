@@ -14,7 +14,7 @@ export class MachineGun {
             damage: options.damage || 6,
             range: options.range || 700,
             projectileType: options.projectileType || "bullet",
-            cooldown: options.cooldown || 0.1
+            cooldown: options.cooldown || 2
         };
         this.cooldownTimer = this.config.cooldown;
     }

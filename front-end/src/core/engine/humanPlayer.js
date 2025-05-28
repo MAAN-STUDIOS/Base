@@ -275,24 +275,8 @@ export class HumanPlayer extends Player {
         const weapon = this.attackSlots[this.activeSlot];
         if (!weapon || typeof weapon.fire !== "function") return;
 
-        //const cooldown = weapon.config.cooldown || 0.3;
-        //if (this.timeSinceLastAttack < cooldown) return;
-
-        // let direction = this.direction.clone();
-        // if (direction.x === 0 && direction.y === 0 && this.lastDirection) {
-        //     direction = this.lastDirection.clone();
-        // }
-        // if (direction.x === 0 && direction.y === 0) {
-        //     console.log("No direction to fire");
-        //     return;
-        // }
-
-        // direction.normalize();
-
         const direction = this.mouseDirection.clone();
         weapon.fire(this.real_position.clone(), direction, this);
-
-        //this.timeSinceLastAttack = 0;
     }
 
     takeDamage(amount) {
