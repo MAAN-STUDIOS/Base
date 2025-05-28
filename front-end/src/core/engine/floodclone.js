@@ -6,7 +6,8 @@ import logger from "@utils/logger.js";
 export class FloodClone extends GameObject {
   constructor(options = {}) {
     super(options);
-    this.health = 80;
+    this.health = 300;
+    this.maxHealth = 300;
     this.hitbox = new Hitbox(this);
     this.evolution = options.evolution || 1;
     this.speed = 150;
@@ -168,7 +169,7 @@ export class FloodClone extends GameObject {
 
     if (target && typeof target.takeDamage === 'function') {
       target.takeDamage(10);
-      this.attackCooldown = now + 1000;
+      this.attackCooldown = now + 500;
       console.log("Clone attacked enemy", { 
         targetHealth: target.health,
         cooldown: this.attackCooldown - now 
@@ -193,7 +194,7 @@ export class FloodClone extends GameObject {
 
       const healthBarWidth = this.width;
       const healthBarHeight = 5;
-      const healthPercentage = this.health / 50;
+      const healthPercentage = this.health / this.maxHealth;
 
       ctx.fillStyle = "red";
       ctx.fillRect(screenX, screenY - 10, healthBarWidth, healthBarHeight);
