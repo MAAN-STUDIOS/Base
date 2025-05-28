@@ -10,20 +10,32 @@ export class MachineGun {
      */
     constructor(options = {}) {
         this.config = {
-            speed: options.speed || 9,
+            speed: options.speed || 170,
             damage: options.damage || 6,
             range: options.range || 700,
             projectileType: options.projectileType || "bullet",
-            cooldown: options.cooldown || 0.1
+            cooldown: options.cooldown || 2
         };
+        this.cooldownTimer = this.config.cooldown;
+    }
+
+    update(dt) {
+        this.cooldownTimer += dt;
     }
 
     fire(origin, direction, owner = null) {
+        if (this.cooldownTimer < this.config.cooldown){
+            console.log('En cooldown');
+            return;
+        }
+
         ShootingSystem.fire({
             origin: origin.clone(),
             direction: direction.clone(),
             weaponConfig: this.config,
             owner
         });
+
+        this.cooldownTimer = 0;
     }
 }

@@ -303,7 +303,7 @@ export class Engine {
             height: this._player.size,
             attackSlots: [
                 new Pistol({ speed: 130 }),
-                new Shotgun({ projectileCount: 2, spread: 90 }),
+                new Shotgun({ projectileCount: 2, spread: 15 }),
                 new MachineGun({ speed: 170}),
                 new Flamethrower({speed: 150})]
         }

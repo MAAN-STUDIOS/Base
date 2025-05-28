@@ -13,20 +13,33 @@ export class Pistol {
      */
     constructor(options = {}) {
         this.config = {
-            speed: options.speed || 7,
+            speed: options.speed || 130,
             damage: options.damage || 15,
             range: options.range || 600,
             projectileType: options.projectileType || "bullet",
-            cooldown: options.cooldown || 0.3
+            cooldown: options.cooldown || 5
         };
+        this.cooldownTimer = this.config.cooldown;
     }
 
+    update(dt) {
+        this.cooldownTimer += dt;
+      }
+
     fire(origin, direction, owner = null) {
+        console.log(this.cooldownTimer);
+        if (this.cooldownTimer < this.config.cooldown){
+            console.log('En cooldown');
+            return;
+        }
+
         ShootingSystem.fire({
             origin,
             direction,
             weaponConfig: this.config,
             owner
         });
+
+        this.cooldownTimer = 0;
     }
 }

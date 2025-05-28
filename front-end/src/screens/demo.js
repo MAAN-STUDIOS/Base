@@ -248,7 +248,13 @@ export default function humanScreen() {
                 return;
             }
 
-            ShootingSystem.updateAll(dt)
+            ShootingSystem.updateAll(dt);
+
+            for (let weapon of game.player.attackSlots) {
+                if (weapon && typeof weapon.update === "function") {
+                    weapon.update(dt);
+                }
+            }
 
             handleEnemySpawning(currentTime, game.player, enemies, enemyConfig, game.map);
             updateEnemies(dt, game.player, enemies, game);

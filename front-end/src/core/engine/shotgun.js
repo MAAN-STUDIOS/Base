@@ -13,17 +13,27 @@ export class Shotgun {
      */
     constructor(options = {}) {
         this.config = {
-            speed: options.speed || 6,
+            speed: options.speed || 120,
             damage: options.damage || 10,
             range: options.range || 400,
             projectileType: options.projectileType || "pellet",
             projectileCount: options.projectileCount || 2,
-            spread: options.spread || 35, 
-            cooldown: options.cooldown || 1.0
+            spread: options.spread || 15, 
+            cooldown: options.cooldown || 10
         };
+        this.cooldownTimer = this.config.cooldown;
+    }
+
+    update(dt) {
+        this.cooldownTimer += dt;
     }
 
     fire(origin, direction, owner = null) {
+        if (this.cooldownTimer < this.config.cooldown){
+            console.log('En cooldown');
+            return;
+        }
+
         const baseAngle = Math.atan2(direction.y, direction.x);
         const spreadInRadians = (this.config.spread * Math.PI) / 180;
 
@@ -41,5 +51,6 @@ export class Shotgun {
                 owner
             });
         }
+        this.cooldownTimer = 0;
     }
 }
