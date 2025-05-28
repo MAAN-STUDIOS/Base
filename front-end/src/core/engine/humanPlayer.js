@@ -129,6 +129,9 @@ export class HumanPlayer extends Player {
                 if (key === '3') {
                     this.activeSlot = 2;
                 }
+                if (key === '4') {
+                    this.activeSlot = 3;
+                }
             }
         }
 
