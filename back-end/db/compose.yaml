@@ -1,0 +1,48 @@
+services:
+    db:
+        image: mysql:8.0
+        restart: always
+        ports:
+            - "3306:3306"
+        volumes:
+            - db-data:/var/lib/mysql
+            - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+        environment:
+            - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/root-password
+            - MYSQL_USER=${MYSQL_USER:-appuser}
+            - MYSQL_PASSWORD_FILE=/run/secrets/password
+            - MYSQL_DATABASE=${MYSQL_DATABASE:-socketapp}
+            - MYSQL_ALLOW_EMPTY_PASSWORD=no
+            - TZ=${TZ:-UTC}
+        command: [
+            '--default-authentication-plugin=mysql_native_password',
+            '--character-set-server=utf8mb4',
+            '--collation-server=utf8mb4_unicode_ci',
+            '--max_connections=10',
+            '--innodb_buffer_pool_size=1G'
+        ]
+        healthcheck:
+            test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-u$$MYSQL_USER", "-p$$MYSQL_PASSWORD" ]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+            start_period: 30s
+        networks:
+            - backend-network
+        deploy:
+            resources:
+                limits:
+                    cpus: '2'
+                    memory: 2G
+volumes:
+    db-data:
+        name: ${COMPOSE_PROJECT_NAME:-socketapp}-mysql-data
+networks:
+    backend-network:
+        name: ${COMPOSE_PROJECT_NAME:-socketapp}-network
+        driver: bridge
+secrets:
+    root-password:
+        file: ./secrets/root-password.txt
+    password:
+        file: ./secrets/password.txt
