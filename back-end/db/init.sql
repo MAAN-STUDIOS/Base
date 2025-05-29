@@ -2,7 +2,6 @@ DROP SCHEMA IF EXISTS cosmonavt;
 CREATE DATABASE IF NOT EXISTS cosmonavt;
 USE cosmonavt;
 
-
 #     last_update      TIMESTAMP            DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 
 CREATE TABLE cosmonavt_user (
@@ -12,7 +11,8 @@ CREATE TABLE cosmonavt_user (
     last_login    TIMESTAMP       NOT NULL DEFAULT NOW(),
     email         VARCHAR(255)    NOT NULL,
     password      VARCHAR(512)    NOT NULL
-);
+) CHARACTER SET utf8
+  ENGINE = InnoDB;
 
 CREATE TABLE player (
     id                  INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
@@ -21,14 +21,16 @@ CREATE TABLE player (
     kills               SMALLINT DEFAULT 0,
     deaths              SMALLINT DEFAULT 0,
     FOREIGN KEY (user_id) REFERENCES cosmonavt_user (id) ON DELETE CASCADE
-);
+) CHARACTER SET utf8
+  ENGINE = InnoDB;
 
 CREATE TABLE admin (
     id           INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
     user_id      INT             NOT NULL,
     access_level SMALLINT        NOT NULL,
     FOREIGN KEY (user_id) REFERENCES cosmonavt_user (id) ON DELETE CASCADE
-);
+) CHARACTER SET utf8
+  ENGINE = InnoDB;
 
 CREATE TABLE config (
     id             INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
@@ -39,7 +41,8 @@ CREATE TABLE config (
     fps            SMALLINT DEFAULT 60,
     effects_volume SMALLINT DEFAULT 100,
     FOREIGN KEY (player_id) REFERENCES player (id) ON DELETE CASCADE
-);
+) CHARACTER SET utf8
+  ENGINE = InnoDB;
 
 CREATE TABLE game (
     id          INT          NOT NULL PRIMARY KEY AUTO_INCREMENT,
@@ -49,7 +52,8 @@ CREATE TABLE game (
     start_time  TIMESTAMP   DEFAULT NOW(),
     end_time    TIMESTAMP   DEFAULT NULL,
     seed        VARCHAR(64) DEFAULT NULL
-);
+) CHARACTER SET utf8
+  ENGINE = InnoDB; -- TODO: Maybe Change InnoDB
 
 
 CREATE TABLE player_game (
@@ -62,7 +66,8 @@ CREATE TABLE player_game (
     last_position_y SMALLINT NOT NULL,
     FOREIGN KEY (player_id) REFERENCES player (id),
     FOREIGN KEY (game_id) REFERENCES game (id)
-);
+) CHARACTER SET utf8
+  ENGINE = InnoDB;
 
 CREATE TABLE death (
     id             INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
@@ -70,7 +75,8 @@ CREATE TABLE death (
     time           TIMESTAMP DEFAULT NOW(),
     cause          VARCHAR(255)    NOT NULL,
     FOREIGN KEY (player_game_id) REFERENCES player_game (id)
-);
+) CHARACTER SET utf8
+  ENGINE = InnoDB;
 
 CREATE TABLE flood_game (
     id             INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
@@ -78,14 +84,16 @@ CREATE TABLE flood_game (
     biomass        INT DEFAULT 0,
     infected       INT DEFAULT 0,
     FOREIGN KEY (player_game_id) REFERENCES player_game (id)
-);
+) CHARACTER SET utf8
+  ENGINE = InnoDB;
 
 CREATE TABLE flood_clones (
     id       INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
     flood_id INT             NOT NULL,
     health   SMALLINT        NOT NULL DEFAULT 100,
     FOREIGN KEY (flood_id) REFERENCES flood_game (id)
-);
+) CHARACTER SET utf8
+  ENGINE = InnoDB;
 
 CREATE TABLE item (
     id          INT          NOT NULL PRIMARY KEY AUTO_INCREMENT,
@@ -93,14 +101,16 @@ CREATE TABLE item (
     type        SMALLINT     NOT NULL,
     name        VARCHAR(255) NOT NULL,
     description TEXT         NOT NULL
-);
+) CHARACTER SET utf8
+  ENGINE = InnoDB;
 
 CREATE TABLE loot (
     id      INT      NOT NULL PRIMARY KEY AUTO_INCREMENT,
     item_id INT      NOT NULL,
     type    SMALLINT NOT NULL,
     FOREIGN KEY (item_id) REFERENCES item (id)
-);
+) CHARACTER SET utf8
+  ENGINE = InnoDB;
 
 CREATE TABLE weapon (
     id       INT      NOT NULL PRIMARY KEY AUTO_INCREMENT,
@@ -108,7 +118,8 @@ CREATE TABLE weapon (
     damage   SMALLINT NOT NULL,
     cooldown SMALLINT NOT NULL,
     FOREIGN KEY (loot_id) REFERENCES loot (id)
-);
+) CHARACTER SET utf8
+  ENGINE = InnoDB;
 
 CREATE TABLE human_game (
     id                   INT      NOT NULL PRIMARY KEY AUTO_INCREMENT,
@@ -118,14 +129,16 @@ CREATE TABLE human_game (
     generators_activated SMALLINT NOT NULL,
     FOREIGN KEY (weapon_1) REFERENCES weapon (id),
     FOREIGN KEY (weapon_2) REFERENCES weapon (id)
-);
+) CHARACTER SET utf8
+  ENGINE = InnoDB;
 
 CREATE TABLE fragment (
     id      INT          NOT NULL PRIMARY KEY AUTO_INCREMENT,
     loot_id INT          NOT NULL,
     data    VARCHAR(255) NOT NULL,
     FOREIGN KEY (loot_id) REFERENCES loot (id)
-);
+) CHARACTER SET utf8
+  ENGINE = InnoDB; -- TODO: impl
 
 CREATE TABLE game_loot (
     id         INT      NOT NULL PRIMARY KEY AUTO_INCREMENT,
@@ -135,7 +148,8 @@ CREATE TABLE game_loot (
     found_time TIMESTAMP,
     FOREIGN KEY (loot_id) REFERENCES loot (id),
     FOREIGN KEY (game_id) REFERENCES game (id)
-);
+) CHARACTER SET utf8
+  ENGINE = InnoDB;
 
 # Layout / chunk (for simplicity are the same size)
 # x and y represenst the chunk coordenates in its corresponding
@@ -145,7 +159,8 @@ CREATE TABLE chunk (
     data JSON     NOT NULL,
     x    SMALLINT NOT NULL,
     y    SMALLINT NOT NULL
-);
+) CHARACTER SET utf8
+  ENGINE = InnoDB;
 
 # Game layout (normally cached in server but for simplicity stored here),
 # a game has 4 layouts:
@@ -161,13 +176,15 @@ CREATE TABLE game_chunk_layout (
     type            SMALLINT     NOT NULL,
     FOREIGN KEY (game_id) REFERENCES game (id),
     FOREIGN KEY (chunk_layout_id) REFERENCES chunk (id)
-);
+) CHARACTER SET utf8
+  ENGINE = InnoDB;
 
 CREATE TABLE dungeon (
     id   INT          NOT NULL PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(255) NOT NULL,
     type SMALLINT     NOT NULL
-);
+) CHARACTER SET utf8
+  ENGINE = InnoDB;
 
 CREATE TABLE node (
     id          INT      NOT NULL PRIMARY KEY AUTO_INCREMENT,
@@ -177,13 +194,15 @@ CREATE TABLE node (
     x           SMALLINT NOT NULL,
     y           SMALLINT NOT NULL,
     FOREIGN KEY (dungeon_id) REFERENCES dungeon (id)
-);
+) CHARACTER SET utf8
+  ENGINE = MyISAM;
 
 CREATE TABLE layout (
     id   INT      NOT NULL PRIMARY KEY AUTO_INCREMENT,
     type SMALLINT NOT NULL,
     data JSON     NOT NULL
-);
+) CHARACTER SET utf8
+  ENGINE = MyISAM;
 
 
 
@@ -324,28 +343,23 @@ CREATE VIEW view_layout AS
     FROM layout l;
 
 CREATE VIEW view_stats AS
-SELECT
-    (SELECT SUM(kills) FROM player) AS total_kills, 
-    (SELECT SUM(deaths) FROM player) AS total_deaths,
-    (SELECT COUNT(*) FROM game) AS total_games,
-    (SELECT COUNT(*) FROM fragment) AS total_fragments,
-    (SELECT  COUNT(*) FROM game WHERE status = 'wonFlood') AS won_by_flood,
-    (SELECT  COUNT(*) FROM game WHERE status = 'wonHuman') AS won_by_human,
-    (
-		SELECT  AVG(dt)
-		FROM (
-			SELECT TIMESTAMPDIFF(SECOND, LAG(d.time) OVER (PARTITION BY pg.id ORDER BY d.time), d.time) AS dt
-        FROM death d
-        INNER JOIN player_game pg ON d.player_game_id = pg.id
-    ) AS time_diffs
-    WHERE dt IS NOT NULL
-    ) AS mean_time_alive,
-    (
-        SELECT MAX(fecha) FROM (
-            SELECT MAX(start_time) AS fecha FROM game
-            UNION
-            SELECT MAX(last_login) FROM cosmonavt_user
-            UNION
-            SELECT MAX(last_update) FROM config
-        ) AS fechas
-    ) AS last_update;
+    SELECT (SELECT SUM(kills) FROM player)                          AS total_kills,
+           (SELECT SUM(deaths) FROM player)                         AS total_deaths,
+           (SELECT COUNT(*) FROM game)                              AS total_games,
+           (SELECT COUNT(*) FROM fragment)                          AS total_fragments,
+           (SELECT COUNT(*) FROM game WHERE status LIKE 'wonFlood') AS won_by_flood,
+           (SELECT COUNT(*) FROM game WHERE status LIKE 'wonHuman') AS won_by_human,
+           (SELECT AVG(dt)
+            FROM (SELECT TIMESTAMPDIFF(SECOND, LAG(d.time) OVER (PARTITION BY pg.id ORDER BY d.time), d.time) AS dt
+                  FROM death d
+                           INNER JOIN player_game pg ON d.player_game_id = pg.id) AS time_diffs
+            WHERE dt IS NOT NULL)                                   AS mean_time_alive,
+           (SELECT MAX(fecha)
+            FROM (SELECT MAX(start_time) AS fecha
+                  FROM game
+                  UNION
+                  SELECT MAX(last_login)
+                  FROM cosmonavt_user
+                  UNION
+                  SELECT MAX(last_update)
+                  FROM config) AS fechas)                           AS last_update;
