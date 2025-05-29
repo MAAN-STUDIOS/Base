@@ -2,11 +2,11 @@ DROP SCHEMA IF EXISTS cosmonavt;
 CREATE DATABASE IF NOT EXISTS cosmonavt;
 USE cosmonavt;
 
-#     last_update      TIMESTAMP            DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+#     last_update TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 
 CREATE TABLE cosmonavt_user (
     id            INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
-    nombre        VARCHAR(255)    NOT NULL,
+    name        VARCHAR(255)    NOT NULL,
     creation_date TIMESTAMP       NOT NULL DEFAULT NOW(),
     last_login    TIMESTAMP       NOT NULL DEFAULT NOW(),
     email         VARCHAR(255)    NOT NULL,
@@ -68,6 +68,9 @@ CREATE TABLE player_game (
     FOREIGN KEY (game_id) REFERENCES game (id)
 ) CHARACTER SET utf8
   ENGINE = InnoDB;
+
+CREATE INDEX xy_player_game ON player_game (last_position_x, last_position_y);
+
 
 CREATE TABLE death (
     id             INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
@@ -155,12 +158,14 @@ CREATE TABLE game_loot (
 # x and y represenst the chunk coordenates in its corresponding
 # chunk agrupation (see game_chunk_layout)
 CREATE TABLE chunk (
-    id   INT      NOT NULL PRIMARY KEY AUTO_INCREMENT,
-    data JSON     NOT NULL,
-    x    SMALLINT NOT NULL,
-    y    SMALLINT NOT NULL
+    id      INT      NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    data    JSON     NOT NULL,
+    chunk_x SMALLINT NOT NULL,
+    chunk_y SMALLINT NOT NULL
 ) CHARACTER SET utf8
   ENGINE = InnoDB;
+
+CREATE INDEX xy_chunk ON chunk (chunk_x, chunk_y);
 
 # Game layout (normally cached in server but for simplicity stored here),
 # a game has 4 layouts:
@@ -191,11 +196,13 @@ CREATE TABLE node (
     dungeon_id  INT      NOT NULL,
     rotations   SMALLINT NOT NULL,
     layout_type SMALLINT NOT NULL,
-    x           SMALLINT NOT NULL,
-    y           SMALLINT NOT NULL,
+    node_x      SMALLINT NOT NULL,
+    node_y      SMALLINT NOT NULL,
     FOREIGN KEY (dungeon_id) REFERENCES dungeon (id)
 ) CHARACTER SET utf8
   ENGINE = MyISAM;
+
+CREATE INDEX xy_node ON node (node_x, node_y);
 
 CREATE TABLE layout (
     id   INT      NOT NULL PRIMARY KEY AUTO_INCREMENT,
@@ -208,7 +215,7 @@ CREATE TABLE layout (
 
 CREATE VIEW view_admin AS
     SELECT a.id            AS id,
-           u.nombre        AS name,
+           u.name        AS name,
            u.email         AS email,
            u.creation_date AS creation_date,
            a.access_level  AS access_level,
@@ -262,7 +269,7 @@ GROUP BY p.id;
 
 CREATE VIEW view_player AS
     SELECT p.id                  AS id,
-           u.nombre              AS name,
+           u.name              AS name,
            u.email               AS email,
            u.creation_date       AS creation_date,
            p.played_time_seconds AS played_time_seconds,
@@ -276,7 +283,7 @@ CREATE VIEW view_player AS
 CREATE VIEW view_config AS
     SELECT c.id             AS id,
            p.id             AS player_id,
-           u.nombre         AS player_name,
+           u.name         AS player_name,
            c.general_volume AS general_volume,
            c.music_volume   AS music_volume,
            c.effects_volume AS effects_volume,
@@ -327,7 +334,7 @@ CREATE VIEW view_flood_view_game AS
 
 
 CREATE VIEW view_chunk AS
-    SELECT c.id AS id, c.x AS x, c.y AS y, c.data AS data
+    SELECT c.id AS id, c.chunk_x AS chunk_x, c.chunk_y AS chunk_y, c.data AS data
     FROM chunk c;
 
 CREATE VIEW view_dungeon AS
@@ -335,7 +342,7 @@ CREATE VIEW view_dungeon AS
     FROM dungeon d;
 
 CREATE VIEW view_node AS
-    SELECT n.id AS id, n.x AS x, n.y AS y, n.rotations AS rotations, n.layout_type AS type
+    SELECT n.id AS id, n.node_x AS node_x, n.node_y AS node_y, n.rotations AS rotations, n.layout_type AS type
     FROM node n;
 
 CREATE VIEW view_layout AS
