@@ -1,2 +1,2 @@
-export { Vector } from './objects/vector';
-export { Hitbox } from './objects/hitbox';
+export { Vector } from './objects/vector.js';
+export { Hitbox } from './objects/hitbox.js';

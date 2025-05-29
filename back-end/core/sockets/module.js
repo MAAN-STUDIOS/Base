@@ -1,1 +1,1 @@
-export { default as io } from "./index";
+export { default as io } from "./index.js";

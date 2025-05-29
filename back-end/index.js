@@ -1,5 +1,4 @@
 
-import 'module-alias/register';
 import dotenv from 'dotenv';
 import { get_logger} from "#utils";
 
@@ -13,9 +12,9 @@ const port = process.env.PORT || 3000;
 const apiUrl = process.env.apiURL || `http://localhost:${port}`;
 
 
-import { httpServer } from "#core"; // NOTE: Don't move. Import order matters.
+import server from "./core/server.js";
 
 
-httpServer.listen(port, () => {
+server.listen(port, () => {
     logger.info(`Server listening on ${apiUrl} ...`);
 });

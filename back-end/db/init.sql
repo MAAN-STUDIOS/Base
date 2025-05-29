@@ -219,18 +219,16 @@ FROM death d
          INNER JOIN player p ON pg.player_id = p.id
 GROUP BY d.id;
 
-WITH diffs AS (
-    SELECT p.id                                                                                 AS player_id,
-           pg.id                                                                                AS game_player_id,
-           d.id                                                                                 AS death_id,
-           d.time,
-           TIMESTAMPDIFF(SECOND, LAG(d.time) OVER (PARTITION BY pg.id ORDER BY d.time), d.time) AS dt
-    FROM death d
-             INNER JOIN player_game pg ON d.player_game_id = pg.id
-             INNER JOIN player p ON pg.player_id = p.id
-    GROUP BY d.id, d.time
-    ORDER BY d.time
-)
+WITH diffs AS (SELECT p.id                                                                                 AS player_id,
+                      pg.id                                                                                AS game_player_id,
+                      d.id                                                                                 AS death_id,
+                      d.time,
+                      TIMESTAMPDIFF(SECOND, LAG(d.time) OVER (PARTITION BY pg.id ORDER BY d.time), d.time) AS dt
+               FROM death d
+                        INNER JOIN player_game pg ON d.player_game_id = pg.id
+                        INNER JOIN player p ON pg.player_id = p.id
+               GROUP BY d.id, d.time
+               ORDER BY d.time)
 SELECT player_id, AVG(dt) AS mean_time_alive
 FROM diffs
 WHERE dt IS NOT NULL

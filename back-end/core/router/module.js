@@ -1,1 +1,1 @@
-export { router } from "index";
+export { router } from "./index.js";

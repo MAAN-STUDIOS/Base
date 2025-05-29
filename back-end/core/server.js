@@ -1,6 +1,6 @@
 import { createServer } from 'http';
 import { get_logger } from "#utils";
-import app from "./app";
+import app from "./app.js";
 
 const logger = get_logger("SERVER");
 const server = createServer(app);

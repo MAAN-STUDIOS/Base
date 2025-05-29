@@ -1,5 +1,5 @@
 import { Server } from 'socket.io';
-import server from "#server";
+import server from "#/core/server.js";
 import { get_logger } from "#utils";
 
 import players from "./players";
