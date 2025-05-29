@@ -12,7 +12,7 @@ logger.debug(`Mounting ${envFile} as environment file.`)
 dotenv.config({ path: envFile });
 
 
-app.use(router.routes);
+app.use(router);
 app.use(express.json());
 
 
