@@ -1,5 +1,5 @@
 import express from 'express';
-import get_logger from '../utils/logger.js';
+import {get_logger} from '#utils';
 import { UserController } from "#controllers/module";
 
 
