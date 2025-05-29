@@ -3,6 +3,10 @@ import { Vector } from "@utils/vector.js";
 import { Hitbox } from "@utils/hitbox.js";
 import logger from "@utils/logger.js";
 import HUD from "@/assets/HUD/fondo.png"
+import Shotgun from "@/assets/Armas/escopeta.png"
+import Metra from "@/assets/Armas/ametralladora.png"
+import Pistola from "@/assets/Armas/pistola.png"
+import Granada from "@/assets/Armas/granada.png"
 
 /**
  * Represents a human-controlled player in the game.
@@ -71,9 +75,22 @@ export class HumanPlayer extends Player {
 
         this.attackSlots = options.attackSlots || [];
         this.activeSlot = 0;
+       
         this.img = new Image();
         this.img.src = HUD;
 
+        this.imga = new Image();
+        this.imga.src = Shotgun;
+
+        this.img2 = new Image();
+        this.img2.src = Metra;
+
+        this.img3 = new Image();
+        this.img3.src = Pistola;
+
+        this.img4 = new Image();
+        this.img4.src = Granada;
+        
 
         /**
          * @type {Object} - Tracks the current state of movement keys.
@@ -247,6 +264,17 @@ export class HumanPlayer extends Player {
 
         //Imagen HUD
         ctx.drawImage(this.img, 0, 0, 2304, 1728, 0, 0, ctx.canvas.width, ctx.canvas.height); 
+
+        //Escopeta               x    y    w    h
+        ctx.drawImage(this.imga, 55, 710, 100, 100);
+        //Ametralladora
+        ctx.drawImage(this.img2, 187, 695, 120, 120);
+        //Pistola 
+        ctx.drawImage(this.img3, 355, 710, 90, 90);
+        //Granada
+        ctx.drawImage(this.img4, 1310, 710, 90, 90);
+
+        
 
         
         ctx.font = "16px monospace";
