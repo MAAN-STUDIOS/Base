@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import { get_logger } from "#utils";
+import get_logger from "../utils/logger.js";
 
 
 const logger = get_logger("AUTH");

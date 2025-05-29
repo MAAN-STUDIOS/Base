@@ -1,20 +1,8 @@
 import mysql from 'mysql2/promise';
-import { get_logger, failureCheck } from "#utils";
+import failureCheck from "../core/utils/failureCheck.js";
+import get_logger from "../core/utils/logger.js";
 
-
-const logger = get_logger("DATABASE");
-const dbConfig = {
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_ROOT_PASSWORD,
-    database: process.env.DB_DATABASE,
-    port: process.env.DB_PORT || 3306,
-    waitForConnections: true,
-    connectionLimit: 10,
-    queueLimit: 0,
-    connectionTimeout: 1000
-};
-failureCheck.atObjectNullSafe(dbConfig, 'Missing database configuration');
+const logger = get_logger("DB");
 
 /**
  * @type {import('mysql2/promise')}
@@ -25,6 +13,18 @@ let pool;
  * Initialize the database connection pool
  */
 async function initDB() {
+    const dbConfig = {
+        host: process.env.DB_HOST,
+        user: process.env.DB_USER,
+        password: process.env.DB_ROOT_PASSWORD,
+        database: process.env.DB_DATABASE,
+        port: process.env.DB_PORT || 3306,
+        waitForConnections: true,
+        connectionLimit: 10,
+        queueLimit: 10
+    };
+    failureCheck.atObjectNullSafe(dbConfig, 'Missing database configuration', logger);
+
     try {
         pool = mysql.createPool(dbConfig);
 
@@ -45,7 +45,7 @@ async function initDB() {
  * @param {Array} params - Parameters for the query
  * @returns {Promise} Query result
  */
-async function query(sql, params) {
+async function query(sql, params = []) {
     try {
         const [rows] = await pool.execute(sql, params);
         return rows;
@@ -55,29 +55,30 @@ async function query(sql, params) {
     }
 }
 
-
-(async () => {
+async function connectDB() {
     try {
+        logger.info("Starting db.");
         await initDB();
     } catch (err) {
         logger.error("Initial DB init failed:", err);
     }
-})();
 
-if (process.env.DEBUG) {
-    await failureCheck.atDBConnection(pool, query, initDB, logger);
+    if (process.env.DEBUG) {
+        await failureCheck.atDBConnection(pool, query, initDB, logger);
+    }
 }
 
 process.on('SIGINT', async () => {
     if (pool) {
         await pool.end();
-        console.log('MySQL pool closed');
         logger.info('MySQL pool closed');
     }
     process.exit(0);
 });
 
-export {
+
+export default {
     query,
-    pool
+    pool,
+    connect: connectDB
 };

@@ -1,16 +1,8 @@
 import express from 'express';
-import dotenv from 'dotenv';
-import { get_logger } from "#utils";
-import { router } from "#router";
+import { router } from "./router/index.js";
 
 
-const logger = get_logger("APP");
-const envFile = `.env.${process.env.NODE_ENV || `dev`}`;
 const app = express();
-
-logger.debug(`Mounting ${envFile} as environment file.`)
-dotenv.config({ path: envFile });
-
 
 app.use(router);
 app.use(express.json());
