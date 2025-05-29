@@ -324,3 +324,30 @@ CREATE VIEW view_node AS
 CREATE VIEW view_layout AS
     SELECT l.id AS id, l.data AS data, l.type AS type
     FROM layout l;
+
+CREATE VIEW view_stats AS
+SELECT
+    (SELECT SUM(kills) FROM player) AS total_kills, 
+    (SELECT SUM(deaths) FROM player) AS total_deaths,
+    (SELECT COUNT(*) FROM game) AS total_games,
+    (SELECT COUNT(*) FROM fragment) AS total_fragments,
+    (SELECT  COUNT(*) FROM game WHERE status = 'wonFlood') AS won_by_flood,
+    (SELECT  COUNT(*) FROM game WHERE status = 'wonHuman') AS won_by_human,
+    (
+		SELECT  AVG(dt)
+		FROM (
+			SELECT TIMESTAMPDIFF(SECOND, LAG(d.time) OVER (PARTITION BY pg.id ORDER BY d.time), d.time) AS dt
+        FROM death d
+        INNER JOIN player_game pg ON d.player_game_id = pg.id
+    ) AS time_diffs
+    WHERE dt IS NOT NULL
+    ) AS mean_time_alive,
+    (
+        SELECT MAX(fecha) FROM (
+            SELECT MAX(start_time) AS fecha FROM game
+            UNION
+            SELECT MAX(last_login) FROM cosmonavt_user
+            UNION
+            SELECT MAX(last_update) FROM config
+        ) AS fechas
+    ) AS last_update;
