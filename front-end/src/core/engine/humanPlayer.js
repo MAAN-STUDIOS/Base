@@ -65,9 +65,12 @@ export class HumanPlayer extends Player {
 
         this.lastDirection = new Vector(1, 0);
 
-        this.attackCooldown = 0.3;
+        //this.attackCooldown = 0.3;
         this.timeSinceLastAttack = this.attackCooldown;
+        this.mouseDirection = new Vector(1, 0);
 
+        this.attackSlots = options.attackSlots || [];
+        this.activeSlot = 0;
         this.img = new Image();
         this.img.src = HUD;
 
@@ -120,6 +123,15 @@ export class HumanPlayer extends Player {
                 }
                 if (state && (key === ' ' || key === 'f')) {
                     this.attack();
+                }
+                if (key === '1') {
+                    this.activeSlot = 0;
+                }
+                if (key === '2') {
+                    this.activeSlot = 1;
+                }
+                if (key === '3') {
+                    this.activeSlot = 2;
                 }
             }
         }
@@ -239,25 +251,47 @@ export class HumanPlayer extends Player {
         ctx.fillStyle = "white";
         ctx.fillText(`${this.isRunning ? "Running" : "Walking"}`, this.position.x, this.position.y - 15);
 
+        const weapon = this.attackSlots[this.activeSlot];
+        ctx.fillText(`Weapon: ${weapon.constructor.name}`, this.position.x, this.position.y - 30);
+
     }
 
+    initMouseTracking() {
+        const canvas = document.querySelector("canvas");
+    
+        canvas.addEventListener("mousemove", (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+    
+            const screenCenter = new Vector(canvas.width / 2, canvas.height / 2);
+            const offset = new Vector(mouseX - screenCenter.x, mouseY - screenCenter.y);
+    
+            if (offset.x !== 0 || offset.y !== 0) {
+                this.mouseDirection = offset.normalize();
+            }
+        });
+    }
+    
     attack() {
-        const inCooldown = this.timeSinceLastAttack < this.attackCooldown;
-        if (inCooldown) return;
-
         const weapon = this.attackSlots[this.activeSlot];
         if (!weapon || typeof weapon.fire !== "function") return;
 
-        let direction = this.direction.clone();
-        if (direction.x === 0 && direction.y === 0 && this.lastDirection) {
-            direction = this.lastDirection.clone();
-        }
-        if (direction.x === 0 && direction.y === 0) {
-            console.log("No direction to fire");
-            return;
-        }
+        const cooldown = weapon.config.cooldown || 0.3;
+        if (this.timeSinceLastAttack < cooldown) return;
 
-        direction.normalize();
+        // let direction = this.direction.clone();
+        // if (direction.x === 0 && direction.y === 0 && this.lastDirection) {
+        //     direction = this.lastDirection.clone();
+        // }
+        // if (direction.x === 0 && direction.y === 0) {
+        //     console.log("No direction to fire");
+        //     return;
+        // }
+
+        // direction.normalize();
+
+        const direction = this.mouseDirection.clone();
         weapon.fire(this.real_position.clone(), direction, this);
 
         this.timeSinceLastAttack = 0;

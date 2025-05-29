@@ -243,6 +243,8 @@ export default function humanScreen() {
 
         game.init(map, minimap);
 
+        game.player?.initMouseTracking?.();
+
         game.on("update", (dt, currentTime) => {
             const playerIsDead = handlePlayerDeath(currentTime);
             if (playerIsDead) {
