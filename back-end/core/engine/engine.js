@@ -1,4 +1,4 @@
-import { query } from "config/db.js"
+import { query } from "../../config/db.js";
 import { get_logger } from "#utils";
 const logger = get_logger("GameEngine");
 
@@ -41,7 +41,7 @@ export class Game {
         //}
     }
     #generate_dungeons(){
-        
+
     }
     #generate_overworld_map(overworld_map_size) {
         logger.info("Generating overworld map with size:", overworld_map_size);
