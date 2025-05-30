@@ -1,6 +1,7 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import { get_logger } from "#utils";
+import cors from 'cors';
 import { router } from "#router";
 
 
@@ -12,8 +13,10 @@ logger.debug(`Mounting ${envFile} as environment file.`)
 dotenv.config({ path: envFile });
 
 
-app.use(router);
+app.use(cors())
+app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+app.use(router);
 
 
 export default app;

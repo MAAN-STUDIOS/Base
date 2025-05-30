@@ -120,6 +120,7 @@
   },
   "imports": {
     "#": ".",
+    "#config":"./config/module.js",
     "#core": "./core/module.js",
     "#utils": "./core/utils/module.js",
     "#engine": "./core/engine/module.js",
