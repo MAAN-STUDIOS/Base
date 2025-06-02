@@ -1,5 +1,6 @@
 import {verifyToken} from '../middleware/auth.js';
-import { Game } from "#engine";
+import { Game } from "../engine/engine.js";
+import db from "../../config/db.js";
 
 export class GameController {
     constructor() {
@@ -17,12 +18,12 @@ export class GameController {
         if (!req.params.name || !req.params.description || !req.params.seed) {
             return res.status(400).json({ error: 'Missing required parameters: name, description, seed' });
         }
-        const player = await query('SELECT * FROM view_player WHERE id = ?', [user.id]);
+        const player = await db.query('SELECT * FROM view_player WHERE id = ?', [user.id]);
         if (player.length === 0) {
             return res.status(404).json({ error: 'Player not found' });
         }
         try {
-            gameStarter(req.params.name, req.params.description, req.params.seed);
+            this.gameStarter(req.params.name, req.params.description, req.params.seed);
             res.status(200).json({ message: 'Game started successfully' });
         } catch (error) {
             console.error('Error starting game:', error);

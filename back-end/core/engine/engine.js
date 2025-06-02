@@ -1,5 +1,5 @@
-import { query } from "../../config/db.js";
-import { get_logger } from "#utils";
+import db from "../../config/db.js";
+import get_logger from "../utils/logger.js";
 const logger = get_logger("GameEngine");
 
 export class Game {
@@ -21,7 +21,7 @@ export class Game {
     static async init() {
         // Setup listeners
         
-        this.db_game = await query("INSERT INTO game (name, description, status, seed) VALUES (?, ?, ?, ?)", this.name, this.description, "starting", this.seed);
+        this.db_game = await db.query("INSERT INTO game (name, description, status, seed) VALUES (?, ?, ?, ?)", this.name, this.description, "starting", this.seed);
         this.game_id = this.db_game.id;
         console.log(`Game initialized with ID: ${this.game_id}, Name: ${this.name}, Seed: ${this.seed}`);
         this.gameLoop();
