@@ -1,11 +1,13 @@
 import { GameObject } from "./gameobject.js";
 import { Hitbox } from "@utils/hitbox.js";
 import { Vector } from "@utils/vector.js";
+import logger from "@utils/logger.js";
 
 export class FloodClone extends GameObject {
   constructor(options = {}) {
     super(options);
-    this.health = 50;
+    this.health = 300;
+    this.maxHealth = 300;
     this.hitbox = new Hitbox(this);
     this.evolution = options.evolution || 1;
     this.speed = 150;
@@ -22,6 +24,7 @@ export class FloodClone extends GameObject {
     this.followSpeed = 50;
     this.urgentFollowSpeed = 80;
     this.urgentDistance = 10000;
+    this.isDead = false;
   }
 
   update(dt, player, enemies) {
@@ -166,7 +169,7 @@ export class FloodClone extends GameObject {
 
     if (target && typeof target.takeDamage === 'function') {
       target.takeDamage(10);
-      this.attackCooldown = now + 1000;
+      this.attackCooldown = now + 500;
       console.log("Clone attacked enemy", { 
         targetHealth: target.health,
         cooldown: this.attackCooldown - now 
@@ -191,7 +194,7 @@ export class FloodClone extends GameObject {
 
       const healthBarWidth = this.width;
       const healthBarHeight = 5;
-      const healthPercentage = this.health / 50;
+      const healthPercentage = this.health / this.maxHealth;
 
       ctx.fillStyle = "red";
       ctx.fillRect(screenX, screenY - 10, healthBarWidth, healthBarHeight);
@@ -217,12 +220,15 @@ export class FloodClone extends GameObject {
     }
   }
 
+
   takeDamage(amount) {
     this.health -= amount;
     if (this.health <= 0) {
+      this.health = 0;
       this.die();
     }
   }
+
 
   die() {
     this.isDead = true;
