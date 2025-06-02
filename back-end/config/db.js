@@ -13,16 +13,26 @@ let pool;
  * Initialize the database connection pool
  */
 async function initDB() {
-    const dbConfig = {
-        host: process.env.DB_HOST,
-        user: process.env.DB_USER,
-        password: process.env.DB_ROOT_PASSWORD,
-        database: process.env.DB_DATABASE,
-        port: process.env.DB_PORT || 3306,
-        waitForConnections: true,
-        connectionLimit: 10,
-        queueLimit: 10
-    };
+    const dbConfig = process.env.DATABASE_URL
+        ? {
+            uri: process.env.DATABASE_URL,
+            waitForConnections: true,
+            connectionLimit: 10,
+            queueLimit: 10
+        }
+        : {
+            host: process.env.DB_HOST,
+            user: process.env.DB_USER,
+            password: process.env.DB_ROOT_PASSWORD || process.env.DB_PASSWORD,
+            database: process.env.DB_DATABASE,
+            port: process.env.DB_PORT || 3306,
+            waitForConnections: true,
+            connectionLimit: 10,
+            queueLimit: 10,
+            acquireTimeout: 60000,
+            timeout: 60000,
+            reconnect: true
+        };
     failureCheck.atObjectNullSafe(dbConfig, 'Missing database configuration', logger);
 
     try {
