@@ -440,7 +440,7 @@ export default function floodScreen() {
               <div class=${styles.controlItem}>Clonar: [C]</div>
               <div class=${styles.controlItem}>Evolucionar: [E]</div>
               <div class=${styles.controlItem}>Atacar: [F]</div>
-              <div class=${styles.controlItem}>Reiniciar: [R]</div>
+              <div class=${styles.controlItem}>Consumir (+80 vida): [Q]</div>
           </div> 
         </main>
    `];

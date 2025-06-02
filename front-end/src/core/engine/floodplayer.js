@@ -34,6 +34,7 @@ export class FloodPlayer extends Player {
     this.attackCooldowns = { melee: 0, acid: 0, toxicSmoke: 0, spikes: 0 };
     this.health = 100;
     this.maxHealth = 100;
+    this.consumeCooldown = 0;
 
     /** @type {string} - Color representation based on evolution */
     this.color = "#8b0000";
@@ -59,7 +60,8 @@ export class FloodPlayer extends Player {
       down: false, 
       left: false, 
       right: false, 
-      shift: false
+      shift: false,
+      consume: false
     };
 
     this.#setupControls();
@@ -92,6 +94,10 @@ export class FloodPlayer extends Player {
         case "Shift":
           this.keys.shift = true;
           break;
+        case "q":
+          this.keys.consume = true;
+          this.consumeNearestClone();
+          break;
       }
     });
 
@@ -115,6 +121,9 @@ export class FloodPlayer extends Player {
           break;
         case "Shift":
           this.keys.shift = false;
+          break;
+        case "q":
+          this.keys.consume = false;
           break;
       }
     });
@@ -236,6 +245,38 @@ export class FloodPlayer extends Player {
     logger.debug(`Player took ${amount} damage. Health: ${this.health}/${this.maxHealth}`);
   }
 
+  consumeNearestClone() {
+    const now = performance.now();
+    if (now < this.consumeCooldown || !this.clones || this.clones.length === 0) return;
+
+    // Find nearest clone
+    let nearestClone = null;
+    let minDistance = Infinity;
+    const CONSUME_RANGE = 50; 
+
+    for (const clone of this.clones) {
+      if (clone.isDead) continue;
+      
+      const dx = clone.real_position.x - this.real_position.x;
+      const dy = clone.real_position.y - this.real_position.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      if (distance < minDistance && distance <= CONSUME_RANGE) {
+        minDistance = distance;
+        nearestClone = clone;
+      }
+    }
+
+    if (nearestClone) {
+      // Consume the clone
+      const healthRestored = 80; 
+      this.health = Math.min(this.maxHealth, this.health + healthRestored);
+      nearestClone.die();
+      this.consumeCooldown = now + 2000; 
+      logger.debug(`Consumed clone! Health restored: ${healthRestored}. Current health: ${this.health}`);
+    }
+  }
+
   /**
    * Draws the flood player, biomass, evolution, and cooldown bars.
    * @param {CanvasRenderingContext2D} ctx - Rendering context.
@@ -269,6 +310,16 @@ export class FloodPlayer extends Player {
     if (cloneRem > 0) {
       ctx.fillStyle = "blue";
       ctx.fillRect(this.position.x, this.position.y - 45, 50 * (1 - clonePct), 5);
+    }
+
+    // Consume cooldown bar
+    const consumeRem = Math.max(0, this.consumeCooldown - now);
+    const consumePct = consumeRem / 2000;
+    ctx.fillStyle = "gray";
+    ctx.fillRect(this.position.x, this.position.y - 60, 50, 3);
+    if (consumeRem > 0) {
+      ctx.fillStyle = "yellow";
+      ctx.fillRect(this.position.x, this.position.y - 60, 50 * (1 - consumePct), 3);
     }
 
     // Attack bars
