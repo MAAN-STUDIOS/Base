@@ -1,11 +1,20 @@
 import express from 'express';
-import { router } from "./router/index.js";
 
 
+import cors from 'cors';
+import { router } from './router/index.js'
+import get_logger from './utils/logger.js';
+
+const logger = get_logger('APP');
 const app = express();
 
-app.use(router);
+
+
+
+app.use(cors())
+app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+app.use(router);
 
 
 export default app;
