@@ -1,5 +1,5 @@
 import {verifyToken} from '../middleware/auth.js';
-import { Game } from "#engine";
+import { Game } from "../engine/engine.js";
 
 export class GameController {
     constructor() {

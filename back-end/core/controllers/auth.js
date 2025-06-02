@@ -1,4 +1,4 @@
-import { query } from '../../config/db.js';
+import db from '../../config/db.js';
 import {generateToken, verifyToken, refreshAccessToken} from '../middleware/auth.js';
 
 
@@ -12,7 +12,7 @@ export class AuthController {
         if (!body.email || !body.password) {
             return res.status(400).send({ error: 'No body provided' });
         }
-        const user = await query('SELECT * FROM cosmonavt_user WHERE email = ? AND password = ?', [body.email, body.password]);
+        const user = await db.query('SELECT * FROM cosmonavt_user WHERE email = ? AND password = ?', [body.email, body.password]);
         if (user.length === 0) {
             return res.status(401).send({ error: 'Invalid username or password' });
         }
@@ -32,12 +32,12 @@ export class AuthController {
             return res.status(400).send({ error: 'No body provided' });
         }
         
-        const existingUser = await query('SELECT * FROM cosmonavt_user WHERE email = ?', [body.email]);
+        const existingUser = await db.query('SELECT * FROM cosmonavt_user WHERE email = ?', [body.email]);
         if (existingUser.length > 0) {
             return res.status(409).send({ error: 'User already exists' });
         }
         
-        const newUser = await query('INSERT INTO cosmonavt_user (nombre, email, password) VALUES (?, ?, ?)', [body.nombre, body.email, body.password]);
+        const newUser = await db.query('INSERT INTO cosmonavt_user (nombre, email, password) VALUES (?, ?, ?)', [body.nombre, body.email, body.password]);
         if (newUser.affectedRows === 0) {
             return res.status(500).send({ error: 'Failed to create user' });
         }

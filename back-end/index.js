@@ -1,21 +1,23 @@
-// Load environment variables FIRST - before any other imports
 import dotenv from 'dotenv';
+import get_logger from "./core/utils/logger.js";
+import db from "./config/db.js";
+import server from "./core/server.js";
 
-const envFile = `.env.${process.env.NODE_ENV || 'develop'}`;
-console.log(`Loading environment file: ${envFile}`);
-dotenv.config({ path: envFile });
-
-// Now import everything else AFTER env vars are loaded
-import { get_logger } from "#utils";
 
 const logger = get_logger("APP");
-logger.debug(`Mounted ${envFile} as environment file.`);
+
+async function initEnvironment() {
+    const envFile = `.env.${process.env.NODE_ENV || `dev`}`;
+    dotenv.config({ path: envFile });
+    logger.debug(`Mounting ${envFile} as environment file.`);
+
+    await db.connect();
+}
+
+await initEnvironment();
 
 const port = process.env.PORT || 3000;
 const apiUrl = process.env.apiURL || `http://localhost:${port}`;
-
-// Import server AFTER environment variables are loaded
-import server from "./core/server.js";
 
 server.listen(port, () => {
     logger.info(`Server listening on ${apiUrl} ...`);

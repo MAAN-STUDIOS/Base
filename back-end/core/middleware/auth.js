@@ -1,5 +1,8 @@
 import jwt from 'jsonwebtoken';
-import { get_logger } from "#utils";
+import get_logger from "../utils/logger.js";
+import dotenv from 'dotenv';
+dotenv.config();
+
 
 
 const logger = get_logger("AUTH");

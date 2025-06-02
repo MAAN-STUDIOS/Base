@@ -1,7 +1,10 @@
 import express from 'express';
-import { get_logger } from '#utils';
+import get_logger from '../utils/logger.js';
 
-import {UserController, AuthController, GameController } from '#controllers';
+import { AuthController } from '../controllers/auth.js';
+import { UserController }  from '../controllers/user.js';
+import { GameController } from '../controllers/game.js';
+
 //import { GameController } from '../controllers/game';
 
 
@@ -9,7 +12,6 @@ const router = express.Router();
 const logger = get_logger('GameRouter');
 
 
-// router.get('/game/chunk/:x/:y');
 router.get('/user/:id', UserController.get_user);
 router.post('/auth/login', AuthController.login);
 router.post('/auth/register', AuthController.register);

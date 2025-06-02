@@ -118,18 +118,6 @@
     "wrappy": "^1.0.2",
     "ws": "^8.17.1"
   },
-  "imports": {
-    "#": ".",
-    "#config":"./config/module.js",
-    "#core": "./core/module.js",
-    "#utils": "./core/utils/module.js",
-    "#engine": "./core/engine/module.js",
-    "#router": "./core/router/module.js",
-    "#socket": "./core/socket/module.js",
-    "#models": "./core/models/module.js",
-    "#objects": "./core/objects/module.js",
-    "#controllers": "./core/controllers/module.js"
-  },
   "devDependencies": {
     "nodemon": "^3.1.10"
   }
