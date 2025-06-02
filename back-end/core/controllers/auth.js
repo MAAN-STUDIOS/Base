@@ -28,7 +28,7 @@ export class AuthController {
         }
         const body = req.body || {};
         
-        if (!body.email || !body.password) {
+        if (!body.email || !body.password || !body.name) {
             return res.status(400).send({ error: 'No body provided' });
         }
         
@@ -37,7 +37,7 @@ export class AuthController {
             return res.status(409).send({ error: 'User already exists' });
         }
         
-        const newUser = await db.query('INSERT INTO cosmonavt_user (nombre, email, password) VALUES (?, ?, ?)', [body.nombre, body.email, body.password]);
+        const newUser = await db.query('INSERT INTO cosmonavt_user (name, email, password) VALUES (?, ?, ?)', [body.name, body.email, body.password]);
         if (newUser.affectedRows === 0) {
             return res.status(500).send({ error: 'Failed to create user' });
         }

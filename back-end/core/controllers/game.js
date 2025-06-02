@@ -1,52 +1,462 @@
-import {verifyToken} from '../middleware/auth.js';
-import { Game } from "../engine/engine.js";
+import { gameHandler } from '../handlers/gameHandler.js';
+import { verifyToken } from '../middleware/auth.js';
+import get_logger from '../utils/logger.js';
+
+const logger = get_logger('GameController');
+
+const authenticateUser = (req, res) => {
+    if (!req.headers.authorization) {
+        res.status(401).json({ success: false, error: 'Unauthorized - No token provided' });
+        return null;
+    }
+
+    const token = req.headers.authorization;
+    const user = verifyToken(token);
+    if (!user) {
+        res.status(401).json({ success: false, error: 'Unauthorized - Invalid token' });
+        return null;
+    }
+
+    return user;
+};
 
 export class GameController {
-    constructor() {
-        this.game = null;
-    }
-    static async startGame(req, res) {
-        if (!req.headers.authorization) {
-            return res.status(401).json({ error: 'Unauthorized' });
-        }
-        const token = req.headers.authorization;
-        const user = verifyToken(token);
-        if (!user) {
-            return res.status(401).json({ error: 'Invalid token' });
-        }
-        if (!req.params.name || !req.params.description || !req.params.seed) {
-            return res.status(400).json({ error: 'Missing required parameters: name, description, seed' });
-        }
-        const player = await query('SELECT * FROM view_player WHERE id = ?', [user.id]);
-        if (player.length === 0) {
-            return res.status(404).json({ error: 'Player not found' });
-        }
+    static async createGame(req, res) {
         try {
-            gameStarter(req.params.name, req.params.description, req.params.seed);
-            res.status(200).json({ message: 'Game started successfully' });
-        } catch (error) {
-            console.error('Error starting game:', error);
-            res.status(500).json({ error: 'Failed to start game' });
-        }
-    }
+            const user = authenticateUser(req, res);
+            if (!user) return; 
 
-    gameStarter(name, description, seed){
-        if (this.game.status === "running") {
-            return new Error("Game is already running.");
-        }
-        this.game = new Game(
-            {
-                name: name,
-                description: description,
-                seed: seed
+            const { name, description, seed, max_players } = req.body;
+
+            
+            if (!name || name.trim().length === 0) {
+                return res.status(400).json({ 
+                    success: false,
+                    error: 'Game name is required' 
+                });
             }
-        );
+
+            // Additional validation
+            if (name.length > 100) {
+                return res.status(400).json({
+                    success: false,
+                    error: 'Game name must be less than 100 characters'
+                });
+            }
+
+            if (max_players && (max_players < 2 || max_players > 20)) {
+                return res.status(400).json({
+                    success: false,
+                    error: 'Max players must be between 2 and 20'
+                });
+            }
+
+            const result = await gameHandler.create_game({
+                name: name.trim(),
+                description: description?.trim() || '',
+                seed: seed || Math.floor(Math.random() * 1000000),
+                max_players: max_players || 8,
+                creator_id: user.id
+            });
+
+            if (result.success) {
+                logger.info(`User ${user.id} created game ${result.game_id}`);
+                res.status(201).json(result);
+            } else {
+                res.status(400).json(result);
+            }
+        } catch (error) {
+            logger.error('Failed to create game:', error);
+            res.status(500).json({ 
+                success: false,
+                error: 'Failed to create game' 
+            });
+        }
+    }
+
+    // Start a game
+    static async startGame(req, res) {
+        try {
+            const user = authenticateUser(req, res);
+            if (!user) return;
+
+            const game_id = parseInt(req.params.id);
+            if (isNaN(game_id)) {
+                return res.status(400).json({ 
+                    success: false,
+                    error: 'Invalid game ID' 
+                });
+            }
+
+            const result = await gameHandler.start_game(game_id);
+
+            if (result.success) {
+                logger.info(`User ${user.username} started game ${game_id}`);
+                res.status(200).json(result);
+            } else {
+                res.status(400).json(result);
+            }
+        } catch (error) {
+            logger.error('Failed to start game:', error);
+            res.status(500).json({ 
+                success: false,
+                error: 'Failed to start game' 
+            });
+        }
+    }
+
+    static async joinGame(req, res) {
+        try {
+ 
+            const user = authenticateUser(req, res);
+            if (!user) return;
+
+            const game_id = parseInt(req.params.id);
+            const { player_type, socket_id } = req.body;
+
+  
+            if (isNaN(game_id)) {
+                return res.status(400).json({ 
+                    success: false,
+                    error: 'Invalid game ID' 
+                });
+            }
+            
+            if (!player_type || !['human', 'flood'].includes(player_type)) {
+                return res.status(400).json({ 
+                    success: false,
+                    error: 'Invalid player type. Must be "human" or "flood"' 
+                });
+            }
+            
+            if (!socket_id) {
+                return res.status(400).json({ 
+                    success: false,
+                    error: 'Socket ID is required' 
+                });
+            }
+
+            const result = await gameHandler.join_game(game_id, socket_id, {
+                player_type,
+                username: user.username,
+                user_id: user.id
+            });
+
+            if (result.success) {
+                logger.info(`User ${user.username} joined game ${game_id} as ${player_type}`);
+                res.status(200).json(result);
+            } else {
+                res.status(400).json(result);
+            }
+        } catch (error) {
+            logger.error('Failed to join game:', error);
+            res.status(500).json({ 
+                success: false,
+                error: 'Failed to join game' 
+            });
+        }
     }
 
 
-   
+    static async leaveGame(req, res) {
+        try {
 
+            const user = authenticateUser(req, res);
+            if (!user) return;
 
+            const { socket_id } = req.body;
+            
+            if (!socket_id) {
+                return res.status(400).json({ 
+                    success: false,
+                    error: 'Socket ID is required' 
+                });
+            }
 
+            const result = await gameHandler.leave_game(socket_id);
 
+            if (result.success) {
+                logger.info(`User ${user.username} left their game`);
+                res.status(200).json(result);
+            } else {
+                res.status(400).json(result);
+            }
+        } catch (error) {
+            logger.error('Failed to leave game:', error);
+            res.status(500).json({ 
+                success: false,
+                error: 'Failed to leave game' 
+            });
+        }
+    }
+
+    // List all active games (PUBLIC)
+    static async listGames(req, res) {
+        try {
+            const games = gameHandler.get_active_games();
+            res.status(200).json({
+                success: true,
+                games,
+                total: games.length
+            });
+        } catch (error) {
+            logger.error('Failed to list games:', error);
+            res.status(500).json({ 
+                success: false,
+                error: 'Failed to retrieve games' 
+            });
+        }
+    }
+
+    // Get game info(PUBLIC)
+    static async getGameInfo(req, res) {
+        try {
+            const game_id = parseInt(req.params.id);
+            if (isNaN(game_id)) {
+                return res.status(400).json({ 
+                    success: false,
+                    error: 'Invalid game ID' 
+                });
+            }
+
+            const result = gameHandler.get_game_info(game_id);
+
+            if (result.success) {
+                res.status(200).json(result);
+            } else {
+                res.status(404).json(result);
+            }
+        } catch (error) {
+            logger.error('Failed to get game info:', error);
+            res.status(500).json({ 
+                success: false,
+                error: 'Failed to retrieve game information' 
+            });
+        }
+    }
+
+    //Get current game state
+    static async getGameState(req, res) {
+        try {
+
+            const user = authenticateUser(req, res);
+            if (!user) return;
+
+            const game_id = parseInt(req.params.id);
+            if (isNaN(game_id)) {
+                return res.status(400).json({ 
+                    success: false,
+                    error: 'Invalid game ID' 
+                });
+            }
+
+            const result = gameHandler.get_game_state(game_id);
+
+            if (result.success) {
+                res.status(200).json(result);
+            } else {
+                res.status(404).json(result);
+            }
+        } catch (error) {
+            logger.error('Failed to get game state:', error);
+            res.status(500).json({ 
+                success: false,
+                error: 'Failed to retrieve game state' 
+            });
+        }
+    }
+
+    // GET /api/games/:id/chunks/:x/:y - Get chunk data
+    static async getChunk(req, res) {
+        try {
+            // Authenticate user
+            const user = authenticateUser(req, res);
+            if (!user) return;
+
+            const game_id = parseInt(req.params.id);
+            const chunk_x = parseInt(req.params.x);
+            const chunk_y = parseInt(req.params.y);
+
+            if (isNaN(game_id) || isNaN(chunk_x) || isNaN(chunk_y)) {
+                return res.status(400).json({ 
+                    success: false,
+                    error: 'Invalid parameters' 
+                });
+            }
+
+            const result = gameHandler.get_chunk(game_id, chunk_x, chunk_y);
+
+            if (result.success) {
+                res.status(200).json(result);
+            } else {
+                res.status(404).json(result);
+            }
+        } catch (error) {
+            logger.error('Failed to get chunk:', error);
+            res.status(500).json({ 
+                success: false,
+                error: 'Failed to retrieve chunk data' 
+            });
+        }
+    }
+
+    // GET /api/games/:id/dungeons/:dungeon_id - Get dungeon data
+    static async getDungeon(req, res) {
+        try {
+         
+            const user = authenticateUser(req, res);
+            if (!user) return;
+
+            const game_id = parseInt(req.params.id);
+            const dungeon_id = parseInt(req.params.dungeon_id);
+
+            if (isNaN(game_id) || isNaN(dungeon_id)) {
+                return res.status(400).json({ 
+                    success: false,
+                    error: 'Invalid parameters' 
+                });
+            }
+
+            const result = gameHandler.get_dungeon(game_id, dungeon_id);
+
+            if (result.success) {
+                res.status(200).json(result);
+            } else {
+                res.status(404).json(result);
+            }
+        } catch (error) {
+            logger.error('Failed to get dungeon:', error);
+            res.status(500).json({ 
+                success: false,
+                error: 'Failed to retrieve dungeon data' 
+            });
+        }
+    }
+
+    // POST /api/games/dungeons/:dungeon_id/enter - Enter a dungeon
+    static async enterDungeon(req, res) {
+        try {
+        
+            const user = authenticateUser(req, res);
+            if (!user) return;
+
+            const dungeon_id = parseInt(req.params.dungeon_id);
+            const { socket_id } = req.body;
+
+            if (isNaN(dungeon_id) || !socket_id) {
+                return res.status(400).json({ 
+                    success: false,
+                    error: 'Invalid parameters' 
+                });
+            }
+
+            if (dungeon_id < 1 || dungeon_id > 3) {
+                return res.status(400).json({
+                    success: false,
+                    error: 'Dungeon ID must be between 1 and 3'
+                });
+            }
+
+            const result = await gameHandler.player_enter_dungeon(socket_id, dungeon_id);
+
+            if (result.success) {
+                logger.info(`User ${user.username} entered dungeon ${dungeon_id}`);
+                res.status(200).json(result);
+            } else {
+                res.status(400).json(result);
+            }
+        } catch (error) {
+            logger.error('Failed to enter dungeon:', error);
+            res.status(500).json({ 
+                success: false,
+                error: 'Failed to enter dungeon' 
+            });
+        }
+    }
+
+    // POST /api/games/dungeons/exit - Exit current dungeon
+    static async exitDungeon(req, res) {
+        try {
+            const user = authenticateUser(req, res);
+            if (!user) return;
+
+            const { socket_id } = req.body;
+            
+            if (!socket_id) {
+                return res.status(400).json({ 
+                    success: false,
+                    error: 'Socket ID is required' 
+                });
+            }
+
+            const result = await gameHandler.player_exit_dungeon(socket_id);
+
+            if (result.success) {
+                logger.info(`User ${user.username} exited dungeon`);
+                res.status(200).json(result);
+            } else {
+                res.status(400).json(result);
+            }
+        } catch (error) {
+            logger.error('Failed to exit dungeon:', error);
+            res.status(500).json({ 
+                success: false,
+                error: 'Failed to exit dungeon' 
+            });
+        }
+    }
+
+    
+
+    // GET /api/games/player/current - Get player's current game
+    static async getCurrentGame(req, res) {
+        try {
+            const user = authenticateUser(req, res);
+            if (!user) return;
+
+            const { socket_id } = req.query;
+            
+            if (!socket_id) {
+                return res.status(400).json({ 
+                    success: false,
+                    error: 'Socket ID is required' 
+                });
+            }
+
+            const result = gameHandler.get_player_game(socket_id);
+
+            if (result.success) {
+                res.status(200).json(result);
+            } else {
+                res.status(404).json(result);
+            }
+        } catch (error) {
+            logger.error('Failed to get current game:', error);
+            res.status(500).json({ 
+                success: false,
+                error: 'Failed to retrieve current game' 
+            });
+        }
+    }
+
+    // GET /api/games/stats - Get server statistics (admin only)
+    static async getServerStats(req, res) {
+        try {
+            const user = authenticateUser(req, res);
+            if (!user) return;
+
+            const stats = gameHandler.get_server_stats();
+            res.status(200).json({
+                success: true,
+                stats,
+                requested_by: user.username
+            });
+        } catch (error) {
+            logger.error('Failed to get server stats:', error);
+            res.status(500).json({ 
+                success: false,
+                error: 'Failed to retrieve server statistics' 
+            });
+        }
+    }
 }
