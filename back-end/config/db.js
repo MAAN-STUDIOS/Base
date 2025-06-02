@@ -84,13 +84,13 @@ async function connectDB() {
         process.exit(1); // Exit if database connection fails
     }
 
-    if (process.env.DEBUG) {
+if (process.env.DEBUG) {
         try {
             await failureCheck.atDBConnection(pool, query, initDB, logger);
         } catch (debugError) {
             logger.error('Debug check failed:', debugError);
         }
-    }
+}
 }
 
 // Graceful shutdown
