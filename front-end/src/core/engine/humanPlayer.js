@@ -2,7 +2,11 @@ import { Player } from "@engine/objectPlayer.js";
 import { Vector } from "@utils/vector.js";
 import { Hitbox } from "@utils/hitbox.js";
 import logger from "@utils/logger.js";
-
+import HUD from "@/assets/HUD/fondo.png"
+import Shotgun from "@/assets/Armas/escopeta.png"
+import Metra from "@/assets/Armas/ametralladora.png"
+import Pistola from "@/assets/Armas/pistola.png"
+import Granada from "@/assets/Armas/granada.png"
 
 /**
  * Represents a human-controlled player in the game.
@@ -19,6 +23,7 @@ export class HumanPlayer extends Player {
      * @param {number|null} [options.height] - Height of the player.
      * @param {number|null} [options.walkSpeed=70] - Walk speed.
      * @param {number|null} [options.runSpeed=walkSpeed + 20] - Run speed.
+     * Here we can review the both bars usages rates, as well as the runnig speed
      */
     constructor(position, options = {}) {
         // Example set up
@@ -70,6 +75,22 @@ export class HumanPlayer extends Player {
 
         this.attackSlots = options.attackSlots || [];
         this.activeSlot = 0;
+       
+        this.img = new Image();
+        this.img.src = HUD;
+
+        this.imga = new Image();
+        this.imga.src = Shotgun;
+
+        this.img2 = new Image();
+        this.img2.src = Metra;
+
+        this.img3 = new Image();
+        this.img3.src = Pistola;
+
+        this.img4 = new Image();
+        this.img4.src = Granada;
+        
 
         /**
          * @type {Object} - Tracks the current state of movement keys.
@@ -115,7 +136,7 @@ export class HumanPlayer extends Player {
                     this.keys.right = state;
                 }
                 if (key === 'Shift') {            
-                    this.keys.shift = state;
+                    this.keys.shift = state && this.oxygen > 20;
                 }
                 if (state && (key === ' ' || key === 'f')) {
                     this.attack();
@@ -179,7 +200,7 @@ export class HumanPlayer extends Player {
             this.lastDirection = this.direction.clone();
         }
 
-        // Corregido: Sistema de oxígeno
+        //Sistema de oxígeno
         if (this.isRunning) {
             // Consume oxígeno solo cuando está corriendo
             this.oxygenTimer += dt;
@@ -212,11 +233,11 @@ export class HumanPlayer extends Player {
      * Draws the player and displays current movement status.
      * @param {CanvasRenderingContext2D} ctx - The canvas rendering context.
      * @override
+     * Draw the life and oxigen barts for the human player, every bar have a white border
      */
     draw(ctx) {
         //super.draw(ctx);
 
-        //Barra de vida dinámica
         const healthPercentage = this.health / this.maxHealth;
         ctx.fillStyle = "red"; 
         ctx.fillRect(25, 5, 250 * healthPercentage, 20);   
@@ -224,26 +245,37 @@ export class HumanPlayer extends Player {
         ctx.fillStyle = "white";
         ctx.fillText("Salud", 280, 20); 
         
-        // Borde de la barra de salud
         ctx.strokeStyle = "white";
         ctx.strokeRect(25, 5, 250, 20);
         
         ctx.fillStyle = "white";
         
-        //Barra de oxígeno dinámica
         const oxygenPercentage = this.oxygen / this.maxOxygen;
         ctx.fillStyle = "#5ac3e7";
         ctx.fillRect(25, 30, 200 * oxygenPercentage, 20); 
 
         ctx.fillStyle = "white";
         ctx.fillText("Oxígeno", 230, 45);
-
         
-        // Borde de la barra de oxígeno
         ctx.strokeStyle = "white";
         ctx.strokeRect(25, 30, 200, 20);
         
         ctx.fillStyle = "white";
+
+        //Imagen HUD
+        ctx.drawImage(this.img, 0, 0, 2304, 1728, 0, 0, ctx.canvas.width, ctx.canvas.height); 
+
+        //Escopeta               x    y    w    h
+        ctx.drawImage(this.imga, 55, 710, 100, 100);
+        //Ametralladora
+        ctx.drawImage(this.img2, 187, 695, 120, 120);
+        //Pistola 
+        ctx.drawImage(this.img3, 355, 710, 90, 90);
+        //Granada
+        ctx.drawImage(this.img4, 1310, 710, 90, 90);
+
+        
+
         
         ctx.font = "16px monospace";
         ctx.fillStyle = "white";
@@ -281,7 +313,16 @@ export class HumanPlayer extends Player {
 
     takeDamage(amount) {
         this.health -= amount;
-        if (this.health < 0) this.health = 0;
+        if (this.health < 0) {
+            this.health = 0; 
+            this.die(); 
+        }
+    }
+
+    die() {
+        super.die();
+        this.health = this.maxHealth;
+        this.oxygen = this.maxOxygen;
     }
 }
 

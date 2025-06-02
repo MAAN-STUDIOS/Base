@@ -1,9 +1,0 @@
-export {default as app} from "./app.js";
-export {default as httpServer} from "./server";
-export * as controller from "./controllers/module";
-export * as engine from "./engine/module";
-export * as middleware from "./middleware/module";
-export * as model from "./models/module";
-export * as router from "./router/module";
-export * as socket from "./sockets/module";
-export * as util from "./utils/module";

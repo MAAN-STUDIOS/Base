@@ -1,3 +1,13 @@
+const COLORS = {
+    RED: '\x1b[31m',
+    BLUE: '\x1b[34m',
+    YELLOW: '\x1b[33m',
+    GREEN: '\x1b[32m',
+    PURPLE: '\x1b[35m',
+    RESET: '\x1b[0m'
+};
+
+
 class Logger {
     constructor(module) {
         this.module = module
@@ -6,29 +16,28 @@ class Logger {
 
     debug(message) {
         if (process.env.DEBUG) {
-            this.inner_log('DEBUG', message);
+            this.inner_log(COLORS.PURPLE, 'DEBUG', message);
         }
     }
 
     info(message) {
-        this.inner_log('INFO ', message);
+        this.inner_log(COLORS.GREEN, 'INFO ', message);
     }
 
     warn(message) {
-        this.inner_log('WARN ', message);
+        this.inner_log(COLORS.YELLOW, 'WARN ', message);
     }
 
     error(message) {
-        this.inner_log('ERROR', message);
+        this.inner_log(COLORS.RED, 'ERROR', message);
     }
 
-    inner_log(level, msg) {
-        if (process.env.NODE_ENV !== 'developer') return;
+    inner_log(color, level, msg) {
         if (typeof msg === 'object') {
             msg = JSON.stringify(msg, null, 2);
         }
 
-        console.log(`[ ${this.now()} ] [ ${this.module}:${String(this.ID++).padStart(5, '0')} ] [ ${level} ] - ${msg}`);
+        console.log(`${color}[ ${this.now()} ] [ ${this.module}:${String(this.ID++).padStart(5, '0')} ] [ ${level} ] - ${msg}${COLORS.RESET}`);
     }
 
     now() {

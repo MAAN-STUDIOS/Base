@@ -1,5 +1,8 @@
 import jwt from 'jsonwebtoken';
-import { get_logger } from "#utils";
+import get_logger from "../utils/logger.js";
+import dotenv from 'dotenv';
+dotenv.config();
+
 
 
 const logger = get_logger("AUTH");
@@ -105,7 +108,7 @@ function verifyToken(token) {
  * Refresh an expired access token using a valid refresh token
  */
 function refreshAccessToken(req, res) {
-    const refreshToken = req.body.refreshToken;
+    const refreshToken = req.body.refreshToken || req.headers.authorization;
 
     if (!refreshToken) {
         return res.status(400).json({ message: 'Refresh token required' });

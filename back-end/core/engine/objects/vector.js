@@ -3,7 +3,7 @@
  * ID: A01785840
  * FR: 007
  */
-import { get_logger } from "#utils";
+import get_logger from "../../utils/logger.js";
 
 
 const logger = get_logger("ENGINE-VECTOR");

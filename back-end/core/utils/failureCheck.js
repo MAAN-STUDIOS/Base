@@ -1,4 +1,5 @@
-function atObjectNullSafe(config, errMsg) {
+function atObjectNullSafe(config, errMsg, logger) {
+    logger.debug(`Checking env variables: ${JSON.stringify(config)}`);
     for (const [key, value] of Object.entries(config)) {
         if (!value) {
             throw new Error(`${errMsg}: ${key}`);
@@ -12,8 +13,14 @@ async function atDBConnection(pool, query, initializer, logger) {
             await initializer();
         }
 
-        const result = await query("SELECT 1 + 1 AS solution");
-        logger.debug(`Database test query result (1 + 1): ${result}`);
+        const result = (await query("SELECT 1 + 1 AS solution"))[0].solution;
+
+        if (result !== 2) {
+            logger.error(`Database tests failed, result: ${result}`);
+            return false;
+        }
+
+        logger.debug(`Database test query successful (1 + 1): ${result}`);
         logger.info("Database connection verified and ready");
         return true;
     } catch (err) {
@@ -22,7 +29,7 @@ async function atDBConnection(pool, query, initializer, logger) {
     }
 }
 
-export {
+export default {
     atObjectNullSafe,
-    atDBConnection,
-}
+    atDBConnection
+};
