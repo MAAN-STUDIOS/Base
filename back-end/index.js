@@ -22,3 +22,4 @@ const apiUrl = process.env.apiURL || `http://localhost:${port}`;
 server.listen(port, () => {
     logger.info(`Server listening on ${apiUrl} ...`);
 });
+
