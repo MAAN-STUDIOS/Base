@@ -251,16 +251,23 @@ export default function humanScreen() {
         game.player?.initMouseTracking?.();
 
         const other = new OtherPlayer(new Vector(0, 0));
+        
+        // Ensure position is properly initialized
+        if (!other.position) {
+            other.position = new Vector(0, 0);
+        }
 
         const unSuscribe = subscribeToEvent("MovePlayer", (data) => {
-            logger.warn(JSON.stringify({
-                socket: socket.id,
-                ...data
-            }));
             if (data.id === socket.id) return;
 
-            other.target.x = -data?.x || other.target.x;
-            other.target.y = -data?.y || other.target.y;
+            if (!other || !other.position) {
+                
+                return;
+            }
+
+            // Set the world position directly - no negation!
+            other.position.x = data?.x || other.position.x;
+            other.position.y = data?.y || other.position.y;
         });
 
         game.on("update", (dt) => {
@@ -271,12 +278,11 @@ export default function humanScreen() {
             }
             emitEvent("MovePlayer", data);
 
-            other.update(dt);
+            // Safety check before updating other player
+            if (other && other.update) {
+                other.update(dt);
+            }
         });
-
-        game.on("render", (ctx) => {
-            other.draw(ctx);
-        })
 
         game.on("update", (dt, currentTime) => {
             const playerIsDead = handlePlayerDeath(currentTime);
@@ -297,9 +303,27 @@ export default function humanScreen() {
             updateEnemies(dt, game.player, enemies, game);
         });
 
+        // SINGLE COMBINED RENDER HANDLER WITH SAFETY CHECKS
         game.on("render", (ctx) => {
+            // More lenient safety checks
+            if (!other) {
+                console.log("Other player not initialized");
+                return;
+            }
+            
+            if (!game.player || !game.player.real_position) {
+                console.log("Game player not ready");
+                return;
+            }
+            
+            if (!game.map) {
+                console.log("Game map not ready");
+                return;
+            }
+
+            // Render enemies
             for (let enemy of enemies) {
-                if (enemy && enemy.draw) {
+                if (enemy && enemy.draw && enemy.position) {
                     const enemyScreenX = enemy.position.x - game.player.real_position.x + (game.map.camaraWidth / 2);
                     const enemyScreenY = enemy.position.y - game.player.real_position.y + (game.map.camaraHeight / 2);
 
@@ -319,12 +343,40 @@ export default function humanScreen() {
                 }
             }
 
+            // Show death screen if needed
             if (gameState.isGameOver) {
                 const timeLeft = gameState.respawnTime - performance.now();
                 showDeathScreen(ctx, Math.max(0, timeLeft));
             }
 
+            // Render shooting system
             ShootingSystem.drawAll(ctx);
+            
+            // Render other player - simplified approach
+            if (other.position) {
+                const screenX = other.position.x - game.player.real_position.x + (game.map.camaraWidth / 2);
+                const screenY = other.position.y - game.player.real_position.y + (game.map.camaraHeight / 2);
+                // Draw a visible other player (green rectangle)
+                ctx.fillStyle = "green";
+                ctx.fillRect(screenX - 25, screenY - 25, 50, 50);
+                
+                // Add player label
+                ctx.fillStyle = "white";
+                ctx.font = "12px Arial";
+                ctx.fillText("Other Player", screenX - 30, screenY - 30);
+                
+                // Try to draw the actual other player on top (if it works)
+                if (other.drawAtPosition) {
+                    other.drawAtPosition(ctx, screenX, screenY);
+                } else if (other.draw) {
+                    ctx.save();
+                    ctx.translate(screenX, screenY);
+                    other.draw(ctx);
+                    ctx.restore();
+                }
+            } else {
+                logger.warn("Other player position not set, skipping render");
+            }
         });
 
         stop?.addEventListener("click", () => game.stop());

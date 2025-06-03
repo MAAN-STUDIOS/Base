@@ -33,13 +33,4 @@ export class OtherPlayer {
      * @param {CanvasRenderingContext2D} ctx - The canvas rendering context.
      * @override
      */
-    draw(ctx) {
-        const width = 50;
-        const height = 50;
-        const x = ctx.canvas.width / 2 - this.real_position.x - width /2;
-        const y = ctx.canvas.height / 2 - this.real_position.y - height /2;
-
-        ctx.fillStyle = 'green';
-        ctx.fillRect(x, y, width, height);
-    }
 }
