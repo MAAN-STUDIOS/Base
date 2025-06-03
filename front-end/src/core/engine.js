@@ -29,6 +29,8 @@ export class Engine {
      * @param [options.player.size]
      * @param [options.player.type]
      * @param [options.player.position]
+     * @param [options.player.walkSpeed]
+     * @param [options.player.runSpeed]
      * @param [options.map.spriteSheet]
      * @param [options.map.width]
      * @param [options.map.height]

@@ -1,7 +1,12 @@
 import get_logger from "../utils/logger.js";
 
 
-const logger = get_logger('SOCKET-PLAYER');
+const logger = get_logger('SOCKET-PLAYER', {
+    debug: {
+        trucate: 1,
+        cooldown: 10000
+    }
+});
 
 export default (io, socket) => {
     // Feature: preparing for multi game handling

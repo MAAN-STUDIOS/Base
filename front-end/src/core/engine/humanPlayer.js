@@ -35,7 +35,7 @@ export class HumanPlayer extends Player {
         this.isRunning = false;
 
         //Set up 
-        this.maxHealth = 100;
+        this.maxHealth = 1000;
         this.maxOxygen = 100;
         this.health = this.maxHealth;
         this.oxygen = this.maxOxygen;
