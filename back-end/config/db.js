@@ -29,9 +29,6 @@ async function initDB() {
             waitForConnections: true,
             connectionLimit: 10,
             queueLimit: 10,
-            acquireTimeout: 60000,
-            timeout: 60000,
-            reconnect: true
         };
     failureCheck.atObjectNullSafe(dbConfig, 'Missing database configuration', logger);
 

@@ -26,6 +26,7 @@ function generateToken(user) {
     const tokenPayload = {
         id: user.id,
         email: user.email,
+        accessLevel: user.accessLevel ? user.accessLevel : undefined
     };
 
     return jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: TOKEN_EXPIRY });
