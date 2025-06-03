@@ -6,6 +6,9 @@ import mapsSpriteSheet from "@assets/map.png";
 import logger from "@utils/logger.js";
 import { Enemy } from "@engine/enemy.js";
 import { ShootingSystem } from "@engine/shootingsystem.js";
+import socket, { emitEvent, subscribeToEvent } from "@utils/networkmanager.js";
+import { HumanPlayer } from "@engine/humanPlayer.js";
+import { OtherPlayer } from "@engine/otherPlayer.js";
 
 
 /**
@@ -141,7 +144,9 @@ export default function humanScreen() {
         player: {
             type: "human",
             size: 50,
-            position: Vector.zero()
+            position: Vector.zero(),
+            walkSpeed: 20,
+            runSpeed: 40
         },
         map: {
             spriteSheet: mapsSpriteSheet,
@@ -202,7 +207,7 @@ export default function humanScreen() {
         deathScreenShown: false
     };
 
-    const setup = () => {
+    const setup = async () => {
         const map = document.getElementById("game");
         const minimap = document.getElementById("minimap");
 
@@ -244,6 +249,34 @@ export default function humanScreen() {
         game.init(map, minimap);
 
         game.player?.initMouseTracking?.();
+
+        const other = new OtherPlayer(new Vector(0, 0));
+
+        const unSuscribe = subscribeToEvent("MovePlayer", (data) => {
+            logger.warn(JSON.stringify({
+                socket: socket.id,
+                ...data
+            }));
+            if (data.id === socket.id) return;
+
+            other.target.x = -data?.x || other.target.x;
+            other.target.y = -data?.y || other.target.y;
+        });
+
+        game.on("update", (dt) => {
+            const data = {
+                id: socket.id,
+                x: game.player?.real_position.x,
+                y: game.player?.real_position.y
+            }
+            emitEvent("MovePlayer", data);
+
+            other.update(dt);
+        });
+
+        game.on("render", (ctx) => {
+            other.draw(ctx);
+        })
 
         game.on("update", (dt, currentTime) => {
             const playerIsDead = handlePlayerDeath(currentTime);
@@ -315,11 +348,11 @@ export default function humanScreen() {
             <button id="btn-continue">Continue</button>
             <button id="btn-back-to-play">Back to Play</button>
           </div>
-          <div class=${styles.controls}>
-            <div class=${styles.controlsTitle}>CONTROLS</div>
-            <div class=${styles.controlItem}>Move: ↑ ↓ ← → / WASD</div>
-            <div class=${styles.controlItem}>Run: Shift + Flechas / WASD</div>
-            <div class=${styles.controlItem}>Attack: [F] / [ ]</div>
+          <div class="${styles.controls}">
+            <div class="${styles.controlsTitle}">CONTROLS</div>
+            <div class="${styles.controlItem}">Move: ↑ ↓ ← → / WASD</div>
+            <div class="${styles.controlItem}">Run: Shift + Flechas / WASD</div>
+            <div class="${styles.controlItem}">Attack: [F] / [ ]</div>
           </div> 
         </main>
    `];

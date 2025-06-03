@@ -19,5 +19,14 @@ export default defineConfig({
       localsConvention: 'camelCase',
       generateScopedName: '[name]__[local]___[hash:base64:5]',
     }
+  },
+  server: {
+    proxy: {
+      '/socket.io': {
+        target: "http://localhost:3000",
+        ws: true,
+        changeOrigin: true
+      }
+    }
   }
 });
