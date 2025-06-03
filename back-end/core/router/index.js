@@ -6,6 +6,7 @@ import { ConfigController } from '../controllers/config.js';
 import { PlayerController } from '../controllers/player.js';
 import { AuthController } from '../controllers/auth.js';
 import { GameController } from '../controllers/game.js';
+import { HumanGame } from '../controllers/viewHumanGame.js';
 
 const router = express.Router();
 const logger = get_logger('GameRouter');
@@ -73,5 +74,7 @@ router.get('/games/stats', GameController.getServerStats);    // Server statisti
 // router.get('/map/dungeon/:game_id/:dungeon_id', GameController.getDungeon);
 
 logger.info('Game router initialized with all endpoints');
+
+router.get('/api/view/human_view_game', HumanGame.get_viewHumanGame);
 
 export { router };
