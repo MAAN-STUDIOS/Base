@@ -38,9 +38,10 @@ export class Enemy {
         this.waypoints = waypoints;
         this.currentWaypointIndex = 0;
         this.homePoint = homePoint;
-        this.lastKnownTargetPos = null; // FIXED: Changed from lastKnownPlayerPos
+        this.lastKnownTargetPos = null;
         this.searchTarget = null;
         this.stateTimer = 0;
+        this.id = null;
 
         this.chaseRadius = chaseRadius;
         this.attackRadius = attackRadius;
@@ -62,13 +63,12 @@ export class Enemy {
     update(dt, player, clones = []) {
         this.prevPosition = this.position.clone();
         
-        // Find nearest target (player or clone)
         const nearestTarget = this.findNearestTarget(player, clones);
         const currentTarget = nearestTarget ? nearestTarget.target : player;
         const currentTargetPos = nearestTarget ? nearestTarget.position : player.real_position;
         const distanceToTarget = nearestTarget ? nearestTarget.distance : this.position.distanceTo(player.real_position);
         
-        const hasLosToTarget = true; 
+        const hasLosToTarget = true; // TODO: Update with ling of sight
         
         switch (this.state) {
             case STATES.IDLE:
@@ -102,7 +102,6 @@ export class Enemy {
             { target: player, position: player.real_position, type: 'player' }
         ];
         
-        // Add clones as potential targets
         clones.forEach(clone => {
             if (clone && !clone.isDead && clone.real_position) {
                 targets.push({ 
@@ -200,7 +199,7 @@ export class Enemy {
 
         // Set search target if we don't have one
         if (!this.searchTarget) {
-            this.searchTarget = this.lastKnownTargetPos.clone(); // FIXED: Set search target
+            this.searchTarget = this.lastKnownTargetPos.clone();
         }
 
         const toTarget = this.searchTarget.sub(this.position);

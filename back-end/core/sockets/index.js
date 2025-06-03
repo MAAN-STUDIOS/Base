@@ -41,6 +41,9 @@ export default function initSockets(server) {
             }
         });
 
+        // socket.join(roomID);
+        // socket.leave(roomID);
+
         players(io, socket);
 
         socket.on("disconnect", () => {
