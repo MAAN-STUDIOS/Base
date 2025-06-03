@@ -254,7 +254,6 @@ export default function humanScreen() {
 
         const unSuscribe = subscribeToEvent("MovePlayer", (data) => {
             if (data.id === socket.id) return;
-            if (!other || !other.position) return;
 
             other.target.x = data?.x || other.target.x;
             other.target.y = data?.y || other.target.y;
@@ -273,7 +272,7 @@ export default function humanScreen() {
 
         game.on("render", (ctx) => {
             other.draw(ctx, game.player.real_position.clone(), game.map.camaraWidth, game.map.camaraHeight);
-        })
+        });
 
         game.on("update", (dt, currentTime) => {
             const playerIsDead = handlePlayerDeath(currentTime);
@@ -328,6 +327,7 @@ export default function humanScreen() {
         start?.addEventListener("click", () => game.start());
         back?.addEventListener("click", () => {
             game.stop();
+            unSuscribe();
             navigate("play");
         });
 
