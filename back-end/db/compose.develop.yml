@@ -1,6 +1,5 @@
 services:
   db:
-
     image: mysql:8.0
     container_name: consmonavt_db
     environment:

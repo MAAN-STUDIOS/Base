@@ -386,3 +386,4 @@ VALUES (1, NOW(), 'Oxygen Depletion'),
        (10, DATE_ADD(NOW(), INTERVAL 55 MINUTE), 'Enemy Attack'),
        (10, DATE_ADD(NOW(), INTERVAL 55 MINUTE), 'Enemy Attack');
 
+INSERT INTO dungeon (id, name) VALUES ()
