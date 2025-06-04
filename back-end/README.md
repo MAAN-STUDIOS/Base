@@ -64,7 +64,7 @@ Make sure you have docker installed
      - DB_HOST=localhost
      - DB_PORT=3307
      - DB_USER=appuser
-     - DB_PASSWORD=password
+     - DB_PASSWORD=MyDevelopmentPassword
      - DB_DATABASE=cosmonavt
 
      - # ——— Configuración del servidor Node ———
@@ -86,6 +86,7 @@ Make sure you have docker installed
 4. Go back and start the backend:
    ```sh
    cd ..
+   npm install
    npm run dev
    ```
 

@@ -4,10 +4,10 @@ services:
     image: mysql:8.0
     container_name: consmonavt_db
     environment:
-      MYSQL_ROOT_PASSWORD: password
+      MYSQL_ROOT_PASSWORD: MyDevelopmentPassword
       MYSQL_DATABASE: cosmonavt
       MYSQL_USER: appuser
-      MYSQL_PASSWORD: password
+      MYSQL_PASSWORD: MyDevelopmentPassword
     ports:
       - "3307:3306"
     volumes:
