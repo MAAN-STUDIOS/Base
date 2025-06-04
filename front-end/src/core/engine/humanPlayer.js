@@ -265,8 +265,8 @@ export class HumanPlayer extends Player {
         //Imagen HUD
         ctx.drawImage(this.img, 0, 0, 2304, 1728, 0, 0, ctx.canvas.width, ctx.canvas.height); 
 
-        //Escopeta               x    y    w    h
-        ctx.drawImage(this.imga, 55, 710, 100, 100);
+        //Escopeta            
+        ctx.drawImage(this.imga, 55, 710, 100, 100);        //viewport 
         //Ametralladora
         ctx.drawImage(this.img2, 187, 695, 120, 120);
         //Pistola 
@@ -274,9 +274,6 @@ export class HumanPlayer extends Player {
         //Granada
         ctx.drawImage(this.img4, 1310, 710, 90, 90);
 
-        
-
-        
         ctx.font = "16px monospace";
         ctx.fillStyle = "white";
         ctx.fillText(`${this.isRunning ? "Running" : "Walking"}`, this.position.x, this.position.y - 15);
