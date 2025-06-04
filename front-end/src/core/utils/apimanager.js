@@ -5,7 +5,7 @@ const api_url = "http://localhost:3000";
 
 async function get_map_chunk(coordinates_x, coordinates_y, mockup) {
     if (mockup) {
-        return generateTempMapChunk(coordinates_x, coordinates_y);w
+        return generateTempMapChunk(coordinates_x, coordinates_y);
         /*return [
             0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0,
             0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0,
