@@ -50,6 +50,46 @@
    npm run dev
    ```
 
+### How to Set Up the Backend and dataBase (Docker)
+
+Make sure you have docker installed 
+> TIP: You can install docker here: https://www.docker.com/products/docker-desktop/
+
+1.  **Navigate to the database directory**:
+   ```sh
+   cd back-end/db
+   ```
+2. Copy the `.env.develop` to `.env.dev` and adjust as needed.
+     - # ——— Configuración de MySQL (Docker) ———
+     - DB_HOST=localhost
+     - DB_PORT=3307
+     - DB_USER=appuser
+     - DB_PASSWORD=password
+     - DB_DATABASE=cosmonavt
+
+     - # ——— Configuración del servidor Node ———
+     - PORT=8000
+     - DEBUG=true
+     - API_URL=http://localhost:8000/
+     - FRONTEND_URL=http://localhost:5173/
+     - JWT_SECRET=cosmonavt_secret_key
+
+     - COMPOSE_PROJECT_NAME=socketapp
+     - TZ=UTC
+2.5 If you get this error " Ports are not available: exposing port TCP 0.0.0.0:3306 -> 0.0.0.0:0: listen tcp 0.0.0.0:3306: bind: address already in use" 
+   - Modify  compose.develop.yml to use Ports:  - "3307:3306"
+
+3. Run:
+   ```sh
+  docker compose -f compose.develop.yml up -d
+   ```
+4. Go back and start the backend:
+   ```sh
+   cd ..
+   npm run dev
+   ```
+
+
 ### Import System
 
 - Uses **ES Modules** and the `#` alias for root imports.
