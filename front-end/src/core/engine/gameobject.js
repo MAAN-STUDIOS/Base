@@ -1,77 +1,103 @@
-"use strict";
 import { Vector } from "@utils/vector.js";
-import { hitbox } from "@utils/hitbox.js";
+import { Hitbox } from "@utils/hitbox.js";
 
 
 export class GameObject {
+    /**
+     * Creates a new GameObject instance
+     * @param {Object} options - Configuration options
+     * @param {Vector} [options.position] - The position of the game object
+     * @param {number} [options.width=0] - Width of the game object
+     * @param {number} [options.height=0] - Height of the game object
+     * @param {Hitbox} [options.hitbox] - Custom hitbox for collision detection
+     * @param {Image|HTMLImageElement} [options.destroyImage=null] - Image to show when object is destroyed
+     * @param {boolean} [options.debug] - Whether to show debug visuals
+     */
     constructor(options = {}) {
-        this.position = options.position || new Vector(0, 0);
+        this.position = options.position || Vector.zero();
         this.width = options.width || 0;
         this.height = options.height || 0;
-        this.hitbox = options.hitbox || hitbox(this);
+
+        /** @type {Hitbox} - Collision detection box for the player. */
+        this.hitbox = options.hitbox || new Hitbox(this);
+
         this.destroyImage = options.destroyImage || null;
-        this.spriteImage = null;
-        this.color = options.color || "red"; // para el test
+        this.debug = options.debug;
     }
 
-    //METHODS
+    /**
+     *
+     * @param {CanvasRenderingContext2D} ctx
+     */
     draw(ctx) {
-        if (this.spriteImage) {
-            ctx.drawImage(this.spriteImage, this.position.x, this.position.y, this.width, this.height);
-        } else {
-            ctx.fillStyle = this.color;
-            ctx.fillRect(this.position.x, this.position.y, this.width, this.height);
-        }
+        if (!this.debug) return;
 
-        if (window.DEBUG_MODE) {
-            this.drawBoundingBox(ctx);
-            this.hitbox.drawDebug(ctx);
-        }
+        this.drawBoundingBox(ctx);
+        this.hitbox.drawDebug(ctx);
     }
+
+    /**
+     *
+     * @param {GameObject || {hitbox: Hitbox}} other
+     * @returns {boolean|*}
+     */
     collidesWith(other) {
-        if (this.hitbox.collidesWith(other.hitbox)) {
-            return true;
-        }
-        return false;
+        return this.hitbox.collidesWith(other.hitbox);
+
     }
-    // For debugging purposes
+
+    /**
+     *
+     * @param {CanvasRenderingContext2D} ctx
+     */
     drawBoundingBox(ctx) {
-        ctx.strokeStyle = "red";
+        ctx.strokeStyle = "#2100ff";
         ctx.lineWidth = 1;
         ctx.strokeRect(this.position.x, this.position.y, this.width, this.height);
     }
-    
+
+    /**
+     *
+     * @param {CanvasRenderingContext2D} ctx
+     */
     onDestroy(ctx) {
-       
         if (this.destroyImage) {
             ctx.drawImage(this.destroyImage, this.position.x, this.position.y, this.width, this.height);
         }
-        
-        
+
         ctx.clearRect(this.position.x, this.position.y, this.width, this.height);
-        
-        if (this.hitbox) {
-            this.hitbox.clear();
-        }
-        
+
+        this.hitbox?.clear();
+
         this.spriteImage = null;
         this.position = null;
         this.width = null;
         this.height = null;
         this.hitbox = null;
         this.destroyImage = null;
-        
-        // Opcional: Facilitar la recolección de basura
-        // Eliminar referencias circulares y listeners
-        // this.removeAllEventListeners(); //  EJ
+
+        this.clear();
     }
-    isVisible(viewport){
-        if (this.position.x + this.width < viewport.x || this.position.x > viewport.x + viewport.width ||
-            this.position.y + this.height < viewport.y || this.position.y > viewport.y + viewport.height) {
-            return false;
-        }
-        return true;
+
+    /**
+     *
+     * @param {{x: number, y: number, width: number, height: number}} viewport
+     * @returns {boolean}
+     */
+    isVisible(viewport) {
+        // TODO: is correct?
+        return !(
+            this.position.x + this.width < viewport.x ||
+            this.position.x > viewport.x + viewport.width ||
+            this.position.y + this.height < viewport.y ||
+            this.position.y > viewport.y + viewport.height
+        );
     }
+
+    clear() {
+
+    }
+
     setSprite(imagePath, rect) {
         this.spriteImage = new Image();
         this.spriteImage.src = imagePath;
@@ -90,8 +116,13 @@ export class GameObject {
             destroyImage: this.destroyImage
         };
     }
-    update(delta) {
+
+    /**
+     *
+     * @param dt
+     * @returns void
+     */
+    update(dt) {
         // TODO:Method to be implemented
-       
     }
 }

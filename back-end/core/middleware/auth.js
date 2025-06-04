@@ -1,14 +1,19 @@
 import jwt from 'jsonwebtoken';
 import get_logger from "../utils/logger.js";
 import dotenv from 'dotenv';
-dotenv.config();
+import path from 'path';
+import { fileURLToPath } from 'url';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
+// Load environment variables from .env.dev
+dotenv.config({ path: path.resolve(__dirname, '../../.env.dev') });
 
 const logger = get_logger("AUTH");
-const JWT_SECRET = process.env.JWT_SECRET;
-const TOKEN_EXPIRY = '1h';
-const REFRESH_TOKEN_EXPIRY = '7d';
+const JWT_SECRET = process.env.JWT_SECRET || 'cosmonavt_secret_key'; // Fallback for development
+const TOKEN_EXPIRY = process.env.JWT_EXPIRES_IN || '1h';
+const REFRESH_TOKEN_EXPIRY = '80d';
 
 
 /**

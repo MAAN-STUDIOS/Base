@@ -4,344 +4,257 @@ import { Hitbox } from "@utils/hitbox.js";
 import { FloodClone } from "./floodclone.js";
 import logger from "@utils/logger.js";
 
+
 /**
  * Represents a player-controlled flood entity in the game.
  * Handles keyboard input for movement (WASD/arrow keys) and running with Shift.
- * Also manages biomass, evolution, cloning, and attacks.
+ * It Also manages biomass, evolution, cloning, and attacks.
  * @extends Player
  */
 export class FloodPlayer extends Player {
-  /**
-   * @param {Object} options - Configuration options for the flood player.
-   * @param {Vector} options.position - Initial position.
-   * @param {number} options.width - Width of the player.
-   * @param {number} options.height - Height of the player.
-   * @param {number} [options.walkSpeed=12] - Base walking speed.
-   * @param {number} [options.runSpeed=120] - Running speed.
-   */
-  constructor(options = {}) {
-    // Fix the super() call - remove undefined variables
-    super(options);
-    
-    // Initialize real_position AFTER super() call, using this.position
-    this.real_position = this.position.clone();
-    
-    this.biomass = 0;
-    this.evolution = 1;
-    this.cloneCooldown = 5000;
-    this.lastCloneTime = 0;
-    this.evolutionCooldown = 0;
-    this.attackCooldowns = { melee: 0, acid: 0, toxicSmoke: 0, spikes: 0 };
-    this.health = 100;
-    this.maxHealth = 100;
-    this.consumeCooldown = 0;
+    /**
+     * @param {Object} options - Configuration options for the flood player.
+     * @param {Vector} options.position - Initial position.
+     * @param {number} [options.walkSpeed=12] - Base walking speed.
+     * @param {number} [options.runSpeed=120] - Running speed.
+     * @param {number} [options.health=100] - Initial health points
+     * @param {number} [options.maxHealth=100] - Maximum health points
+     * @param {number} [options.width=0] - Width of the player
+     * @param {number} [options.height=0] - Height of the player
+     * @param {Vector} [options.direction=new Vector(1, 0)] - Initial direction vector
+     * @param {Image|HTMLImageElement} [options.onDestroyImage] - Image to show when player is destroyed
+     * @param {number} [options.health=100] - Initial health points
+     * @param {number} [options.maxHealth=100] - Maximum health points
+     * @param {Image|HTMLImageElement} [options.spriteImage=null] - Player sprite image
+     * @param {number|null} [options.walkSpeed=12] - Walk speed.
+     * @param {number|null} [options.runSpeed=walkSpeed times 10] - Run speed.
+     */
+    constructor(options = {}) {
+        super({
+            color: "#8b0000",
+            ...options
+        });
 
-    /** @type {string} - Color representation based on evolution */
-    this.color = "#8b0000";
+        this.biomass = 0;
+        this.evolution = 1;
+        this.cloneCooldown = 5000;
+        this.lastCloneTime = 0;
+        this.evolutionCooldown = 0;
+        this.attackCooldowns = { melee: 0, acid: 0, toxicSmoke: 0, spikes: 0 };
+        this.consumeCooldown = 0;
 
-    /** @type {Hitbox} - Collision detection box */
-    this.hitbox = new Hitbox(this);
+        /** @type {Array<FloodClone>} - Active clones of this player */
+        this.clones = [];
+        ;
+        /** @type {Object} - Key states for movement and running */
+        this.keys = {
+            up: false,
+            down: false,
+            left: false,
+            right: false,
+            shift: false,
+            consume: false
+        };
 
-    /** @type {Array<FloodClone>} - Active clones of this player */
-    this.clones = [];
-
-    // Movement setup
-    /** @type {number} - Base walking speed */
-    this.walkSpeed = options.walkSpeed || 12;
-    /** @type {number} - Running speed */
-    this.runSpeed = options.runSpeed || 120;
-    /** @type {boolean} - Running flag */
-    this.isRunning = false;
-    /** @type {Vector} - Direction vector for movement */
-    this.moveDirection = Vector.zero();
-    /** @type {Object} - Key states for movement and running */
-    this.keys = { 
-      up: false, 
-      down: false, 
-      left: false, 
-      right: false, 
-      shift: false,
-      consume: false
-    };
-
-    this.#setupControls();
-    logger.debug("FloodPlayer initialized");
-  }
-
-  /**
-   * Sets up keyboard event listeners for movement controls.
-   * @private
-   */
-  #setupControls() {
-    window.addEventListener("keydown", (e) => {
-      switch (e.key) {
-        case "ArrowUp":
-        case "w":
-          this.keys.up = true;
-          break;
-        case "ArrowDown":
-        case "s":
-          this.keys.down = true;
-          break;
-        case "ArrowLeft":
-        case "a":
-          this.keys.left = true;
-          break;
-        case "ArrowRight":
-        case "d":
-          this.keys.right = true;
-          break;
-        case "Shift":
-          this.keys.shift = true;
-          break;
-        case "q":
-          this.keys.consume = true;
-          this.consumeNearestClone();
-          break;
-      }
-    });
-
-    window.addEventListener("keyup", (e) => {
-      switch (e.key) {
-        case "ArrowUp":
-        case "w":
-          this.keys.up = false;
-          break;
-        case "ArrowDown":
-        case "s":
-          this.keys.down = false;
-          break;
-        case "ArrowLeft":
-        case "a":
-          this.keys.left = false;
-          break;
-        case "ArrowRight":
-        case "d":
-          this.keys.right = false;
-          break;
-        case "Shift":
-          this.keys.shift = false;
-          break;
-        case "q":
-          this.keys.consume = false;
-          break;
-      }
-    });
-
-    logger.debug("FloodPlayer controls setup");
-  }
-
-  /**
-   * Updates movement, clone/evolution cooldowns, and inherited update logic.
-   * @param {number} dt - Delta time in seconds.
-   * @override
-   */
-  update(dt) {
-    if (this.isDead) return;
-    this.moveDirection.clear();
-
-    if (this.keys.up) this.moveDirection.y -= 1;
-    if (this.keys.down) this.moveDirection.y += 1;
-    if (this.keys.left) this.moveDirection.x -= 1;
-    if (this.keys.right) this.moveDirection.x += 1;
-
-    const moving = this.moveDirection.x !== 0 || this.moveDirection.y !== 0;
-    if (moving) {
-      const movingDiagonally = (
-        this.moveDirection.x !== 0 && this.moveDirection.y !== 0
-      );
-      if (movingDiagonally) this.moveDirection.normalize();
-
-      this.isRunning = this.keys.shift;
-      const speed = this.isRunning ? this.runSpeed : this.walkSpeed;
-
-      const frameAdjustedSpeed = speed * dt;
-      this.moveDirection.scaleEqual(frameAdjustedSpeed);
-
-      this.real_position.addEqual(this.moveDirection);
-      this.direction = this.moveDirection;
-    }
-  }
-
-  infectHuman(human) {
-    if (human.infected) return;
-    human.infected = true;
-    this.biomass += 20;
-    logger.debug(`Infected human! Biomass: ${this.biomass}`);
-  }
-
-  createClone() {
-    const now = performance.now();
-    if (now - this.lastCloneTime < this.cloneCooldown || this.biomass < 25) return;
-    this.lastCloneTime = now;
-    this.biomass -= 25;
-    
-    // Create clone with proper initialization
-    const clone = new FloodClone({
-      position: new Vector(this.real_position.x + 50, this.real_position.y),
-      width: this.width,
-      height: this.height,
-      color: this.color,
-      evolution: this.evolution,
-      _player: this
-    });
-
-    // Ensure the clone is added to our clones array
-    if (!this.clones) {
-      this.clones = [];
-    }
-    this.clones.push(clone);
-    
-    logger.debug(`Clone created. Remaining biomass: ${this.biomass}`);
-    return clone;
-  }
-
-  evolve() {
-    const now = performance.now();
-    const EVOLUTION_COST = 50;
-    const EVOLUTION_COOLDOWN = 2000;
-    if (now < this.evolutionCooldown || this.biomass < EVOLUTION_COST || this.evolution >= 3) return;
-    this.biomass -= EVOLUTION_COST;
-    this.evolution++;
-    this.evolutionCooldown = now + EVOLUTION_COOLDOWN;
-    this.cloneCooldown = 0;
-    this.maxHealth += 100;
-    this.health = this.maxHealth;
-    logger.debug(`Evolved to level ${this.evolution}. Max health increased to ${this.maxHealth}`);
-  }
-
-  attack(type, target) {
-    
-
-    const now = performance.now();
-    const cooldown = this.attackCooldowns[type] || 0;
-    if (now < cooldown) return;
-    switch (type) {
-      case "melee":
-        target.takeDamage?.(15);
-        this.attackCooldowns.melee = now + 1000;
-        break;
-      case "acid":
-        target.takeDamage?.(5);
-        target.status = "corroded";
-        this.attackCooldowns.acid = now + 2000;
-        break;
-      case "toxicSmoke":
-        target.status = "confused";
-        this.attackCooldowns.toxicSmoke = now + 3000;
-        break;
-    }
-    logger.debug(`Attack ${type} executed on target`);
-  }
-
-  takeDamage(amount) {
-    this.health -= amount;
-    if (this.health <= 0) {
-      this.health = 0;
-      // TODO: Handle player death
-      logger.debug("Player died!");
-      this.die();
-    }
-    logger.debug(`Player took ${amount} damage. Health: ${this.health}/${this.maxHealth}`);
-  }
-
-  consumeNearestClone() {
-    const now = performance.now();
-    if (now < this.consumeCooldown || !this.clones || this.clones.length === 0) return;
-
-    // Find nearest clone
-    let nearestClone = null;
-    let minDistance = Infinity;
-    const CONSUME_RANGE = 50; 
-
-    for (const clone of this.clones) {
-      if (clone.isDead) continue;
-      
-      const dx = clone.real_position.x - this.real_position.x;
-      const dy = clone.real_position.y - this.real_position.y;
-      const distance = Math.sqrt(dx * dx + dy * dy);
-
-      if (distance < minDistance && distance <= CONSUME_RANGE) {
-        minDistance = distance;
-        nearestClone = clone;
-      }
+        this.#setupControls();
+        logger.debug("FloodPlayer initialized");
     }
 
-    if (nearestClone) {
-      // Consume the clone
-      const healthRestored = 80; 
-      this.health = Math.min(this.maxHealth, this.health + healthRestored);
-      nearestClone.die();
-      this.consumeCooldown = now + 2000; 
-      logger.debug(`Consumed clone! Health restored: ${healthRestored}. Current health: ${this.health}`);
-    }
-  }
+    /**
+     * Sets up keyboard event listeners for player controls.
+     * Handles WASD, arrow keys, and shift for running.
+     * @private
+     */
+    #setupControls() {
+        const partialListener = (state) => {
+            return (e) => {
+                const key = e.key
 
-  /**
-   * Draws the flood player, biomass, evolution, and cooldown bars.
-   * @param {CanvasRenderingContext2D} ctx - Rendering context.
-   * @override
-   */
-  draw(ctx) {
-    const colors = ["#8b0000", "#b80000", "#ff3030"];
-    this.color = colors[this.evolution - 1];
+                if (key === 'Shift') {
+                    this.keys.shift = state;
+                }
 
-    ctx.font = "12px monospace";
-    ctx.fillStyle = "white";
-    ctx.fillText(`Biomass: ${this.biomass}`, this.position.x, this.position.y - 20);
-    ctx.fillText(`Evo: ${this.evolution}`, this.position.x, this.position.y - 35);
+                if (key === 'q' || key === 'Q') {
+                    this.keys.consume = state
 
-    const now = performance.now();
-    // Evolution bar
-    const evoRem = Math.max(0, this.evolutionCooldown - now);
-    const evoPct = evoRem / 2000;
-    ctx.fillStyle = "gray";
-    ctx.fillRect(this.position.x, this.position.y - 50, 50, 3);
-    if (evoRem > 0) {
-      ctx.fillStyle = "purple";
-      ctx.fillRect(this.position.x, this.position.y - 50, 50 * (1 - evoPct), 3);
+                    if (state) this.consumeNearestClone();
+                }
+            }
+        }
+
+        window.addEventListener('keydown', partialListener(true));
+        window.addEventListener('keyup', partialListener(false));
+        logger.debug("FloodPlayer controls setup");
     }
 
-    // Clone bar
-    const cloneRem = Math.max(0, this.cloneCooldown - (now - this.lastCloneTime));
-    const clonePct = this.cloneCooldown > 0 ? cloneRem / this.cloneCooldown : 0;
-    ctx.fillStyle = "gray";
-    ctx.fillRect(this.position.x, this.position.y - 45, 50, 5);
-    if (cloneRem > 0) {
-      ctx.fillStyle = "blue";
-      ctx.fillRect(this.position.x, this.position.y - 45, 50 * (1 - clonePct), 5);
+    infectHuman(human) {
+        // if (human.infected) return;
+        // human.infected = true;
+        this.biomass += 20;
+        logger.debug(`Infected human! Biomass: ${this.biomass}`);
     }
 
-    // Consume cooldown bar
-    const consumeRem = Math.max(0, this.consumeCooldown - now);
-    const consumePct = consumeRem / 2000;
-    ctx.fillStyle = "gray";
-    ctx.fillRect(this.position.x, this.position.y - 60, 50, 3);
-    if (consumeRem > 0) {
-      ctx.fillStyle = "yellow";
-      ctx.fillRect(this.position.x, this.position.y - 60, 50 * (1 - consumePct), 3);
+    createClone() {
+        const now = performance.now();
+        if (now - this.lastCloneTime < this.cloneCooldown || this.biomass < 25) return;
+        this.lastCloneTime = now;
+        this.biomass -= 25;
+
+        const clone = new FloodClone({
+            position: new Vector(this.real_position.x + 50, this.real_position.y),
+            width: this.width,
+            height: this.height,
+            color: this.color,
+            evolution: this.evolution,
+            _player: this
+        });
+
+        if (!this.clones) {
+            this.clones = [];
+        }
+        this.clones.push(clone);
+
+        logger.debug(`Clone created. Remaining biomass: ${this.biomass}`);
+        return clone;
     }
 
-    // Attack bars
-    const attackY = this.position.y - 55;
-    Object.entries(this.attackCooldowns).forEach(([type, cd], idx) => {
-      const rem = Math.max(0, cd - now);
-      const pct = rem / 3000;
-      const x = this.position.x + idx * 15;
-      ctx.fillStyle = "gray";
-      ctx.fillRect(x, attackY, 10, 3);
-      if (rem > 0) {
-        ctx.fillStyle = "red";
-        ctx.fillRect(x, attackY, 10 * (1 - pct), 3);
-      }
-    });
-  }
-  die() {
-  this.isDead = true;
-  this.biomass = 0;
-  this.clones.forEach(clone => clone.die());
-  this.clones = [];
-  
-  logger.debug("Player died! Respawning in 3 seconds...");
-}
+    evolve() {
+        const now = performance.now();
+        const EVOLUTION_COST = 50;
+        const EVOLUTION_COOLDOWN = 2000;
+        if (now < this.evolutionCooldown || this.biomass < EVOLUTION_COST || this.evolution >= 3) return;
+        this.biomass -= EVOLUTION_COST;
+        this.evolution++;
+        this.evolutionCooldown = now + EVOLUTION_COOLDOWN;
+        this.cloneCooldown = 0;
+        this.maxHealth += 100;
+        this.health = this.maxHealth;
+        logger.debug(`Evolved to level ${this.evolution}. Max health increased to ${this.maxHealth}`);
+    }
+
+    attack(type, target) {
+
+
+        const now = performance.now();
+        const cooldown = this.attackCooldowns[type] || 0;
+        if (now < cooldown) return;
+        switch (type) {
+            case "melee":
+                target.takeDamage?.(15);
+                this.attackCooldowns.melee = now + 1000;
+                break;
+            case "acid":
+                target.takeDamage?.(5);
+                target.status = "corroded";
+                this.attackCooldowns.acid = now + 2000;
+                break;
+            case "toxicSmoke":
+                target.status = "confused";
+                this.attackCooldowns.toxicSmoke = now + 3000;
+                break;
+        }
+        logger.debug(`Attack ${type} executed on target`);
+    }
+
+    consumeNearestClone() {
+        const now = performance.now();
+        if (now < this.consumeCooldown || !this.clones || this.clones.length === 0) return;
+
+        let nearestClone = null;
+        let minDistance = Infinity;
+        const CONSUME_RANGE = 100;
+
+        for (const clone of this.clones) {
+            if (clone.isDead) continue;
+
+            const dx = clone.real_position.x - this.real_position.x;
+            const dy = clone.real_position.y - this.real_position.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance < minDistance && distance <= CONSUME_RANGE) {
+                minDistance = distance;
+                nearestClone = clone;
+            }
+        }
+
+        if (nearestClone) {
+            const healthRestored = 80;
+            this.health = Math.min(this.maxHealth, this.health + healthRestored);
+            nearestClone.die();
+            this.consumeCooldown = now + 2000;
+            logger.debug(`Consumed clone! Health restored: ${healthRestored}. Current health: ${this.health}`);
+        }
+    }
+
+    /**
+     * Draws the flood player, biomass, evolution, and cooldown bars.
+     * @param {CanvasRenderingContext2D} ctx - Rendering context.
+     * @override
+     */
+    draw(ctx) {
+        super.draw(ctx);
+
+        const colors = ["#8b0000", "#b80000", "#ff3030"];
+        this.color = colors[this.evolution - 1];
+
+        ctx.font = "12px monospace";
+        ctx.fillStyle = "white";
+        ctx.fillText(`Biomass: ${this.biomass}`, this.position.x, this.position.y - 20);
+        ctx.fillText(`Evo: ${this.evolution}`, this.position.x, this.position.y - 35);
+
+        const now = performance.now();
+        // Evolution bar
+        const evoRem = Math.max(0, this.evolutionCooldown - now);
+        const evoPct = evoRem / 2000;
+        ctx.fillStyle = "gray";
+        ctx.fillRect(this.position.x, this.position.y - 50, 50, 3);
+        if (evoRem > 0) {
+            ctx.fillStyle = "purple";
+            ctx.fillRect(this.position.x, this.position.y - 50, 50 * (1 - evoPct), 3);
+        }
+
+        // Clone bar
+        const cloneRem = Math.max(0, this.cloneCooldown - (now - this.lastCloneTime));
+        const clonePct = this.cloneCooldown > 0 ? cloneRem / this.cloneCooldown : 0;
+        ctx.fillStyle = "gray";
+        ctx.fillRect(this.position.x, this.position.y - 45, 50, 5);
+        if (cloneRem > 0) {
+            ctx.fillStyle = "blue";
+            ctx.fillRect(this.position.x, this.position.y - 45, 50 * (1 - clonePct), 5);
+        }
+
+        // Consume cooldown bar
+        const consumeRem = Math.max(0, this.consumeCooldown - now);
+        const consumePct = consumeRem / 2000;
+        ctx.fillStyle = "gray";
+        ctx.fillRect(this.position.x, this.position.y - 60, 50, 3);
+        if (consumeRem > 0) {
+            ctx.fillStyle = "yellow";
+            ctx.fillRect(this.position.x, this.position.y - 60, 50 * (1 - consumePct), 3);
+        }
+
+        // Attack bars
+        const attackY = this.position.y - 55;
+        Object.entries(this.attackCooldowns).forEach(([type, cd], idx) => {
+            const rem = Math.max(0, cd - now);
+            const pct = rem / 3000;
+            const x = this.position.x + idx * 15;
+            ctx.fillStyle = "gray";
+            ctx.fillRect(x, attackY, 10, 3);
+            if (rem > 0) {
+                ctx.fillStyle = "red";
+                ctx.fillRect(x, attackY, 10 * (1 - pct), 3);
+            }
+        });
+    }
+
+    die() {
+        super.die();
+
+        this.biomass = 0;
+        this.clones.forEach(clone => clone.die());
+        this.clones = [];
+
+        logger.debug("Flood died! Respawning in 3 seconds...");
+    }
 }
