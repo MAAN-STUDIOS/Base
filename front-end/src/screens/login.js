@@ -1,20 +1,43 @@
 import { navigate } from "@utils/router.js";
 import styles from "./styles/main.module.css";
+import { authenticate } from "../core/utils/apimanager";
+// import { authenticate } from "@core/utils/apimanager.js";
+import logger from "@utils/logger.js";
 
 export default function () {
   const listener = () => {
     const loginForm = document.getElementById("login-form");
     const createAccountBtn = document.getElementById("create-account-btn");
+    const errorMessage = document.getElementById("error-message");
 
     if (loginForm) {
-      loginForm.addEventListener("submit", (e) => {
+      loginForm.addEventListener("submit", async (e) => {
         e.preventDefault();
         const email = document.getElementById("email").value;
         const password = document.getElementById("password").value;
         
-        // TODO: Add actual login logic here (database connection)
-        console.log("Login attempt:", { email, password });
-        navigate("play");
+        try {
+          const response = await authenticate(email, password);
+          if (response && response.token) {
+            // Store token and user info in localStorage
+            localStorage.setItem('authToken', response.token);
+            localStorage.setItem('userEmail', response.user.email);
+            localStorage.setItem('username', response.user.name);
+            
+            // Log successful login
+            logger.debug("Login successful", { email: response.user.email });
+            
+            // Navigate to game
+            navigate("play");
+          } else {
+            errorMessage.textContent = "Invalid email or password";
+            errorMessage.style.display = "block";
+          }
+        } catch (error) {
+          logger.error("Login failed", error);
+          errorMessage.textContent = error.message || "Login failed. Please try again.";
+          errorMessage.style.display = "block";
+        }
       });
     }
 
@@ -33,7 +56,8 @@ export default function () {
         <h1>Login</h1>
 
         <form id="login-form" class="${styles.loginForm}">
-          <!-- new section grouping just the credentials -->
+          <div id="error-message" class="${styles.errorMessage}" style="display: none;"></div>
+          
           <section class="${styles.credentialsSection}">
             <div class="${styles.formGroup}">
               <label for="email">Email</label>

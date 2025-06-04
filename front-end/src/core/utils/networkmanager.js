@@ -3,7 +3,7 @@
 import { io } from "socket.io-client";
 import logger from "./logger.js";
 
-const port = 3001;
+const port = 3000;
 const socket_backend = `http://localhost:${port}/`;
 const socket = io(socket_backend, {
     autoConnect: true,
@@ -13,7 +13,7 @@ const socket = io(socket_backend, {
 });
 
 socket.on("connect", () => {
-    logger.info("Blututh dewaiz connected soccesfully: " + socket.id);
+    logger.warn("Blututh dewaiz connected soccesfully: " + socket.id);
 });
 
 socket.on("disconnect", () => {
