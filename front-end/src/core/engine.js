@@ -11,6 +11,10 @@ import { Shotgun } from "@engine/shotgun.js";
 import { MachineGun } from "@engine/machinegun.js";
 import { ShootingSystem } from "@engine/shootingsystem.js";
 import { Flamethrower } from "@engine/flamethrower.js";
+import { Enemy } from "@engine/enemy.js";
+import socket, { emitEvent, subscribeToEvent } from "@utils/networkmanager.js";
+import { OtherPlayer } from "@engine/otherPlayer.js";
+import {OtherEnemy} from "@engine/otherEnemy.js";
 
 
 /**
@@ -29,6 +33,8 @@ export class Engine {
      * @param [options.player.size]
      * @param [options.player.type]
      * @param [options.player.position]
+     * @param [options.player.walkSpeed]
+     * @param [options.player.runSpeed]
      * @param [options.map.spriteSheet]
      * @param [options.map.width]
      * @param [options.map.height]
@@ -137,6 +143,50 @@ export class Engine {
         /** @type {[function(Hitbox): [Hitbox, boolean], function(Hitbox, Hitbox, Player): void][]} */
         this.onCollisionChecks = [];
 
+        this._gameState = {
+            isGameOver: false,
+            respawnTime: 1,
+            deathScreenShown: false,
+            timeToRespawn: 0
+        }
+
+        this.onPlayerDeath = [];
+        this.onWhilePlayerDeath = [];
+
+        /** @type {Enemy[]} */
+        this.enemies = [];
+
+        this.enemyConfig = {
+            spawnRadius: 500,
+            maxEnemies: 1,
+            spawnInterval: 3000,
+            lastSpawnTime: 0,
+            enemySettings: {
+                width: 32,
+                height: 32,
+                health: 100,
+                speed: 6,
+                damage: 10,
+                chaseRadius: 200,
+                attackRadius: 40,
+                retreatHealthThreshold: 30,
+                retreatDistance: 100
+            }
+        };
+
+        this.socket_events = {
+            PLAYER_MOVE: "PlayerMove",
+            PLAYER_JOIN: "PlayerJoin",
+            PLAYER_LEAVE: "PlayerLeave",
+            ENEMY_MOVES: "EnemyMoves",
+            ENEMY_JOIN: "EnemyJoin",
+            ENEMY_LEAVES: "EnemyLeaves"
+        };
+
+        this.others = new Map();
+        this.otherEnemies = new Map();
+        this.enemyIdCounter = 0;
+
         logger.info("Engine created.");
     }
 
@@ -157,6 +207,10 @@ export class Engine {
 
         this._world.map.ctx = this._world.map.canvas.getContext("2d");
         this._world.miniMap.ctx = this._world.miniMap.canvas.getContext("2d");
+
+        this._player.obj.init(this._world.map.canvas);
+
+        this.initSockets();
 
         window.addEventListener("resize", this.#handleResize.bind(this));
     }
@@ -190,6 +244,12 @@ export class Engine {
             case "collisionCheck":
                 this.onCollisionChecks.push(callback);
                 return true;
+            case "playerDeath":
+                this.onPlayerDeath.push(callback);
+                return true;
+            case "whilePlayerDeath":
+                this.onWhilePlayerDeath.push(callback);
+                return true;
             default:
                 logger.warn(`${event} is not an event. (Game engine)`)
                 break;
@@ -208,6 +268,252 @@ export class Engine {
 
     get world_position() {
         return this._world.map.obj.real_position.clone();
+    }
+
+    getColor() {
+        const colors = ["#4481eb", "#ff7e5f", "#39c5bb", "#9b5de5", "#ffbc42", "#3a6b35", "#9e2a2b", "#5c6bc0"];
+
+        return colors[Math.floor(Math.random() * colors.length)];
+    }
+
+    initSockets() {
+        subscribeToEvent(this.socket_events.PLAYER_JOIN, (data) => {
+            this.others.set(data.id, new OtherPlayer(new Vector(data.x, data.y), this.getColor()));
+        });
+
+        subscribeToEvent(this.socket_events.PLAYER_LEAVE, (data) => {
+            this.others.delete(data.id);
+        });
+
+        subscribeToEvent(this.socket_events.PLAYER_MOVE, (data) => {
+            if (this.others.has(data.id)) {
+                this.others.get(data.id).target.x = data.x;
+                this.others.get(data.id).target.y = data.y;
+            }
+        });
+
+        socket.on("connect", () => {
+            const data = {
+                id: socket.id,
+                x: this.player.real_position.x,
+                y: this.player.real_position.y
+            };
+
+            emitEvent(this.socket_events.PLAYER_JOIN, data);
+        });
+
+
+        subscribeToEvent(this.socket_events.ENEMY_JOIN, (data) => {
+            if (data.id.startsWith(socket.id)) return;
+            this.otherEnemies.set(data.id, new OtherEnemy(
+                new Vector(data.x, data.y),
+                data.state
+            ));
+        });
+
+        subscribeToEvent(this.socket_events.ENEMY_LEAVES, (data) => {
+            this.otherEnemies.delete(data.id);
+        });
+
+        subscribeToEvent(this.socket_events.ENEMY_MOVES, (data) => {
+            if (this.otherEnemies.has(data.id)) {
+                const enemy = this.otherEnemies.get(data.id);
+                enemy.target.x = data.x;
+                enemy.target.y = data.y;
+                enemy.state = data.state;
+            }
+        });
+    }
+
+    updateOtherEnemies(dt) {
+        this.otherEnemies.forEach(enemy => enemy.update(dt));
+    }
+
+    drawOtherEnemies(ctx) {
+        this.otherEnemies.forEach(enemy => {
+            enemy.draw(ctx, this.player.real_position, this.map.camaraWidth, this.map.camaraHeight);
+        });
+    }
+
+    updateSockets(dt) {
+        emitEvent(this.socket_events.PLAYER_MOVE, {
+            id: socket.id,
+            x: this.player.real_position.x,
+            y: this.player.real_position.y
+        });
+
+        this.others.forEach(player => player.update(dt));
+    }
+
+    drawOthers(ctx) {
+        this.others.forEach(player => {
+            player.draw(ctx, this.player.real_position, this.map.camaraWidth, this.map.camaraHeight);
+        });
+        this.drawOtherEnemies(ctx);
+    }
+
+    handlePlayerDeath(dt, currentTime) {
+        if (!this.player.isDead) return false;
+
+        if (!this._gameState.isGameOver) {
+            this._gameState.isGameOver = true;
+            this._gameState.deathScreenShown = true;
+            this._gameState.respawnTime = currentTime + 3000;
+
+            for (let func of this.onPlayerDeath) {
+                func?.(dt, currentTime);
+            }
+        }
+
+        if (currentTime >= this._gameState.respawnTime) {
+            this.respawnPlayer();
+            return false;
+        }
+
+        for (let func of this.onWhilePlayerDeath) {
+            func?.(dt, currentTime);
+        }
+        return true;
+    }
+
+    respawnPlayer() {
+        this.player.reSpawn(Vector.zero());
+        this._gameState.isGameOver = false;
+        this._gameState.deathScreenShown = false;
+    }
+
+    showDeathScreen(ctx) {
+        ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+        ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
+        ctx.fillStyle = "red";
+        ctx.font = "48px 'Press Start 2P', monospace";
+        ctx.textAlign = "center";
+        ctx.fillText("YOU DIED", ctx.canvas.width / 2, ctx.canvas.height / 2 - 50);
+
+
+        ctx.fillStyle = "white";
+        ctx.font = "20px 'Press Start 2P', monospace";
+        ctx.fillText(`Respawning in ${Math.ceil(this._gameState.timeToRespawn / 1000)}s`,
+            ctx.canvas.width / 2, ctx.canvas.height / 2 + 20);
+
+
+        ctx.font = "12px 'Press Start 2P', monospace";
+        ctx.fillText("Press R to restart immediately",
+            ctx.canvas.width / 2, ctx.canvas.height / 2 + 60);
+
+        ctx.textAlign = "left";
+    }
+
+    /**
+     * Generates random waypoints around a center position
+     * @param {Vector} center - Center position
+     * @param {number} count - Number of waypoints
+     * @param {number} radius - Patrol radius
+     * @returns {Array<Vector>} Array of waypoint positions
+     */
+    generateRandomWaypoints(center, count, radius) {
+        const waypoints = [];
+
+        for (let i = 0; i < count; i++) {
+            const angle = (i / count) * Math.PI * 2 + (Math.random() - 0.5) * 0.5;
+            const distance = radius * (0.5 + Math.random() * 0.5);
+
+            const x = center.x + Math.cos(angle) * distance;
+            const y = center.y + Math.sin(angle) * distance;
+            waypoints.push(new Vector(x, y));
+        }
+
+        return waypoints;
+    }
+
+    /**
+     * Spawns a random enemy around the player
+     * @param {ObjectMap} gameMap - The game map
+     */
+    spawnRandomEnemy(gameMap) {
+        const enemyId = `${socket.id}-${this.enemyIdCounter++}`;
+
+        const angle = Math.random() * Math.PI * 2;
+        const distance = this.enemyConfig.spawnRadius + Math.random() * 200;
+
+        const spawnX = this.player.real_position.x + Math.cos(angle) * distance;
+        const spawnY = this.player.real_position.y + Math.sin(angle) * distance;
+        const spawnPosition = new Vector(spawnX, spawnY);
+
+        const waypoints = this.generateRandomWaypoints(spawnPosition, 3, 80);
+        const homePoint = new Vector(spawnPosition.x, spawnPosition.y);
+
+        const enemy = new Enemy({
+            position: spawnPosition,
+            waypoints: waypoints,
+            homePoint: homePoint,
+            tileGrid: gameMap,
+            obstacles: gameMap.hitboxes || [],
+            ...this.enemyConfig.enemySettings
+        });
+
+        enemy.id = enemyId;
+        this.enemies.push(enemy);
+
+        emitEvent(this.socket_events.ENEMY_JOIN, {
+            id: enemyId,
+            state: enemy.state,
+            x: enemy.position.x,
+            y: enemy.position.y,
+        });
+
+        logger.debug("Random enemy spawned", {
+            id: enemyId,
+            position: spawnPosition,
+            totalEnemies: this.enemies.length
+        });
+    }
+
+    /**
+     * Handles random enemy spawning around the player
+     * @param {number} currentTime - Current game time
+     * @param {ObjectMap} gameMap - The game map
+     */
+    handleEnemySpawning(currentTime, gameMap) {
+        const timeToSpawn = currentTime - this.enemyConfig.lastSpawnTime > this.enemyConfig.spawnInterval;
+        const notReachMaxEnemies = this.enemies.length < this.enemyConfig.maxEnemies;
+
+        if (timeToSpawn && notReachMaxEnemies) {
+            this.spawnRandomEnemy(gameMap);
+            this.enemyConfig.lastSpawnTime = currentTime;
+        }
+    }
+
+    /**
+     * Updates all enemies and removes dead ones
+     * @param {number} dt - Delta time
+     */
+    updateEnemies(dt) {
+        this.updateOtherEnemies(dt);
+
+        for (let i = this.enemies.length - 1; i >= 0; i--) {
+            const enemy = this.enemies[i];
+            if (enemy && enemy.update) {
+                enemy.update(dt, this.player, (this.player.clones ?? []));
+                this.handleEnemyCollisions(enemy, this.map);
+
+                if (enemy.health <= 0) {
+                    logger.debug("Enemy defeated", { remainingEnemies: this.enemies.length - 1 });
+                    this.enemies.splice(i, 1);
+
+                    this.player.infectHuman?.();
+                    logger.debug(`Player gained biomass! Total: ${this.player.biomass}`);
+                } else {
+                    emitEvent(this.socket_events.ENEMY_MOVES, {
+                        id: enemy.id,
+                        state: enemy.state,
+                        x: enemy.position.x,
+                        y: enemy.position.y,
+                    });
+                }
+            }
+        }
     }
 
     #gameLoop(currentTime) {
@@ -229,9 +535,17 @@ export class Engine {
 
         this._player.obj.update(dt);
 
+        if (this.handlePlayerDeath(dt, currentTime)) {
+            this._gameState.timeToRespawn = this._gameState.respawnTime - currentTime;
+        }
+
+        this.updateSockets(dt);
+
         for (let update of this.onUpdates) {
             update?.(dt, currentTime);
         }
+        this.handleEnemySpawning(currentTime, this.map);
+        this.updateEnemies(dt);
 
         this.#handleCollisions(this._player.obj, this._world.map.obj, prevPosition.clone());
 
@@ -257,8 +571,31 @@ export class Engine {
             this._player.size
         );
 
+        this.drawOthers(this._world.map.ctx);
+
         for (let render of this.onRenders) {
             render?.(this._world.map.ctx);
+        }
+
+        for (let enemy of this.enemies) {
+            if (enemy && enemy.draw) {
+                const enemyScreenX = enemy.position.x - this.player.real_position.x + (this.map.camaraWidth / 2);
+                const enemyScreenY = enemy.position.y - this.player.real_position.y + (this.map.camaraHeight / 2);
+
+                const visibleEnemy = (
+                    enemyScreenX >= -enemy.width &&
+                    enemyScreenX <= this.map.camaraWidth + enemy.width &&
+                    enemyScreenY >= -enemy.height &&
+                    enemyScreenY <= this.map.camaraHeight + enemy.height
+                );
+                if (visibleEnemy) {
+                    this._world.map.ctx.fillStyle = "white";
+                    this._world.map.ctx.font = "12px Arial";
+                    this._world.map.ctx.fillText(`Enemy: ${enemy.health}/${enemy.maxHealth}`, enemyScreenX + 10, enemyScreenY + 10);
+
+                    enemy.drawAtPosition(this._world.map.ctx, enemyScreenX, enemyScreenY);
+                }
+            }
         }
 
         this._world.map.ctx.font = "16px monospace";
@@ -293,6 +630,10 @@ export class Engine {
             this._world.miniMap.width,
             this._world.miniMap.height
         );
+
+        if (this._gameState.deathScreenShown) {
+            this.showDeathScreen(this._world.map.ctx);
+        }
     }
 
     #initPlayer(initialPosition, type) {
@@ -304,8 +645,8 @@ export class Engine {
             attackSlots: [
                 new Pistol({ speed: 130 }),
                 new Shotgun({ projectileCount: 2, spread: 15 }),
-                new MachineGun({ speed: 170}),
-                new Flamethrower({speed: 150})]
+                new MachineGun({ speed: 170 }),
+                new Flamethrower({ speed: 150 })]
         }
         let obj;
 

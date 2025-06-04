@@ -2,11 +2,18 @@ import express from 'express';
 import get_logger from '../utils/logger.js';
 
 import { UserController } from "../controllers/user.js";
+import { AdminController } from '../controllers/admin.js';
 import { ConfigController } from '../controllers/config.js';
 import { PlayerController } from '../controllers/player.js';
 import { AuthController } from '../controllers/auth.js';
 import { GameController } from '../controllers/game.js';
 import { ViewDungeon } from '../controllers/viewDungeon.js';
+import { ViewNode } from '../controllers/viewNode.js'
+import { ViewLayout } from '../controllers/viewLayout.js';
+import { viewChunk } from '../controllers/viewChunk.js';
+import { HumanGame } from '../controllers/viewHumanGame.js';
+import { HumanGame } from '../controllers/viewFloodGame.js';
+import { ViewGameController } from '../controllers/viewGame.js';
 
 const router = express.Router();
 const logger = get_logger('GameRouter');
@@ -15,6 +22,7 @@ const logger = get_logger('GameRouter');
 // AUTH ROUTES
 // ================================
 router.get('/user/:id', UserController.get_user);
+router.get('/admin/id',AdminController.get_Admin);
 router.get('/config/:id', ConfigController.get_config);
 router.get('/player/:id', PlayerController.get_player);
 router.post('/auth/login', AuthController.login);
@@ -73,8 +81,19 @@ router.get('/games/stats', GameController.getServerStats);    // Server statisti
 // router.get('/map/chunk/:game_id/:x/:y', GameController.getChunk);
 // router.get('/map/dungeon/:game_id/:dungeon_id', GameController.getDungeon);
 
-logger.info('Game router initialized with all endpoints');
 
+// ================================
+// VIEWS
+// ================================
+
+router.get('/api/view/game', ViewGameController.get_viewGame);
+router.get('/api/view/flood_view_game', HumanGame.get_viewFloodGame);
+router.get('/api/view/human_view_game', HumanGame.get_viewHumanGame);
+router.get('/api/view/chunk', viewChunk.get_viewChunk);
+router.get('/api/view/layout', ViewLayout.get_viewLayout);
+router.get('/api/view/node', ViewNode.get_viewNode);
 router.get('/api/view/dungeon', ViewDungeon.get_viewDungeon);
+
+logger.info('Game router initialized with all endpoints');
 
 export { router };
