@@ -4,12 +4,13 @@ USE cosmonavt;
 
 
 CREATE TABLE cosmonavt_user (
-    id            INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
-    name          VARCHAR(255)    NOT NULL,
-    creation_date TIMESTAMP       NOT NULL DEFAULT NOW(),
-    last_login    TIMESTAMP       NOT NULL DEFAULT NOW(),
-    email         VARCHAR(255)    NOT NULL,
-    password      VARCHAR(512)    NOT NULL
+    id            INT PRIMARY KEY                NOT NULL AUTO_INCREMENT,
+    name          VARCHAR(255)                   NOT NULL,
+    creation_date TIMESTAMP                      NOT NULL DEFAULT NOW(),
+    last_login    TIMESTAMP                      NOT NULL DEFAULT NOW(),
+    email         VARCHAR(255)                   NOT NULL,
+    password      VARCHAR(512)                   NOT NULL,
+    access_level  ENUM ('none', 'read', 'write') NOT NULL
 ) CHARACTER SET utf8mb4
   ENGINE = InnoDB;
 
@@ -24,9 +25,8 @@ CREATE TABLE player (
   ENGINE = InnoDB;
 
 CREATE TABLE admin (
-    id           INT PRIMARY KEY        NOT NULL AUTO_INCREMENT,
-    user_id      INT                    NOT NULL,
-    access_level ENUM ('read', 'write') NOT NULL,
+    id      INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+    user_id INT             NOT NULL,
     FOREIGN KEY (user_id) REFERENCES cosmonavt_user (id) ON DELETE CASCADE
 ) CHARACTER SET utf8mb4
   ENGINE = InnoDB;
@@ -188,8 +188,8 @@ CREATE VIEW view_admin AS
            u.name          AS name,
            u.email         AS email,
            u.creation_date AS creation_date,
-           a.access_level  AS access_level,
            u.password      AS password,
+           u.access_level  AS access_level,
            u.last_login    AS last_login
     FROM admin a
              INNER JOIN cosmonavt_user u ON a.user_id = u.id;
