@@ -1,4 +1,4 @@
-import { ShootingSystem } from "@engine/shootingSystem.js";
+import { ShootingSystem } from "@engine/shootingsystem.js";
 
 export class MachineGun {
     /**

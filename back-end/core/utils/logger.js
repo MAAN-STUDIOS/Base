@@ -7,29 +7,96 @@ const COLORS = {
     RESET: '\x1b[0m'
 };
 
-
 class Logger {
-    constructor(module) {
-        this.module = module
-        this.ID = 0
+    constructor(module, config = {}) {
+        this.module = module;
+        this.ID = 0;
+        this.config = config;
+
+        this.queues = {
+            debug: [],
+            info: [],
+            warn: [],
+            error: []
+        };
+
+        this.timers = {
+            debug: null,
+            info: null,
+            warn: null,
+            error: null
+        };
     }
 
     debug(message) {
         if (process.env.DEBUG) {
-            this.inner_log(COLORS.PURPLE, 'DEBUG', message);
+            this.processMessage('debug', COLORS.PURPLE, 'DEBUG', message);
         }
     }
 
     info(message) {
-        this.inner_log(COLORS.GREEN, 'INFO ', message);
+        this.processMessage('info', COLORS.GREEN, 'INFO ', message);
     }
 
     warn(message) {
-        this.inner_log(COLORS.YELLOW, 'WARN ', message);
+        this.processMessage('warn', COLORS.YELLOW, 'WARN ', message);
     }
 
     error(message) {
-        this.inner_log(COLORS.RED, 'ERROR', message);
+        this.processMessage('error', COLORS.RED, 'ERROR', message);
+    }
+
+    processMessage(level, color, label, message) {
+        const levelConfig = this.config[level] || {};
+        const cooldown = levelConfig.cooldown || 0;
+
+        this.queues[level].push({
+            color,
+            label,
+            message,
+            timestamp: Date.now()
+        });
+
+        if (!this.timers[level]) {
+            const first = this.queues[level].shift();
+            this.inner_log(first.color, first.label, first.message);
+
+            if (cooldown > 0) {
+                this.timers[level] = setTimeout(() => {
+                    this.flushQueue(level, color, label);
+                }, cooldown);
+            }
+        }
+    }
+
+    flushQueue(level, color, label) {
+        const queue = this.queues[level];
+        if (queue.length === 0) {
+            this.timers[level] = null;
+            return;
+        }
+
+        const levelConfig = this.config[level] || {};
+        const truncate = levelConfig.truncate || queue.length;
+
+        let messagesToLog = queue.slice(0, truncate);
+        if (truncate < queue.length) {
+            const skipped = queue.length - truncate;
+            messagesToLog.push({
+                color,
+                label,
+                message: `[${skipped} more message(s) truncated]`
+            });
+        }
+
+        messagesToLog.forEach((item, i) => {
+            if (i === 1 ) {
+                this.inner_log(item.color, item.label, item.message);
+            }
+        });
+
+        this.queues[level] = [];
+        this.timers[level] = null;
     }
 
     inner_log(color, level, msg) {
@@ -53,12 +120,12 @@ class Logger {
 }
 
 let modules = {}
-export default function get_logger(module_name) {
+export default function get_logger(module_name, config = {}) {
     if (!modules[module_name]) {
         modules[module_name] = 0;
     } else {
         modules[`${module_name} ${++modules[module_name]}`] = 0;
     }
 
-    return new Logger(module_name);
+    return new Logger(module_name, config);
 }
