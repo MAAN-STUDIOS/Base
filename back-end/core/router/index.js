@@ -3,6 +3,7 @@ import get_logger from '../utils/logger.js';
 
 import { UserController } from "../controllers/user.js";
 import { AdminController } from '../controllers/admin.js';
+import { StatsController } from '../controllers/stats.js';
 import { ConfigController } from '../controllers/config.js';
 import { PlayerController } from '../controllers/player.js';
 import { AuthController } from '../controllers/auth.js';
@@ -22,7 +23,8 @@ const logger = get_logger('GameRouter');
 // AUTH ROUTES
 // ================================
 router.get('/user/:id', UserController.get_user);
-router.get('/admin/id',AdminController.get_Admin);
+router.get('/admin/:id',AdminController.get_Admin);
+router.get('/stats/:id', StatsController.get_Stats);
 router.get('/config/:id', ConfigController.get_config);
 router.get('/player/:id', PlayerController.get_player);
 router.post('/auth/login', AuthController.login);
