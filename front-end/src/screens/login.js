@@ -28,7 +28,8 @@ export default function () {
             logger.debug("Login successful", { email: response.user.email });
             
             // Navigate to game
-            navigate("play");
+            // navigate("play");
+            navigate("join-game");
           } else {
             errorMessage.textContent = "Invalid email or password";
             errorMessage.style.display = "block";
