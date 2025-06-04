@@ -1,11 +1,18 @@
-import get_logger from '../utils/logger.js';
 import db from '../../config/db.js';
 
+export class StatsController {
+    static async get_Stats(req, res) {
+        const id = req.params.id;
 
-const logger = get_logger("CONTROLLER ADMIN");
-
-class Stats {
-    async get_stats(req, res) {
-
+        try {
+            const [rows] = await db.query(
+                `SELECT * FROM view_stats WHERE id = ?`,
+                [id]
+            );
+            res.status(200).json(rows);
+            } catch (error) {
+                console.error('Error in view_admin:', error);
+                res.status(500).send('Internal Server Error');
+        }
     }
 }
