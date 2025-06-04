@@ -262,11 +262,6 @@ CREATE VIEW view_flood_view_game AS
 
 
 CREATE VIEW view_chunk AS
-    SELECT g.id AS game_id, c.id AS chunk_id, c.chunk_x AS chunk_x, c.chunk_y AS chunk_y, c.data AS data
-    FROM game g
-             INNER JOIN game_dungeon gd ON g.id = gd.game_id
-             INNER JOIN dungeon d ON gd.dungeon_id = d.id
-             INNER JOIN chunk c ON c.dungeon_id = d.id;
     SELECT g.id      AS game_id,
            c.id      AS chunk_id,
            c.chunk_x AS chunk_x,
