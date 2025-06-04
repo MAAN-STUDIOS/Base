@@ -24,8 +24,7 @@ export default function () {
                 <h2 class="${style.floods}">Flood Team</h2>
                 <ul>
                     <li>Mariano Carretero Fuentes</li>
-                    <li>Isabela Valls</li>
-                    <li>Hans Preinfalk Davila</li>
+                    <li>Isabela Valls Chavez</li>
                 </ul>
             </div>    
         </div>

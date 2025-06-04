@@ -1,7 +1,7 @@
 # **Cosmonavt: The Flood Edition** _Documento de Diseño de Juego_
 
 ### **Cosmonavt © MAAN STUDIOS Todos los derechos reservados.**
-**Por Mariano Carretero, Isabela Valls, Hans Preinfalk**
+**Por Mariano Carretero, Isabela Valls**
 
 ## _Index_
 
