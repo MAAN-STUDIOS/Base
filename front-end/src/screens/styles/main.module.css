@@ -14,6 +14,36 @@
   text-align: center;
 }
 
+.buttonContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+ .backButton {
+  padding: 0.8rem 1.5rem;
+  font-size: 0.8rem;
+  background: rgba(204, 204, 204, 0.1);
+  border: 1px solid #cccccc;
+  border-radius: 5px;
+  color: #cccccc;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: 'Press Start 2P', monospace;
+}
+
+ .backButton:hover {
+  background: rgba(204, 204, 204, 0.2);
+  color: #ffffff;
+}
+
+.menuButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(25, 0, 149, 0.4);
+  background: linear-gradient(45deg, #24014a, #5501ff);
+}
+
 .credentialsSection {
   display: flex;
   flex-direction: column;
@@ -83,4 +113,41 @@
   font-size: 0.8rem;
   text-align: center;
   display: none;
+}
+
+
+.joinGameRow {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.gameIdInput {
+    padding: 1rem 2rem;
+    font-size: 1rem;
+    border: none;
+    border-radius: 5px;
+    color: white;
+    font-family: 'Press Start 2P', monospace;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    flex: 1;
+    box-sizing: border-box;
+    text-align: center;
+    width: 250px;
+}
+
+.gameIdInput::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.menuButton {
+  flex-direction: column;
+  align-items: center; 
+  max-width: 90%; 
+  width: 300px;    
+  display: flex;
+  max-width: 90%;
+  margin: 0 auto;
+  padding: auto;         
 }
