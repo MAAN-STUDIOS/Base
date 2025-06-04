@@ -1,12 +1,18 @@
 import { Player } from "@engine/objectPlayer.js";
 import { Vector } from "@utils/vector.js";
-import { Hitbox } from "@utils/hitbox.js";
 import logger from "@utils/logger.js";
-import HUD from "@/assets/HUD/fondo.png"
-import Shotgun from "@/assets/Armas/escopeta.png"
-import Metra from "@/assets/Armas/ametralladora.png"
-import Pistola from "@/assets/Armas/pistola.png"
-import Granada from "@/assets/Armas/granada.png"
+
+/** @type {string}*/
+import HUD from "@/assets/HUD/fondo.png";
+/** @type {string}*/
+import Shotgun from "@/assets/Armas/escopeta.png";
+/** @type {string}*/
+import Metra from "@/assets/Armas/ametralladora.png";
+/** @type {string}*/
+import Pistola from "@/assets/Armas/pistola.png";
+/** @type {string}*/
+import Granada from "@/assets/Armas/granada.png";
+
 
 /**
  * Represents a human-controlled player in the game.
@@ -21,61 +27,28 @@ export class HumanPlayer extends Player {
      * @param {Vector} [options.position] - Initial position of the player.
      * @param {number|null} [options.width] - Width of the player.
      * @param {number|null} [options.height] - Height of the player.
-     * @param {number|null} [options.walkSpeed=70] - Walk speed.
-     * @param {number|null} [options.runSpeed=walkSpeed + 20] - Run speed.
-     * Here we can review the both bars usages rates, as well as the runnig speed
+     * @param {number|null} [options.walkSpeed=12] - Walk speed.
+     * @param {number|null} [options.runSpeed=walkSpeed times 10] - Run speed.
+     * @param [options.attackSlots]
      */
     constructor(position, options = {}) {
-        // Example set up
-        // TODO: Improve when implement game engine.
-        super({ position, ...options });
+        super({ position, color: "#2a52be", ...options });
 
-        this.walkSpeed = options.walkSpeed || 12;
-        this.runSpeed = options.runSpeed || this.walkSpeed + 50;
-        this.isRunning = false;
-
-        //Set up 
-        this.maxHealth = 100;
         this.maxOxygen = 100;
-        this.health = this.maxHealth;
         this.oxygen = this.maxOxygen;
 
-        //Estados iniciales 
-        this.isDamaged = false; //Daño a salud 
-        this.isReduce = false;  //Reducción de oxígeno 
-
-        //Tasas de uso REVISAR 
-        this.oxygenUse = 10;       //Uso de oxígeno al correr  
-        this.oxygenReload = 0.3;  //Recarga de oxígeno al dejar de correr 
-        this.healthDamage = 1;    //Daño del flood hacia humano 
-        this.healthRecover = 0.4;   //Recarga de salud al no recibir daño
+        // TODO: Tasas de uso REVISAR
+        this.oxygenUse = 10;
+        this.oxygenReload = 0.3;
 
         this.healthTimer = 0;
         this.oxygenTimer = 0;
 
-
-        /** @type {Hitbox} - Collision detection box for the player. */
-        this.hitbox = new Hitbox(this);
-
-        /** @type {Vector} */
-        this.real_position = position.clone();
-
-        /** @type {Vector} */
-        this.moveDirection = Vector.zero();
-
-        /** @type {string} - Color representation for the player. */
-        this.color = "#2a52be";
-
-
-        this.lastDirection = new Vector(1, 0);
-
-        //this.attackCooldown = 0.3;
-        //this.timeSinceLastAttack = this.attackCooldown;
         this.mouseDirection = new Vector(1, 0);
 
         this.attackSlots = options.attackSlots || [];
         this.activeSlot = 0;
-       
+
         this.img = new Image();
         this.img.src = HUD;
 
@@ -90,7 +63,6 @@ export class HumanPlayer extends Player {
 
         this.img4 = new Image();
         this.img4.src = Granada;
-        
 
         /**
          * @type {Object} - Tracks the current state of movement keys.
@@ -99,6 +71,7 @@ export class HumanPlayer extends Player {
          * @property {boolean} left - Whether the left key is pressed.
          * @property {boolean} right - Whether the right key is pressed.
          * @property {boolean} shift - Whether the shift key is pressed.
+         * @property {boolean} f - fire
          */
         this.keys = {
             up: false,
@@ -106,8 +79,7 @@ export class HumanPlayer extends Player {
             left: false,
             right: false,
             shift: false,
-            f: false,
-            space: false
+            attack: false,
         };
 
         this.#setupControls();
@@ -123,23 +95,16 @@ export class HumanPlayer extends Player {
         const partialListener = (state) => {
             return (e) => {
                 const key = e.key
-                if (key === `W` || key === 'w' || key === 'ArrowUp') {
-                    this.keys.up = state;
-                }
-                if (key === `S` || key === 's' || key === 'ArrowDown') {
-                    this.keys.down = state;
-                }
-                if (key === `A` || key === 'a' || key === 'ArrowLeft') {
-                    this.keys.left = state;
-                }
-                if (key === `D` || key === 'd' || key === 'ArrowRight') {
-                    this.keys.right = state;
-                }
-                if (key === 'Shift') {            
-                    this.keys.shift = state && this.oxygen > 20;
+
+                if (key === 'Shift') {
+                    this.keys.shift = state;
                 }
                 if (state && (key === ' ' || key === 'f')) {
+                    // TODO: check it later
+                    this.keys.attack = true;
                     this.attack();
+                } else {
+                    this.keys.attack = false;
                 }
                 if (key === '1') {
                     this.activeSlot = 0;
@@ -168,41 +133,14 @@ export class HumanPlayer extends Player {
      * @override
      */
     update(dt) {
-        this.moveDirection.clear();
+        super.update(dt);
+        this.updateOxygen(dt);
+        this.updateHealth(dt);
+        this.updateWeapons(dt);
+    }
 
-        if (this.keys.up) this.moveDirection.y -= 1;
-        if (this.keys.down) this.moveDirection.y += 1;
-        if (this.keys.left) this.moveDirection.x -= 1;
-        if (this.keys.right) this.moveDirection.x += 1;
-
-        const moving = this.moveDirection.x !== 0 || this.moveDirection.y !== 0;
-        if (moving) {
-            const movingDiagonally = (
-                this.moveDirection.x !== 0 && this.moveDirection.y !== 0
-            );
-            if (movingDiagonally) this.moveDirection.normalize();
-
-            // Corregido: Solo puede correr si tiene oxígeno
-            this.isRunning = this.keys.shift && this.oxygen > 0;
-            const speed = this.isRunning ? this.runSpeed : this.walkSpeed;
-
-            const frameAdjustedSpeed = speed * dt;
-            this.moveDirection.scaleEqual(frameAdjustedSpeed);
-
-            this.real_position.addEqual(this.moveDirection);
-            this.direction = this.moveDirection;
-        } else {
-            // Cuando no se mueve, no está corriendo
-            this.isRunning = false;
-        }
-
-        if (this.direction.x !== 0 || this.direction.y !== 0) {
-            this.lastDirection = this.direction.clone();
-        }
-
-        //Sistema de oxígeno
+    updateOxygen(dt) {
         if (this.isRunning) {
-            // Consume oxígeno solo cuando está corriendo
             this.oxygenTimer += dt;
             if (this.oxygenTimer >= 5.0) {
                 this.oxygen -= this.oxygenUse;
@@ -210,12 +148,13 @@ export class HumanPlayer extends Player {
                 this.oxygenTimer = 0;
             }
         } else if (this.oxygen < this.maxOxygen) {
-            // Regenera oxígeno solo cuando NO está corriendo
             this.oxygen += this.oxygenReload * dt;
             if (this.oxygen > this.maxOxygen) this.oxygen = this.maxOxygen;
         }
 
-        // Sistema de salud
+    }
+
+    updateHealth(dt) {
         if (this.health < this.maxHealth) {
             this.healthTimer += dt;
             if (this.healthTimer >= 3.0) {
@@ -223,86 +162,115 @@ export class HumanPlayer extends Player {
                 if (this.health > this.maxHealth) this.health = this.maxHealth;
                 this.healthTimer = 0;
             }
-        } 
+        }
     }
 
+    updateWeapons(dt) {
+        for (let weapon of this.attackSlots) {
+            if (weapon && typeof weapon.update === "function") {
+                weapon.update(dt);
+            }
+        }
+    }
 
+    get isRunning() {
+        return this.keys.shift && this.oxygen > 20;
+    }
 
     /**
      * Renders the player on the canvas.
      * Draws the player and displays current movement status.
      * @param {CanvasRenderingContext2D} ctx - The canvas rendering context.
      * @override
-     * Draw the life and oxigen barts for the human player, every bar have a white border
+     * Draw the life and oxygen bars for the human player, every bar has a white border
      */
     draw(ctx) {
-        //super.draw(ctx);
+        super.draw(ctx);
 
+        this.drawHealth(ctx);
+        this.drawOxygen(ctx);
+        this.drawHUD(ctx);
+        this.drawWeapons(ctx);
+    }
+
+    drawHealth(ctx) {
         const healthPercentage = this.health / this.maxHealth;
-        ctx.fillStyle = "red"; 
-        ctx.fillRect(25, 5, 250 * healthPercentage, 20);   
+        ctx.fillStyle = "red";
+        ctx.fillRect(25, 5, 250 * healthPercentage, 20);
 
         ctx.fillStyle = "white";
-        ctx.fillText("Salud", 280, 20); 
-        
+        ctx.fillText("Salud", 280, 20);
+
         ctx.strokeStyle = "white";
         ctx.strokeRect(25, 5, 250, 20);
-        
-        ctx.fillStyle = "white";
-        
+    }
+
+    drawOxygen(ctx) {
         const oxygenPercentage = this.oxygen / this.maxOxygen;
         ctx.fillStyle = "#5ac3e7";
-        ctx.fillRect(25, 30, 200 * oxygenPercentage, 20); 
+        ctx.fillRect(25, 30, 200 * oxygenPercentage, 20);
 
         ctx.fillStyle = "white";
         ctx.fillText("Oxígeno", 230, 45);
-        
+
         ctx.strokeStyle = "white";
         ctx.strokeRect(25, 30, 200, 20);
-        
+    }
+
+    drawHUD(ctx) {
         ctx.fillStyle = "white";
 
         //Imagen HUD
-        ctx.drawImage(this.img, 0, 0, 2304, 1728, 0, 0, ctx.canvas.width, ctx.canvas.height); 
-
-        //Escopeta               x    y    w    h
-        ctx.drawImage(this.imga, 55, 710, 100, 100);
-        //Ametralladora
-        ctx.drawImage(this.img2, 187, 695, 120, 120);
-        //Pistola 
-        ctx.drawImage(this.img3, 355, 710, 90, 90);
-        //Granada
-        ctx.drawImage(this.img4, 1310, 710, 90, 90);
-
-        
-
-        
-        ctx.font = "16px monospace";
-        ctx.fillStyle = "white";
-        ctx.fillText(`${this.isRunning ? "Running" : "Walking"}`, this.position.x, this.position.y - 15);
-
-        const weapon = this.attackSlots[this.activeSlot];
-        ctx.fillText(`Weapon: ${weapon.constructor.name}`, this.position.x, this.position.y - 30);
-
+        ctx.drawImage(this.img, 0, 0, 2304, 1728, 0, 0, ctx.canvas.width, ctx.canvas.height);
     }
 
-    initMouseTracking() {
-        const canvas = document.querySelector("canvas");
-    
+    drawWeapons(ctx) {
+        const screenX = (ctx.canvas.width - this.width) / 2;
+        const screenY = ctx.canvas.height / 2 + this.height;
+
+        const canvasWidth = ctx.canvas.width;
+        const canvasHeight = ctx.canvas.height;
+
+        // Escopeta (shotgun)
+        ctx.drawImage(this.imga, 20, canvasHeight - 120, 100, 100);
+        // Ametralladora (machine gun)
+        ctx.drawImage(this.img2, 140, canvasHeight - 135, 120, 120);
+        // Pistola (pistol)
+        ctx.drawImage(this.img3, 280, canvasHeight - 110, 90, 90);
+
+        // Grenade
+        ctx.drawImage(this.img4, canvasWidth - 110, canvasHeight - 110, 90, 90);
+
+        ctx.font = "16px monospace";
+        ctx.fillStyle = "white";
+        ctx.fillText(`${this.isRunning ? "Running" : "Walking"}`, screenX, screenY);
+
+        const weapon = this.attackSlots[this.activeSlot];
+        ctx.fillText(`Weapon: ${weapon.constructor.name}`, screenX, screenY + 15);
+    }
+
+    init(canvas) {
         canvas.addEventListener("mousemove", (e) => {
             const rect = canvas.getBoundingClientRect();
             const mouseX = e.clientX - rect.left;
             const mouseY = e.clientY - rect.top;
-    
+
             const screenCenter = new Vector(canvas.width / 2, canvas.height / 2);
             const offset = new Vector(mouseX - screenCenter.x, mouseY - screenCenter.y);
-    
+
             if (offset.x !== 0 || offset.y !== 0) {
                 this.mouseDirection = offset.normalize();
             }
         });
+
+        canvas.addEventListener("mousedown", (e) => {
+            const leftClick = e.button === 0;
+            if (leftClick) {
+                this.attack();
+            }
+        });
     }
-    
+
     attack() {
         const weapon = this.attackSlots[this.activeSlot];
         if (!weapon || typeof weapon.fire !== "function") return;
@@ -311,18 +279,9 @@ export class HumanPlayer extends Player {
         weapon.fire(this.real_position.clone(), direction, this);
     }
 
-    takeDamage(amount) {
-        this.health -= amount;
-        if (this.health < 0) {
-            this.health = 0; 
-            this.die(); 
-        }
-    }
-
     die() {
         super.die();
         this.health = this.maxHealth;
         this.oxygen = this.maxOxygen;
     }
 }
-

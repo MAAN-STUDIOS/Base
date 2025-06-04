@@ -2,6 +2,7 @@ import dotenv from 'dotenv';
 import get_logger from "./core/utils/logger.js";
 import db from "./config/db.js";
 import server from "./core/server.js";
+import initSockets from "./core/sockets/index.js";
 
 
 const logger = get_logger("APP");
@@ -12,6 +13,7 @@ async function initEnvironment() {
     logger.debug(`Mounting ${envFile} as environment file.`);
 
     await db.connect();
+    initSockets(server);
 }
 
 await initEnvironment();
@@ -19,7 +21,7 @@ await initEnvironment();
 const port = process.env.PORT || 3000;
 const apiUrl = process.env.API_URL || `http://localhost:${port}`;
 
-server.listen(port, () => {
+server.listen(port,`0.0.0.0` ,() => {
     logger.info(`Server listening on ${apiUrl} ...`);
 });
 

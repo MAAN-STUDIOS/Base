@@ -73,6 +73,7 @@ router.get('/games/stats', GameController.getServerStats);    // Server statisti
 // router.get('/map/chunk/:game_id/:x/:y', GameController.getChunk);
 // router.get('/map/dungeon/:game_id/:dungeon_id', GameController.getDungeon);
 
+
 logger.info('Game router initialized with all endpoints');
 
 // ================================
