@@ -1,6 +1,3 @@
-"use strict";
-
-
 export class Hitbox {
     /**
      * Constructor de la hitbox
@@ -74,6 +71,11 @@ export class Hitbox {
     }
 
 
+    /**
+     *
+     * @param {Hitbox} hitbox
+     * @returns {boolean}
+     */
     collidesWith(hitbox) {
         return this.intersects(hitbox);
     }

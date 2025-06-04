@@ -4,12 +4,12 @@ services:
     image: mysql:8.0
     container_name: consmonavt_db
     environment:
-      MYSQL_ROOT_PASSWORD: password
+      MYSQL_ROOT_PASSWORD: MyDevelopmentPassword
       MYSQL_DATABASE: cosmonavt
       MYSQL_USER: appuser
-      MYSQL_PASSWORD: password
+      MYSQL_PASSWORD: MyDevelopmentPassword
     ports:
-      - "3306:3306"
+      - "3307:3306"
     volumes:
       - cosmonavt_data:/var/lib/mysql 
       - /init.sql:/docker-entrypoint-initdb.d/01-init.sql

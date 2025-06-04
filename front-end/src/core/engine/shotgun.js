@@ -1,4 +1,4 @@
-import { ShootingSystem } from "@engine/shootingSystem.js";
+import { ShootingSystem } from "@engine/shootingsystem.js";
 import { Vector } from "@utils/vector.js";
 
 export class Shotgun {
