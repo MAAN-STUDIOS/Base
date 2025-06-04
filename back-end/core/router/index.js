@@ -12,7 +12,7 @@ import { ViewDungeon } from '../controllers/viewDungeon.js';
 import { ViewNode } from '../controllers/viewNode.js'
 import { ViewLayout } from '../controllers/viewLayout.js';
 import { viewChunk } from '../controllers/viewChunk.js';
-import { HumanGame } from '../controllers/viewHumanGame.js';
+import {  HumanGame } from '../controllers/viewHumanGame.js';
 import { FloodGame } from '../controllers/viewFloodGame.js';
 import { ViewGameController } from '../controllers/viewGame.js';
 
