@@ -24,6 +24,8 @@ registerScreen(404, screenPageNotFound);
 registerScreen('credits', screenCredits);
 registerScreen('login', screenLogin);
 registerScreen('create-account', screenCreateAccount);
+registerScreen('dashboard', screenDashboard);
+
 registerScreen('join-game', screenJoinGame);
 registerScreen('dashboard', screenDashboard);
 

@@ -10,12 +10,12 @@ services:
     ports:
       - "3307:3306"
     volumes:
-      - cosmonavt_data:/var/lib/mysql 
+      - cosmonavt_data:/var/lib/mysql
     networks:
       - cosmonavt_network
 
 volumes:
-  cosmonavt_data: 
+  cosmonavt_data:
 
 networks:
   cosmonavt_network:
