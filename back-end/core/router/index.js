@@ -7,10 +7,10 @@ import { ConfigController } from '../controllers/config.js';
 import { PlayerController } from '../controllers/player.js';
 import { AuthController } from '../controllers/auth.js';
 import { GameController } from '../controllers/game.js';
+import { viewChunk } from '../controllers/viewChunk.js';
 import { HumanGame } from '../controllers/viewHumanGame.js';
 import { HumanGame } from '../controllers/viewFloodGame.js';
 import { ViewGameController } from '../controllers/viewGame.js';
-
 
 const router = express.Router();
 const logger = get_logger('GameRouter');
@@ -88,6 +88,7 @@ logger.info('Game router initialized with all endpoints');
 router.get('/api/view/game', ViewGameController.get_viewGame);
 router.get('/api/view/flood_view_game', HumanGame.get_viewFloodGame);
 router.get('/api/view/human_view_game', HumanGame.get_viewHumanGame);
+router.get('/api/view/chunk', viewChunk.get_viewChunk);
 
 logger.info('Game router initialized with all endpoints');
 
