@@ -7,8 +7,9 @@ export class OtherPlayer {
     /**
      * Creates a new human-controlled player.
      * @param position
+     * @param color
      */
-    constructor(position) {
+    constructor(position, color) {
         /** @type {Hitbox} - Collision detection box for the player. */
         this.hitbox = new Hitbox(this);
 
@@ -16,9 +17,11 @@ export class OtherPlayer {
         this.position = position.clone();
 
         this.target = Vector.zero();
+        this.id = null;
 
         this.health = 100;
         this.maxHealth = 100;
+        this.color = color;
     }
 
     /**
@@ -45,7 +48,7 @@ export class OtherPlayer {
         const width = 50;
         const height = 50;
 
-        ctx.fillStyle = "green";
+        ctx.fillStyle = this.color || "green";
         ctx.fillRect(screenX - width / 2, screenY - height / 2, width, height);
 
         const healthBarWidth = width;
