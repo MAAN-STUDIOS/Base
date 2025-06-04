@@ -10,17 +10,21 @@ export class AuthController {
         const body = req.body || {};
         
         if (!body.email || !body.password) {
-            return res.status(400).send({ error: 'No body provided' });
-        }
-        const user = await db.query('SELECT * FROM cosmonavt_user WHERE email = ? AND password = ?', [body.email, body.password]);
-        if (user.length === 0) {
-            return res.status(401).send({ error: 'Invalid username or password' });
+            return res.status(400).send({ error: 'Email and password are required' });
         }
 
-        
-        const token = generateToken(user[0]);
-        console.log(token);
-        res.status(200).send(token);
+        try {
+            const user = await db.query('SELECT * FROM cosmonavt_user WHERE email = ? AND password = ?', [body.email, body.password]);
+            if (user.length === 0) {
+                return res.status(401).send({ error: 'Invalid email or password' });
+            }
+
+            const token = generateToken(user[0]);
+            res.status(200).send({ token, user: { id: user[0].id, email: user[0].email, name: user[0].name } });
+        } catch (error) {
+            console.error('Login error:', error);
+            res.status(500).send({ error: 'Internal server error' });
+        }
     }
     static async register(req, res) {
         if (!req.body) {
@@ -29,21 +33,45 @@ export class AuthController {
         const body = req.body || {};
         
         if (!body.email || !body.password || !body.name) {
-            return res.status(400).send({ error: 'No body provided' });
+            return res.status(400).send({ error: 'Name, email and password are required' });
         }
         
-        const existingUser = await db.query('SELECT * FROM cosmonavt_user WHERE email = ?', [body.email]);
-        if (existingUser.length > 0) {
-            return res.status(409).send({ error: 'User already exists' });
+        try {
+            // Check if user already exists
+            const existingUser = await db.query('SELECT * FROM cosmonavt_user WHERE email = ?', [body.email]);
+            if (existingUser.length > 0) {
+                return res.status(409).send({ error: 'User already exists' });
+            }
+            
+            // Insert new user
+            const result = await db.query(
+                'INSERT INTO cosmonavt_user (name, email, password) VALUES (?, ?, ?)',
+                [body.name, body.email, body.password]
+            );
+
+            if (result.affectedRows === 0) {
+                return res.status(500).send({ error: 'Failed to create user' });
+            }
+
+            // Generate token for the new user
+            const token = generateToken({ 
+                id: result.insertId, 
+                email: body.email,
+                name: body.name 
+            });
+
+            res.status(201).send({ 
+                token,
+                user: {
+                    id: result.insertId,
+                    email: body.email,
+                    name: body.name
+                }
+            });
+        } catch (error) {
+            console.error('Registration error:', error);
+            res.status(500).send({ error: 'Internal server error' });
         }
-        
-        const newUser = await db.query('INSERT INTO cosmonavt_user (name, email, password) VALUES (?, ?, ?)', [body.name, body.email, body.password]);
-        if (newUser.affectedRows === 0) {
-            return res.status(500).send({ error: 'Failed to create user' });
-        }
-        
-        const token = generateToken({ id: newUser.insertId, email: body.email });
-        res.status(201).send(token);
     }
     static async verifyToken(req, res){
         

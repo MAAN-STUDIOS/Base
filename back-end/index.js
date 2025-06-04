@@ -17,7 +17,7 @@ async function initEnvironment() {
 await initEnvironment();
 
 const port = process.env.PORT || 3000;
-const apiUrl = process.env.apiURL || `http://localhost:${port}`;
+const apiUrl = process.env.API_URL || `http://localhost:${port}`;
 
 server.listen(port, () => {
     logger.info(`Server listening on ${apiUrl} ...`);
