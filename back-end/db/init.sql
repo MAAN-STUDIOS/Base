@@ -163,7 +163,7 @@ CREATE TABLE dungeon (
 CREATE TABLE chunk (
     id         INT      NOT NULL PRIMARY KEY AUTO_INCREMENT,
     dungeon_id INT      NOT NULL,
-    data       JSON     NOT NULL,
+    data       TEXT     NOT NULL,
     chunk_x    SMALLINT NOT NULL,
     chunk_y    SMALLINT NOT NULL,
     FOREIGN KEY (dungeon_id) REFERENCES dungeon (id)
@@ -262,11 +262,7 @@ CREATE VIEW view_flood_view_game AS
 
 
 CREATE VIEW view_chunk AS
-    SELECT g.id      AS game_id,
-           c.id      AS chunk_id,
-           c.chunk_x AS chunk_x,
-           c.chunk_y AS chunk_y,
-           c.data    AS data
+    SELECT g.id AS game_id, c.id AS chunk_id, c.chunk_x AS chunk_x, c.chunk_y AS chunk_y, c.data AS data
     FROM game g
              INNER JOIN game_dungeon gd ON g.id = gd.game_id
              INNER JOIN dungeon d ON gd.dungeon_id = d.id
