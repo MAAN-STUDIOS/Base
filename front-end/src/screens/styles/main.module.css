@@ -61,3 +61,26 @@
   box-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
 }
 
+.errorMessage {
+  color: #ff4444;
+  background-color: rgba(255, 68, 68, 0.1);
+  border: 1px solid #ff4444;
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  font-size: 0.8rem;
+  text-align: center;
+  display: none;
+}
+
+.successMessage {
+  color: #44ff44;
+  background-color: rgba(68, 255, 68, 0.1);
+  border: 1px solid #44ff44;
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  font-size: 0.8rem;
+  text-align: center;
+  display: none;
+}

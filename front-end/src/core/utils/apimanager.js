@@ -1,7 +1,7 @@
 "use strict";
 import logger from "./logger.js";
 
-const api_url = "http://localhost:3000";
+const api_url = "http://localhost:8000";
 
 async function get_map_chunk(coordinates_x, coordinates_y, mockup) {
     if (mockup) {
@@ -39,7 +39,6 @@ async function get_map_chunk(coordinates_x, coordinates_y, mockup) {
         //     0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0,
         //     0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0,
         //     0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0,
-        //     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         //     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         //     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
         // ];
@@ -266,34 +265,42 @@ async function userinfo(session_id) {
 }
 
 // This will be added later just to have the placeholder for it
-async function authenticate(username, password) {
+async function authenticate(email, password) {
     const response = await fetch(`${api_url}/auth/login`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
         },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ email, password }),
     });
     if (!response.ok) {
-        logger.error("Error fetching map chunk");
+        logger.error("Authentication failed");
         return null;
     }
     const data = await response.json();
     return data;
 }
 
-async function register(username, password) {
-    const response = await fetch(`${api_url}/user/`, {
+async function register(username, email, password) {
+    const response = await fetch(`${api_url}/auth/register`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
         },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ name: username, email, password }),
     });
-    if (response.status == 401) {
+    
+    if (response.status === 409) {
         logger.error("User already exists");
-        return null;
+        throw new Error("An account with this email already exists");
     }
+    
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        logger.error("Registration failed", errorData);
+        throw new Error(errorData.error || "Failed to create account. Please try again.");
+    }
+    
     const data = await response.json();
     return data;
 }
