@@ -153,64 +153,35 @@ CREATE TABLE game_loot (
 ) CHARACTER SET utf8mb4
   ENGINE = InnoDB;
 
-# Layout / chunk (for simplicity are the same size)
-# x and y represenst the chunk coordenates in its corresponding
-# chunk agrupation (see game_chunk_layout)
+
+CREATE TABLE dungeon (
+    id   INT          NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(255) NOT NULL
+) CHARACTER SET utf8mb4
+  ENGINE = InnoDB;
+
 CREATE TABLE chunk (
-    id      INT      NOT NULL PRIMARY KEY AUTO_INCREMENT,
-    data    JSON     NOT NULL,
-    chunk_x SMALLINT NOT NULL,
-    chunk_y SMALLINT NOT NULL
+    id         INT      NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    dungeon_id INT      NOT NULL,
+    data       JSON     NOT NULL,
+    chunk_x    SMALLINT NOT NULL,
+    chunk_y    SMALLINT NOT NULL,
+    FOREIGN KEY (dungeon_id) REFERENCES dungeon (id)
 ) CHARACTER SET utf8mb4
   ENGINE = InnoDB;
 
 CREATE INDEX xy_chunk ON chunk (chunk_x, chunk_y);
 
-# Game layout (normally cached in server but for simplicity stored here),
-# a game has 4 layouts:
-# - Bigger view of the map
-# - 1rs dungeon
-# - 2nd dungeon
-# - 3rd dungeon
-CREATE TABLE game_chunk_layout (
-    id              INT          NOT NULL PRIMARY KEY AUTO_INCREMENT,
-    game_id         INT          NOT NULL,
-    chunk_layout_id INT          NOT NULL,
-    name            VARCHAR(255) NOT NULL,
-    type            ENUM ('')    NOT NULL, -- TODO: update based on layout created
+CREATE TABLE game_dungeon (
+    id         INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    game_id    INT NOT NULL,
+    dungeon_id INT NOT NULL,
+    offset_x   INT NOT NULL,
+    offset_y   INT NOT NULL,
     FOREIGN KEY (game_id) REFERENCES game (id),
-    FOREIGN KEY (chunk_layout_id) REFERENCES chunk (id)
-) CHARACTER SET utf8mb4
-  ENGINE = InnoDB;
-
-CREATE TABLE dungeon (
-    id   INT          NOT NULL PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(255) NOT NULL,
-    type SMALLINT     NOT NULL
-) CHARACTER SET utf8mb4
-  ENGINE = InnoDB;
-
-CREATE TABLE node (
-    id          INT       NOT NULL PRIMARY KEY AUTO_INCREMENT,
-    dungeon_id  INT       NOT NULL,
-    rotations   SMALLINT  NOT NULL,
-    layout_type ENUM ('') NOT NULL, -- TODO: update based on layout created
-    node_x      SMALLINT  NOT NULL,
-    node_y      SMALLINT  NOT NULL,
     FOREIGN KEY (dungeon_id) REFERENCES dungeon (id)
 ) CHARACTER SET utf8mb4
-  ENGINE = MyISAM;
-
-CREATE INDEX xy_node ON node (node_x, node_y);
-
-CREATE TABLE layout (
-    id   INT       NOT NULL PRIMARY KEY AUTO_INCREMENT,
-    type ENUM ('') NOT NULL, -- TODO: update based on layout created
-    data JSON      NOT NULL
-) CHARACTER SET utf8mb4
-  ENGINE = MyISAM;
-
-
+  ENGINE = InnoDB;
 
 CREATE VIEW view_admin AS
     SELECT a.id            AS id,
@@ -291,20 +262,15 @@ CREATE VIEW view_flood_view_game AS
 
 
 CREATE VIEW view_chunk AS
-    SELECT c.id AS id, c.chunk_x AS chunk_x, c.chunk_y AS chunk_y, c.data AS data
-    FROM chunk c;
-
-CREATE VIEW view_dungeon AS
-    SELECT d.id AS id, d.name AS name, d.type AS type
-    FROM dungeon d;
-
-CREATE VIEW view_node AS
-    SELECT n.id AS id, n.node_x AS node_x, n.node_y AS node_y, n.rotations AS rotations, n.layout_type AS type
-    FROM node n;
-
-CREATE VIEW view_layout AS
-    SELECT l.id AS id, l.data AS data, l.type AS type
-    FROM layout l;
+    SELECT g.id      AS game_id,
+           c.id      AS chunk_id,
+           c.chunk_x AS chunk_x,
+           c.chunk_y AS chunk_y,
+           c.data    AS data
+    FROM game g
+             INNER JOIN game_dungeon gd ON g.id = gd.game_id
+             INNER JOIN dungeon d ON gd.dungeon_id = d.id
+             INNER JOIN chunk c ON c.dungeon_id = d.id;
 
 CREATE VIEW view_stats AS
     SELECT (SELECT SUM(kills) FROM player)                          AS total_kills,
