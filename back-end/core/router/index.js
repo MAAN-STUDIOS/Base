@@ -7,6 +7,7 @@ import { ConfigController } from '../controllers/config.js';
 import { PlayerController } from '../controllers/player.js';
 import { AuthController } from '../controllers/auth.js';
 import { GameController } from '../controllers/game.js';
+import { ViewDungeon } from '../controllers/viewDungeon.js';
 import { ViewNode } from '../controllers/viewNode.js'
 import { ViewLayout } from '../controllers/viewLayout.js';
 import { viewChunk } from '../controllers/viewChunk.js';
@@ -81,8 +82,6 @@ router.get('/games/stats', GameController.getServerStats);    // Server statisti
 // router.get('/map/dungeon/:game_id/:dungeon_id', GameController.getDungeon);
 
 
-logger.info('Game router initialized with all endpoints');
-
 // ================================
 // VIEWS
 // ================================
@@ -93,6 +92,7 @@ router.get('/api/view/human_view_game', HumanGame.get_viewHumanGame);
 router.get('/api/view/chunk', viewChunk.get_viewChunk);
 router.get('/api/view/layout', ViewLayout.get_viewLayout);
 router.get('/api/view/node', ViewNode.get_viewNode);
+router.get('/api/view/dungeon', ViewDungeon.get_viewDungeon);
 
 logger.info('Game router initialized with all endpoints');
 
