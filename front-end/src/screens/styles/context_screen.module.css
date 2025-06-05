@@ -1,29 +1,32 @@
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
 
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
 
-body {
-    font-family: 'Press Start 2P', monospace;
-    background: #000;
-    /* Cosmonavt*/
-    color: #FF2E2E;
+.main {
+    width: 100%;
+    height: 100dvh;
+
     overflow-x: hidden;
-    min-height: 100vh;
-    position: relative;
+    overflow-y: scroll;
+
+    background: transparent;
 }
 
-/* Fondo de estrellas pixeladas */
+.container {
+    z-index: 2;
+    margin: 0 auto;
+    padding: 0 40px 20px;
+    text-align: center;
+    max-width: 1000px;
+}
+
 .stars {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 1;
+    z-index: -1;
+    background: black;
 }
 
 .star {
@@ -55,22 +58,16 @@ body {
     50% { opacity: 1; }
 }
 
-/* Contenido principal */
-.container {
-    position: relative;
-    z-index: 2;
-    max-width: 1000px;
-    margin: 0 auto;
-    padding: 40px 20px;
-    text-align: center;
-}
-
 .title {
-    font-size: 3rem;
-    font-weight: 900;
-    /* Cosmonavt*/
     color: #FF2E2E;
-    margin-bottom: 30px;
+    font-size: 15rem;
+    position: fixed;
+    top: 8rem;
+    left: 50%;
+
+    transform: translate(-50%, -50%);
+
+    z-index: -1;
 }
 
 @keyframes pulse {
@@ -79,11 +76,11 @@ body {
 }
 
 .story-section {
-    background: #0a0a0a;
+    background: rgba(10, 10, 10, 0.6);
     border: 2px solid #00FFFF;
     border-radius: 15px;
     padding: 30px;
-    margin: 30px 0;
+    margin: 16em 0 20px;
     box-shadow: 
         0 0 20px rgba(0, 255, 136, 0.3),
         inset 0 0 20px rgba(0, 255, 136, 0.1);
@@ -97,8 +94,7 @@ body {
     text-align: left;
     color: #e0e0e0;
     margin-bottom: 15px;
-    padding: 10px 0;
-    padding-left: 20px;
+    padding: 10px 0 10px 20px;
     animation: fadeInUp 1s ease-out;
 }
 
@@ -110,15 +106,14 @@ body {
 .section-title {
     font-size: 2rem;
     font-weight: 700;
-    /* Contexto de la mision */
     color: white;
-    margin-bottom: 20px;
     text-transform: uppercase;
     letter-spacing: 2px;
     text-shadow: 0 0 10px #B22222;
 }
 
 .objective-section {
+    background: rgba(10, 10, 10, 0.86);
     border: 2px solid #00FFFF;
     border-radius: 15px;
     padding: 30px;

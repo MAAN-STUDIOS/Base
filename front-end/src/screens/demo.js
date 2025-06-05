@@ -12,7 +12,7 @@ export default function humanScreen() {
         fps: 60,
         player: {
             type: "human",
-            size: 50,
+            size: 150,
             position: Vector.zero(),
             walkSpeed: 20,
             runSpeed: 40

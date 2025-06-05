@@ -1,40 +1,42 @@
 import { navigate } from "@utils/router.js";
 import styles from "./styles/context_screen.module.css";
 
+// import clone from "@assets/flood-clone.png";
+// import beast from "@assets/flood-beast.png";
+import ametralladora from "@assets/Armas/ametralladora.png";
+import lanzallamas from "@assets/Armas/lanzallamas.png";
+import escopeta from "@assets/Armas/escopeta.png";
+import pistola from "@assets/Armas/pistola.png";
+
 export default function () {
     const listener = () => {
-    
-          const starsContainer = document.getElementById('stars');
-          const numStars = 150;
-          
-          for (let i = 0; i < numStars; i++) {
-              const star = document.createElement('div');
-              star.className = 'star';
-              star.style.left = Math.random() * 100 + '%';
-              star.style.top = Math.random() * 100 + '%';
-              star.style.animationDelay = Math.random() * 3 + 's';
-              starsContainer.appendChild(star);
-          }
-      
-      
-      function startGame() {
-          alert('¡La misión comienza! Buena suerte, Ronan Rhys...');
-          // Aquí puedes agregar la lógica para iniciar el juego
-      }
-      
-      // Inicializar estrellas cuando carga la página
-      //window.addEventListener('load', createStars);
+        const starsContainer = document.getElementById('stars');
+        const numStars = 150;
+
+        for (let i = 0; i < numStars; i++) {
+            const star = document.createElement('div');
+            star.className = styles.star;
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 100 + '%';
+            star.style.animationDelay = Math.random() * 3 + 's';
+            starsContainer.appendChild(star);
+        }
+
+        document.getElementById("btn-play")?.addEventListener('click', () => {
+            alert('¡La misión comienza! Buena suerte, Ronan Rhys...');
+            navigate("human");
+        });
     };
 
     return [listener, `
-<main style="overflow: scroll;">
+<main class="${styles.main}">
     <div class="${styles.stars}" id="stars"></div>
     
-    <div class="${styles.container}">
         <h1 class="${styles.title}">Cosmonavt</h1>
+    <div class="${styles.container}">
         
         <div class="${styles.storySection}">
-            <h2 class="${styles.sectionTitle}">Context</h2>
+            <h2 class="${styles.sectionTitle}">What Happened?</h2>
             <div class="${styles.storyText}">
                 The EpsilonDarth ship, en route to Saturn and crewed by six USGC engineers, passed through the ergosphere of Geminis D3 — a black hole sixteen times the size of Earth.
             </div>
@@ -63,28 +65,28 @@ export default function () {
             <div class="${styles.itemGrid}">
                 <div class="${styles.itemCard}">
                     <div class="${styles.itemImage}">
-                        <img src="assets/Armas/pistola.png" alt="MV-1 Officer Pistol" class="${styles.weaponImg}">
+                        <img src="${pistola}" alt="MV-1 Officer Pistol" class="${styles.weaponImg}">
                     </div>
                     <div class="${styles.itemName}">MV-1 Officer Pistol</div>
                     <div class="${styles.itemDescription}">Standard-issue sidearm for USGC officers. Compact, accurate, and reliable under zero-gravity conditions</div>
                 </div>
                 <div class="${styles.itemCard}">
                     <div class="${styles.itemImage}">
-                        <img src="assets/Armas/escopeta.png" alt="MV-5 Proton Shotgun" class="${styles.weaponImg}">
+                        <img src="${escopeta}" alt="MV-5 Proton Shotgun" class="${styles.weaponImg}">
                     </div>
                     <div class="${styles.itemName}">MV-5 Proton Shotgun</div>
                     <div class="${styles.itemDescription}">Short-range proton shotgun that fires bursts of unstable energy, capable of disintegrating alien organisms with a single blast</div>
                 </div>
                 <div class="${styles.itemCard}">
                     <div class="${styles.itemImage}">
-                        <img src="assets/Armas/ametralladora.png" alt="MV-4 Ceris Machine Gun" class="${styles.weaponImg}">
+                        <img src="${lanzallamas}" alt="MV-4 Ceris Machine Gun" class="${styles.weaponImg}">
                     </div>
                     <div class="${styles.itemName}">MV-4 Ceris Machine Gun</div>
                     <div class="${styles.itemDescription}">High-caliber automatic weapon with a rapid rate of fire. Designed to suppress alien hordes and destroy light cover. Overheats quickly—but leaves no survivors</div>
                 </div>
                 <div class="${styles.itemCard}">
                     <div class="${styles.itemImage}">
-                        <img src="assets/Armas/lanzallamas.png" alt="MV-6 Plasma Flamethrower" class="${styles.weaponImg}">
+                        <img src="${ametralladora}" alt="MV-6 Plasma Flamethrower" class="${styles.weaponImg}">
                     </div>
                     <div class="${styles.itemName}">MV-6 Plasma Flamethrower</div>
                     <div class="item-description">Experimental device that projects jets of incandescent plasma. Engineered to burn organic material at the molecular level—ideal against Flood biological threats</div>
@@ -97,14 +99,14 @@ export default function () {
             <div class="item-grid">
                 <div class="${styles.itemCard}">
                     <div class="${styles.itemImage}">
-                        <img src="flood-beast.png" alt="Flood-Beast" class="${styles.weaponImg}">
+                        <img src="${ametralladora}" alt="Flood-Beast" class="${styles.weaponImg}">
                     </div>
                     <div class="${styles.itemName}">Flood-Beast</div>
                     <div class="${styles.itemDescription}">Extremely hostile organic lifeforms; at close range, they deal heavy damage</div>
                 </div>
                 <div class="${styles.itemCard}">
                     <div class="${styles.itemImage}">
-                        <img src="flood-clone.png" alt="Flood Clone" class="${styles.weaponImg}">
+                        <img src="${ametralladora}" alt="Flood Clone" class="${styles.weaponImg}">
                     </div>
                     <div class="${styles.itemName}">Flood Clone</div>
                     <div class="${styles.itemDescription}">Parasites originating from the Flood-Beast, these are created from the biomass obtained by killing the surviving humans</div>
@@ -112,7 +114,7 @@ export default function () {
             </div>
         </div>
         
-        <button class="${styles.startButton}" onclick="startGame()">Iniciar Misión</button>
+        <button class="${styles.startButton}" id="btn-play"">Iniciar Misión</button>
     </div>
 </main>
   `];

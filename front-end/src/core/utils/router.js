@@ -5,6 +5,7 @@ const app = document.getElementById('app');
 if (!app) throw new Error("No app loaded");
 
 
+
 const screens = {};
 const fallback = (`
 <main style="background: #111111; height: 100dvh; display: flex; align-items: center; justify-content: center; text-align: center;">
