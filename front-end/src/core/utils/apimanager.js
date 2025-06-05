@@ -1,7 +1,7 @@
 "use strict";
 import logger from "./logger.js";
 
-const api_url = "http://localhost:8000";
+const api_url = "http://localhost:3000";
 
 async function get_map_chunk(coordinates_x, coordinates_y, mockup) {
     if (mockup) {
