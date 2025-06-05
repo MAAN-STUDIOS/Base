@@ -1,5 +1,7 @@
 import { Player } from "@engine/objectPlayer.js";
 import { Vector } from "@utils/vector.js";
+import { Rect } from "@utils/rectangle.js";
+import { playerMovement } from "@engine/playerAnimation.js";
 import logger from "@utils/logger.js";
 
 /** @type {string}*/
@@ -17,6 +19,7 @@ import Barra from "@assets/HUD/Barra_sinfo.png";
 
 import Circulo from "@assets/HUD/Circulo_sinfo.png";
 
+import SpriteSheet from "@/assets/human/human.png";
 
 /**
  * Represents a human-controlled player in the game.
@@ -73,6 +76,24 @@ export class HumanPlayer extends Player {
 
         this.img6 = new Image();
         this.img6.src = Circulo;
+
+        this.img7 = new Image();
+        this.img7.src = SpriteSheet;
+
+        this.img7.onload = () => {
+        console.log("SpriteSheet loaded!");
+        };
+
+        this.spriteRect = new Rect(0, 0, 308, 307);
+        this.previousDirection = "down";
+        this.currentDirection = "down";
+        this.frame = 0;
+        this.minFrame = 0;
+        this.maxFrame = 0;
+        this.repeat = true;
+        this.frameDuration = 100;
+        this.totalTime = 0;
+        this.sheetCols = 8;
 
 
         /**
@@ -137,6 +158,76 @@ export class HumanPlayer extends Player {
         logger.debug("HumanPlayer controls setup");
     }
 
+    setAnimation(minFrame, maxFrame, repeat, duration) {
+        this.minFrame = minFrame;
+        this.maxFrame = maxFrame;
+        this.frame = minFrame;
+        this.repeat = repeat;
+        this.totalTime = 0;
+        this.frameDuration = duration * 1000;
+    }
+    
+    updateFrame(deltaTime) {
+        this.totalTime += deltaTime;
+    
+        if (this.totalTime > this.frameDuration) {
+            const restartFrame = this.repeat ? this.minFrame : this.frame;
+            this.frame = this.frame < this.maxFrame ? this.frame + 1 : restartFrame;
+    
+            this.spriteRect.x = this.frame % this.sheetCols;
+            this.spriteRect.y = Math.floor(this.frame / this.sheetCols);
+    
+            this.totalTime = 0;
+        }
+    }
+    
+    setMovementAnimation() {
+        if (Math.abs(this.moveDirection.y) > Math.abs(this.moveDirection.x)) {
+            if (this.moveDirection.y > 0) {
+                this.currentDirection = "down";
+            } else if (this.moveDirection.y < 0) {
+                this.currentDirection = "up";
+            } else {
+                this.currentDirection = "idle";
+            }
+        } else {
+            if (this.moveDirection.x > 0) {
+                if (this.activeSlot == 0){
+                    this.currentDirection = "shoot_pistol_right";
+                } else if (this.activeSlot == 1){
+                    this.currentDirection = "shoot_machinegun_right";
+                } else if (this.activeSlot == 2){
+                    this.currentDirection = "shoot_shotgun_right";
+                } else if (this.activeSlot == 3){
+                    this.currentDirection = "shoot_flamethrower_right";
+                } else {
+                    this.currentDirection = "right";
+                }
+            } else if (this.moveDirection.x < 0) {
+                if (this.activeSlot == 0){
+                    this.currentDirection = "shoot_pistol_left";
+                } else if (this.activeSlot == 1){
+                    this.currentDirection = "shoot_machinegun_left";
+                } else if (this.activeSlot == 2){
+                    this.currentDirection = "shoot_shotgun_left";
+                } else if (this.activeSlot == 3){
+                    this.currentDirection = "shoot_flamethrower_left";
+                } else {
+                    this.currentDirection = "right";
+                }
+            } else {
+                this.currentDirection = "idle";
+            }
+        }
+    
+        if (this.currentDirection !== this.previousDirection) {
+            const anim = playerMovement[this.currentDirection];
+            this.setAnimation(...anim.frames, anim.repeat, anim.duration);
+        }
+    
+        this.previousDirection = this.currentDirection;
+    }    
+
     /**
      * Updates the player's state and position based on current key inputs.
      * Handles movement direction, speed (walk/run), and normalization for diagonal movement.
@@ -148,6 +239,9 @@ export class HumanPlayer extends Player {
         this.updateOxygen(dt);
         this.updateHealth(dt);
         this.updateWeapons(dt);
+
+        this.setMovementAnimation();
+        this.updateFrame(dt * 1000);
     }
 
     updateOxygen(dt) {
@@ -202,7 +296,23 @@ export class HumanPlayer extends Player {
         this.drawOxygen(ctx);
         this.drawHUD(ctx);
         this.drawWeapons(ctx);
-    }
+
+        const screenCenterX = ctx.canvas.width / 2;
+        const screenCenterY = ctx.canvas.height / 2;
+
+        ctx.drawImage(
+            this.img7,
+            this.spriteRect.x * this.spriteRect.width,
+            this.spriteRect.y * this.spriteRect.height,
+            this.spriteRect.width,
+            this.spriteRect.height,
+            screenCenterX - this.width / 2,
+            screenCenterY - this.height / 2,
+            this.width,
+            this.height
+        );   
+    } 
+    
 
     drawHealth(ctx) {
         const healthPercentage = this.health / this.maxHealth;
