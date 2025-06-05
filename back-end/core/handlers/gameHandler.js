@@ -1,21 +1,53 @@
 import { Game } from '../engine/engine.js';
 import get_logger from '../utils/logger.js';
+import { io } from "../sockets/index.js";
+import db from "../../config/db.js";
 
 const logger = get_logger('GameHandler');
 
 class GameHandler {
     constructor() {
+        /**
+         *
+         * @type {Map<number, Game>}
+         */
         this.active_games = new Map(); // game_id -> Game instance
         this.player_to_game = new Map(); // socket_id -> game_id
         this.game_id_counter = 1;
-        
-        
+
         setInterval(() => {
             this.#cleanup_inactive_games();
         }, 5 * 60 * 1000);
-        
+
         logger.info("GameHandler initialized.");
     }
+
+    async #restore_games() {
+        const games = await db.query('SELECT * FROM game WHERE end_time IS NULL');
+
+        games.forEach((game) => {
+            const instance = new Game({
+                id: game.id,
+                name: game.name,
+                description: game.description,
+                seed: game.seed,
+                max_players: game.max_players
+            });
+
+            this.active_games.set(game.id, instance);
+        });
+    }
+
+    init() {
+        this.#restore_games().then(() => {
+            logger.info("Games successfully restore");
+        });
+
+        io.on('connection', socket => {
+
+        });
+    }
+
     async create_game(options = {}) {
         try {
             const {
@@ -35,16 +67,16 @@ class GameHandler {
                 max_players
             });
 
-           
+
             await game.init();
-            
+
             const game_id = game.game_id;
             this.active_games.set(game_id, game);
-            
+
             this.#setup_game_events(game);
-            
+
             logger.info(`Game ${game_id} created successfully`);
-            
+
             return {
                 success: true,
                 game_id,
@@ -104,11 +136,11 @@ class GameHandler {
             }
 
             const result = await game.add_player(socket_id, player_data);
-            
+
             if (result.success) {
                 this.player_to_game.set(socket_id, game_id);
                 logger.info(`Player ${player_data.username} joined game ${game_id}`);
-                
+
                 return {
                     success: true,
                     player: result.player,
@@ -133,7 +165,7 @@ class GameHandler {
             const game = this.active_games.get(game_id);
             if (game) {
                 game.remove_player(socket_id);
-                
+
                 // Check if game should be ended (no players left)
                 if (game.players.size === 0) {
                     await this.#end_empty_game(game_id);
@@ -142,7 +174,7 @@ class GameHandler {
 
             this.player_to_game.delete(socket_id);
             logger.info(`Player left game ${game_id}`);
-            
+
             return { success: true };
         } catch (error) {
             logger.error(`Failed to remove player from game:`, error);
@@ -152,7 +184,7 @@ class GameHandler {
 
     get_active_games() {
         const games = [];
-        
+
         for (const [game_id, game] of this.active_games) {
             games.push({
                 game_id,
@@ -164,12 +196,14 @@ class GameHandler {
                 can_join: game.state === "starting" && game.players.size < game.max_players
             });
         }
-        
+
         return games;
     }
+
     get_game_info(game_id) {
         const game = this.active_games.get(game_id);
         if (!game) {
+            logger.info(`Game ${game_id} not found`);
             return { success: false, error: "Game not found" };
         }
 
@@ -187,6 +221,7 @@ class GameHandler {
             }
         };
     }
+
     get_game_state(game_id) {
         const game = this.active_games.get(game_id);
         if (!game) {
@@ -198,13 +233,14 @@ class GameHandler {
             game_state: game.get_game_state()
         };
     }
-    get_chunk(game_id, chunk_x, chunk_y) {
+
+    async get_chunk(game_id, chunk_x, chunk_y) {
         const game = this.active_games.get(game_id);
         if (!game) {
             return { success: false, error: "Game not found" };
         }
 
-        const chunk = game.get_chunk(chunk_x, chunk_y);
+        const chunk = await game.get_chunk(chunk_x, chunk_y);
         if (!chunk) {
             return { success: false, error: "Chunk not found" };
         }
@@ -214,6 +250,7 @@ class GameHandler {
             chunk_data: chunk
         };
     }
+
     get_dungeon(game_id, dungeon_id) {
         const game = this.active_games.get(game_id);
         if (!game) {
@@ -276,6 +313,7 @@ class GameHandler {
             return { success: false, error: error.message };
         }
     }
+
     async end_game(game_id, reason = "manually_ended") {
         try {
             const game = this.active_games.get(game_id);
@@ -284,16 +322,16 @@ class GameHandler {
             }
 
             await game.end_game(reason);
-            
+
             for (const [socket_id, tracked_game_id] of this.player_to_game) {
                 if (tracked_game_id === game_id) {
                     this.player_to_game.delete(socket_id);
                 }
             }
-            
+
             this.active_games.delete(game_id);
             logger.info(`Game ${game_id} ended: ${reason}`);
-            
+
             return { success: true, message: "Game ended" };
         } catch (error) {
             logger.error(`Failed to end game ${game_id}:`, error);
@@ -321,10 +359,11 @@ class GameHandler {
             game_state: game.get_game_state()
         };
     }
+
     get_server_stats() {
         let total_players = 0;
         let games_by_state = { starting: 0, running: 0, ended: 0 };
-        
+
         for (const game of this.active_games.values()) {
             total_players += game.players.size;
             games_by_state[game.state] = (games_by_state[game.state] || 0) + 1;
@@ -345,16 +384,16 @@ class GameHandler {
 
         game.on('game_ended', (data) => {
             logger.info(`Game ${data.game_id} ended: ${data.reason}`);
-            
+
             for (const [socket_id, game_id] of this.player_to_game) {
                 if (game_id === data.game_id) {
                     this.player_to_game.delete(socket_id);
                 }
             }
-            
+
             setTimeout(() => {
                 this.active_games.delete(data.game_id);
-            }, 30000); 
+            }, 30000);
         });
     }
 
@@ -369,16 +408,16 @@ class GameHandler {
     #cleanup_inactive_games() {
         const now = Date.now();
         const max_idle_time = 30 * 60 * 1000; // 30 minutes
-        
+
         for (const [game_id, game] of this.active_games) {
             const idle_time = now - game.last_update;
-            
-            if (game.state === "ended" || 
+
+            if (game.state === "ended" ||
                 (game.players.size === 0 && idle_time > max_idle_time)) {
-                
+
                 logger.info(`Cleaning up inactive game ${game_id}`);
                 this.active_games.delete(game_id);
-                
+
                 // Clean up any orphaned player references
                 for (const [socket_id, tracked_game_id] of this.player_to_game) {
                     if (tracked_game_id === game_id) {

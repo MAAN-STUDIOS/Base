@@ -6,12 +6,20 @@ const logger = get_logger('GameController');
 
 const authenticateUser = (req, res) => {
     if (!req.headers.authorization) {
-        res.status(401).json({ success: false, error: 'Unauthorized - No token provided' });
+        res.status(401).json({ success: false, error: 'Unauthorized - No authorization header provided' });
         return null;
     }
 
-    const token = req.headers.authorization;
+    let token = req.headers.authorization;
+    token = token.includes("Bearer") ? token.split(' ')[1] : token;
+
+    if (!token) {
+        res.status(401).send({ error: 'Unauthorized - No token provided' });
+        return null
+    }
+
     const user = verifyToken(token);
+
     if (!user) {
         res.status(401).json({ success: false, error: 'Unauthorized - Invalid token' });
         return null;
@@ -24,15 +32,15 @@ export class GameController {
     static async createGame(req, res) {
         try {
             const user = authenticateUser(req, res);
-            if (!user) return; 
+            if (!user) return;
 
             const { name, description, seed, max_players } = req.body;
 
-            
+
             if (!name || name.trim().length === 0) {
-                return res.status(400).json({ 
+                return res.status(400).json({
                     success: false,
-                    error: 'Game name is required' 
+                    error: 'Game name is required'
                 });
             }
 
@@ -61,20 +69,22 @@ export class GameController {
 
             if (result.success) {
                 logger.info(`User ${user.id} created game ${result.game_id}`);
+
+                await gameHandler.start_game(result.game_id);
                 res.status(201).json(result);
             } else {
                 res.status(400).json(result);
             }
         } catch (error) {
             logger.error('Failed to create game:', error);
-            res.status(500).json({ 
+            res.status(500).json({
                 success: false,
-                error: 'Failed to create game' 
+                error: 'Failed to create game'
             });
         }
     }
 
-    // Start a game
+    // TODO: maybe del later
     static async startGame(req, res) {
         try {
             const user = authenticateUser(req, res);
@@ -82,9 +92,9 @@ export class GameController {
 
             const game_id = parseInt(req.params.id);
             if (isNaN(game_id)) {
-                return res.status(400).json({ 
+                return res.status(400).json({
                     success: false,
-                    error: 'Invalid game ID' 
+                    error: 'Invalid game ID'
                 });
             }
 
@@ -98,61 +108,61 @@ export class GameController {
             }
         } catch (error) {
             logger.error('Failed to start game:', error);
-            res.status(500).json({ 
+            res.status(500).json({
                 success: false,
-                error: 'Failed to start game' 
+                error: 'Failed to start game'
             });
         }
     }
 
     static async joinGame(req, res) {
         try {
- 
+
             const user = authenticateUser(req, res);
             if (!user) return;
 
             const game_id = parseInt(req.params.id);
             const { player_type, socket_id } = req.body;
 
-  
+
             if (isNaN(game_id)) {
-                return res.status(400).json({ 
+                return res.status(400).json({
                     success: false,
-                    error: 'Invalid game ID' 
+                    error: 'Invalid game ID'
                 });
             }
-            
+
             if (!player_type || !['human', 'flood'].includes(player_type)) {
-                return res.status(400).json({ 
+                return res.status(400).json({
                     success: false,
-                    error: 'Invalid player type. Must be "human" or "flood"' 
+                    error: 'Invalid player type. Must be "human" or "flood"'
                 });
             }
-            
+
             if (!socket_id) {
-                return res.status(400).json({ 
+                return res.status(400).json({
                     success: false,
-                    error: 'Socket ID is required' 
+                    error: 'Socket ID is required'
                 });
             }
 
             const result = await gameHandler.join_game(game_id, socket_id, {
                 player_type,
                 username: user.username,
-                user_id: user.id
+                player_id: user.id
             });
 
             if (result.success) {
-                logger.info(`User ${user.username} joined game ${game_id} as ${player_type}`);
+                logger.info(`User ${user.id} joined game ${game_id} as ${player_type}`);
                 res.status(200).json(result);
             } else {
                 res.status(400).json(result);
             }
         } catch (error) {
             logger.error('Failed to join game:', error);
-            res.status(500).json({ 
+            res.status(500).json({
                 success: false,
-                error: 'Failed to join game' 
+                error: 'Failed to join game'
             });
         }
     }
@@ -165,11 +175,11 @@ export class GameController {
             if (!user) return;
 
             const { socket_id } = req.body;
-            
+
             if (!socket_id) {
-                return res.status(400).json({ 
+                return res.status(400).json({
                     success: false,
-                    error: 'Socket ID is required' 
+                    error: 'Socket ID is required'
                 });
             }
 
@@ -183,9 +193,9 @@ export class GameController {
             }
         } catch (error) {
             logger.error('Failed to leave game:', error);
-            res.status(500).json({ 
+            res.status(500).json({
                 success: false,
-                error: 'Failed to leave game' 
+                error: 'Failed to leave game'
             });
         }
     }
@@ -201,9 +211,9 @@ export class GameController {
             });
         } catch (error) {
             logger.error('Failed to list games:', error);
-            res.status(500).json({ 
+            res.status(500).json({
                 success: false,
-                error: 'Failed to retrieve games' 
+                error: 'Failed to retrieve games'
             });
         }
     }
@@ -213,9 +223,9 @@ export class GameController {
         try {
             const game_id = parseInt(req.params.id);
             if (isNaN(game_id)) {
-                return res.status(400).json({ 
+                return res.status(400).json({
                     success: false,
-                    error: 'Invalid game ID' 
+                    error: 'Invalid game ID'
                 });
             }
 
@@ -228,9 +238,9 @@ export class GameController {
             }
         } catch (error) {
             logger.error('Failed to get game info:', error);
-            res.status(500).json({ 
+            res.status(500).json({
                 success: false,
-                error: 'Failed to retrieve game information' 
+                error: 'Failed to retrieve game information'
             });
         }
     }
@@ -244,9 +254,9 @@ export class GameController {
 
             const game_id = parseInt(req.params.id);
             if (isNaN(game_id)) {
-                return res.status(400).json({ 
+                return res.status(400).json({
                     success: false,
-                    error: 'Invalid game ID' 
+                    error: 'Invalid game ID'
                 });
             }
 
@@ -259,9 +269,9 @@ export class GameController {
             }
         } catch (error) {
             logger.error('Failed to get game state:', error);
-            res.status(500).json({ 
+            res.status(500).json({
                 success: false,
-                error: 'Failed to retrieve game state' 
+                error: 'Failed to retrieve game state'
             });
         }
     }
@@ -278,13 +288,13 @@ export class GameController {
             const chunk_y = parseInt(req.params.y);
 
             if (isNaN(game_id) || isNaN(chunk_x) || isNaN(chunk_y)) {
-                return res.status(400).json({ 
+                return res.status(400).json({
                     success: false,
-                    error: 'Invalid parameters' 
+                    error: 'Invalid parameters'
                 });
             }
 
-            const result = gameHandler.get_chunk(game_id, chunk_x, chunk_y);
+            const result = await gameHandler.get_chunk(game_id, chunk_x, chunk_y);
 
             if (result.success) {
                 res.status(200).json(result);
@@ -293,9 +303,9 @@ export class GameController {
             }
         } catch (error) {
             logger.error('Failed to get chunk:', error);
-            res.status(500).json({ 
+            res.status(500).json({
                 success: false,
-                error: 'Failed to retrieve chunk data' 
+                error: 'Failed to retrieve chunk data'
             });
         }
     }
@@ -303,7 +313,7 @@ export class GameController {
     // GET /api/games/:id/dungeons/:dungeon_id - Get dungeon data
     static async getDungeon(req, res) {
         try {
-         
+
             const user = authenticateUser(req, res);
             if (!user) return;
 
@@ -311,9 +321,9 @@ export class GameController {
             const dungeon_id = parseInt(req.params.dungeon_id);
 
             if (isNaN(game_id) || isNaN(dungeon_id)) {
-                return res.status(400).json({ 
+                return res.status(400).json({
                     success: false,
-                    error: 'Invalid parameters' 
+                    error: 'Invalid parameters'
                 });
             }
 
@@ -326,9 +336,9 @@ export class GameController {
             }
         } catch (error) {
             logger.error('Failed to get dungeon:', error);
-            res.status(500).json({ 
+            res.status(500).json({
                 success: false,
-                error: 'Failed to retrieve dungeon data' 
+                error: 'Failed to retrieve dungeon data'
             });
         }
     }
@@ -336,7 +346,7 @@ export class GameController {
     // POST /api/games/dungeons/:dungeon_id/enter - Enter a dungeon
     static async enterDungeon(req, res) {
         try {
-        
+
             const user = authenticateUser(req, res);
             if (!user) return;
 
@@ -344,9 +354,9 @@ export class GameController {
             const { socket_id } = req.body;
 
             if (isNaN(dungeon_id) || !socket_id) {
-                return res.status(400).json({ 
+                return res.status(400).json({
                     success: false,
-                    error: 'Invalid parameters' 
+                    error: 'Invalid parameters'
                 });
             }
 
@@ -367,9 +377,9 @@ export class GameController {
             }
         } catch (error) {
             logger.error('Failed to enter dungeon:', error);
-            res.status(500).json({ 
+            res.status(500).json({
                 success: false,
-                error: 'Failed to enter dungeon' 
+                error: 'Failed to enter dungeon'
             });
         }
     }
@@ -381,11 +391,11 @@ export class GameController {
             if (!user) return;
 
             const { socket_id } = req.body;
-            
+
             if (!socket_id) {
-                return res.status(400).json({ 
+                return res.status(400).json({
                     success: false,
-                    error: 'Socket ID is required' 
+                    error: 'Socket ID is required'
                 });
             }
 
@@ -399,14 +409,13 @@ export class GameController {
             }
         } catch (error) {
             logger.error('Failed to exit dungeon:', error);
-            res.status(500).json({ 
+            res.status(500).json({
                 success: false,
-                error: 'Failed to exit dungeon' 
+                error: 'Failed to exit dungeon'
             });
         }
     }
 
-    
 
     // GET /api/games/player/current - Get player's current game
     static async getCurrentGame(req, res) {
@@ -415,11 +424,11 @@ export class GameController {
             if (!user) return;
 
             const { socket_id } = req.query;
-            
+
             if (!socket_id) {
-                return res.status(400).json({ 
+                return res.status(400).json({
                     success: false,
-                    error: 'Socket ID is required' 
+                    error: 'Socket ID is required'
                 });
             }
 
@@ -432,9 +441,9 @@ export class GameController {
             }
         } catch (error) {
             logger.error('Failed to get current game:', error);
-            res.status(500).json({ 
+            res.status(500).json({
                 success: false,
-                error: 'Failed to retrieve current game' 
+                error: 'Failed to retrieve current game'
             });
         }
     }
@@ -453,9 +462,9 @@ export class GameController {
             });
         } catch (error) {
             logger.error('Failed to get server stats:', error);
-            res.status(500).json({ 
+            res.status(500).json({
                 success: false,
-                error: 'Failed to retrieve server statistics' 
+                error: 'Failed to retrieve server statistics'
             });
         }
     }

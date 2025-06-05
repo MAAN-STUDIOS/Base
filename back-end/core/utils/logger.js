@@ -104,7 +104,7 @@ class Logger {
             msg = JSON.stringify(msg, null, 2);
         }
 
-        console.log(`${color}[ ${this.now()} ] [ ${this.module}:${String(this.ID++).padStart(5, '0')} ] [ ${level} ] - ${msg}${COLORS.RESET}`);
+        console.log(`${color}[ ${this.now()} ] [ ${String(this.ID++).padStart(5, '0')}:${this.module} ] [ ${level} ] - ${msg}${COLORS.RESET}`);
     }
 
     now() {

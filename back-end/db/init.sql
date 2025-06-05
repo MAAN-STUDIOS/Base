@@ -15,11 +15,11 @@ CREATE TABLE cosmonavt_user (
   ENGINE = InnoDB;
 
 CREATE TABLE player (
-    id                  INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
-    user_id             INT             NOT NULL,
-    played_time_seconds INT             NOT NULL,
-    kills               SMALLINT DEFAULT 0,
-    deaths              SMALLINT DEFAULT 0,
+    id                  INT PRIMARY KEY    NOT NULL AUTO_INCREMENT,
+    user_id             INT                NOT NULL,
+    played_time_seconds INT      DEFAULT 0 NOT NULL,
+    kills               SMALLINT DEFAULT 0 NOT NULL,
+    deaths              SMALLINT DEFAULT 0 NOT NULL,
     FOREIGN KEY (user_id) REFERENCES cosmonavt_user (id) ON DELETE CASCADE
 ) CHARACTER SET utf8mb4
   ENGINE = InnoDB;
@@ -47,7 +47,7 @@ CREATE TABLE game (
     id          INT          NOT NULL PRIMARY KEY AUTO_INCREMENT,
     name        VARCHAR(255) NOT NULL,
     description TEXT,
-    status      VARCHAR(12) DEFAULT 'NONE',
+    status      VARCHAR(12) DEFAULT 'starting', -- TODO: Move to enum, starting, running, ...
     start_time  TIMESTAMP   DEFAULT NOW(),
     end_time    TIMESTAMP   DEFAULT NULL,
     seed        VARCHAR(64) DEFAULT NULL
@@ -260,9 +260,13 @@ CREATE VIEW view_flood_view_game AS
              INNER JOIN death d ON pg.id = d.player_game_id
     GROUP BY pg.id;
 
-
 CREATE VIEW view_chunk AS
-    SELECT g.id AS game_id, c.id AS chunk_id, c.chunk_x AS chunk_x, c.chunk_y AS chunk_y, c.data AS data
+    SELECT g.id                    AS game_id,
+           gd.id                   AS dungeon_id,
+           c.id                    AS chunk_id,
+           c.chunk_x + gd.offset_x AS chunk_x,
+           c.chunk_y + gd.offset_y AS chunk_y,
+           c.data                  AS data
     FROM game g
              INNER JOIN game_dungeon gd ON g.id = gd.game_id
              INNER JOIN dungeon d ON gd.dungeon_id = d.id

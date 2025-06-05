@@ -76,12 +76,13 @@ export class AuthController {
     static async verifyToken(req, res){
         
         const body = req.body || {};
-        const token = body.token || req.headers.authorization;
-        
+        let token = body.token || req.headers.authorization;
+        token = token.includes("Bearer") ? token.split(' ')[1] : token;
+
         if (!token) {
             return res.status(401).send({ error: 'No token provided' });
         }
-        
+
         try {
             const user = verifyToken(token);
             if (!user) {

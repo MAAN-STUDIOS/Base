@@ -3,14 +3,20 @@ import get_logger from "../utils/logger.js";
 import players from "./players.js";
 
 const logger = get_logger("SOCKET");
+let io = null;
 
 export default function initSockets(server) {
+    if (io) {
+        logger.warn("Sockets were tried to be initialize more than once; returning instances");
+        return io;
+    }
+
     if (!server) {
         logger.error("Invalid server instance provided to socket initialization");
         return null;
     }
 
-    const io = new Server(server, {
+    io = new Server(server, {
         cors: {
             origin: [
                 process.env.FRONTEND_URL,
@@ -41,9 +47,6 @@ export default function initSockets(server) {
             }
         });
 
-        // socket.join(roomID);
-        // socket.leave(roomID);
-
         players(io, socket);
 
         socket.on("disconnect", () => {
@@ -53,3 +56,23 @@ export default function initSockets(server) {
 
     return io;
 }
+
+function joinRoom(socket_id, id) {
+    try {
+        io.sockets.get(socket_id).join(id);
+        return {
+            success: true
+        };
+    } catch (err) {
+        return {
+            success: false,
+            reason: err.message ?? "Probably socket id not found."
+        };
+    }
+}
+
+const sockets = {
+    joinRoom,
+};
+
+export { io, sockets };
