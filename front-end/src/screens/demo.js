@@ -4,6 +4,7 @@ import styles from "@screens/styles/game.module.css";
 
 import mapsSpriteSheet from "@assets/map.png";
 import { ShootingSystem } from "@engine/shootingsystem.js";
+import minimapsSpriteSheet from "@assets/minimap.png";
 
 
 export default function humanScreen() {
@@ -21,7 +22,7 @@ export default function humanScreen() {
             width: window.innerWidth,
             height: window.innerHeight,
             config: {
-                tiles_per_row: 1,
+                tiles_per_row: 4,
                 tile_size: 200,
                 chunk_size: 16,
                 n_loaded_chunks: 5,
@@ -30,15 +31,15 @@ export default function humanScreen() {
             }
         },
         miniMap: {
-            spriteSheet: mapsSpriteSheet,
+            spriteSheet: minimapsSpriteSheet,
             width: 250,
             height: 125,
             config: {
-                tiles_per_row: 1,
+                tiles_per_row: 4,
                 tile_size: 6,
                 chunk_size: 16,
                 n_loaded_chunks: 5,
-                debug: true,
+                debug: false,
                 debug_info: false
             }
         },

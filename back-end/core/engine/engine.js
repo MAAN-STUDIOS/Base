@@ -118,7 +118,7 @@ export class Game {
             ); // TODO: make them spawn in different places
 
             const player = {
-                id : player_id,
+                id: player_id,
                 socket_id,
                 username,
                 player_type,
@@ -144,7 +144,7 @@ export class Game {
 
             const status = sockets.joinRoom(socket_id, this.game_id);
 
-            if(!status.success) {
+            if (!status.success) {
                 logger.error(`Failed to join player ${player.id} with socker_id: ${player.socket_id} to a room: ${status.reason}`);
             }
 
@@ -225,19 +225,39 @@ export class Game {
     }
 
     async get_chunk(chunk_x, chunk_y) {
-        const chunk_data = await db.query(
-            `SELECT *
-             FROM view_chunk
-             WHERE game_id = ?
-               AND chunk_x = ?
-               AND chunk_y = ?`,
-            [this.game_id, chunk_x, chunk_y]
-        );
+        let chunk_data;
+        try {
+            chunk_data = await db.query(
+                `SELECT data
+                 FROM view_chunk
+                 WHERE game_id = ?
+                   AND chunk_x = ?
+                   AND chunk_y = ?`,
+                [this.game_id, chunk_x, chunk_y]
+            );
 
-        const chunk_arr_data = chunk_data[0].split(",");
-        logger.warn(JSON.stringify(chunk_arr_data));
+            if (!chunk_data || chunk_data.length === 0) {
+                return null
+            }
+        } catch (err) {
+            logger.error(`Error while getting chunk: ${err}`);
+            return null;
+        }
 
-        return chunk_arr_data;
+        try {
+            /**
+             * @NOTE: Its necessary to remove travelling \r or \n
+             * cause of the way they were insert in db,
+             *
+             * @WARING: Don't remove 10, radix is not the default always!!
+             */
+            return chunk_data[0].data.split(",").map(t => parseInt(t.toString().replace(/\\n|\\r/g, ""), 10));
+        } catch (err) {
+            logger.error(`Error while creating chunk: ${err}`);
+        }
+
+        return null;
+
     }
 
     get_dungeon(dungeon_id) {
