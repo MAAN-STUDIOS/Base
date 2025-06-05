@@ -1,5 +1,6 @@
-import {navigate} from "@utils/router.js";
+import { navigate } from "@utils/router.js";
 import styles from "@screens/styles/main.module.css";
+import { create_game } from "../core/utils/apimanager";
 
 export default function () {
     const listener = () => {
@@ -50,6 +51,19 @@ export default function () {
                     seed: formData.get("seed") || Math.floor(Math.random() * 1000000),
                     max_players: formData.get("max_players") || 8
                 };
+                create_game(gameData.name, gameData.description, gameData.seed, gameData.max_players, localStorage.getItem("authToken"))
+                    .then(response => {
+                        if (response.success) {
+                            navigate("play", { gameId: response.game_id });
+                        } else {
+                            alert("Failed to create game: " + response.error);
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Error creating game:", error);
+                        alert("An error occurred while creating the game.");
+                    });
+
                 console.log("Creating game with data:", gameData);
                 navigate("play", { gameData });
             });

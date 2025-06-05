@@ -1,7 +1,7 @@
 "use strict";
 import logger from "./logger.js";
 
-const api_url = "http://localhost:8000";
+const api_url = "http://localhost:3000";
 
 async function get_map_chunk(coordinates_x, coordinates_y, mockup) {
     if (mockup) {
@@ -58,7 +58,7 @@ function generateTempMapChunk(x, y) {
 
     const arrayX = x + 1;
     const arrayY = y + 1;
-    
+
     const chunkId = arrayY * 3 + arrayX;
 
     switch (chunkId) {
@@ -205,7 +205,7 @@ function generateTempMapChunk(x, y) {
                 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
                 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0,
                 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
-                
+
             ];
 
         case 7:
@@ -289,18 +289,18 @@ async function register(username, email, password) {
         },
         body: JSON.stringify({ name: username, email, password }),
     });
-    
+
     if (response.status === 409) {
         logger.error("User already exists");
         throw new Error("An account with this email already exists");
     }
-    
+
     if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         logger.error("Registration failed", errorData);
         throw new Error(errorData.error || "Failed to create account. Please try again.");
     }
-    
+
     const data = await response.json();
     return data;
 }
@@ -339,6 +339,21 @@ async function get_ranking() {
     const data = await response.json();
     return data;
 }
+async function create_game(name, description, seed, max_players, jwt) {
+    const response = await fetch(`${api_url}/games`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `${jwt}`
+        },
+        body: JSON.stringify({ name, description, seed, max_players }),
+    });
+    if (!response.ok) {
+        logger.error("Error creating game");
+        return null;
+    }
+    
+}
 
 export {
     get_map_chunk,
@@ -347,5 +362,6 @@ export {
     register,
     delete_user,
     get_seed,
-    get_ranking
+    get_ranking,
+    create_game
 }
