@@ -3,6 +3,7 @@ import { Engine } from "@engine";
 import styles from "@screens/styles/game.module.css";
 
 import mapsSpriteSheet from "@assets/map.png";
+import minimapsSpriteSheet from "@assets/minimap.png";
 import logger from "@utils/logger.js";
 import FloodHUD from "@/components/FloodHUD.js";
 
@@ -95,24 +96,24 @@ export default function floodScreen() {
             width: window.innerWidth,
             height: window.innerHeight,
             config: {
-                tiles_per_row: 1,
+                tiles_per_row: 2,
                 tile_size: 200,
                 chunk_size: 16,
                 n_loaded_chunks: 5,
-                debug: true,
+                debug: false,
                 debug_info: false
             }
         },
         miniMap: {
-            spriteSheet: mapsSpriteSheet,
+            spriteSheet: minimapsSpriteSheet,
             width: 250,
             height: 125,
             config: {
-                tiles_per_row: 1,
+                tiles_per_row: 2,
                 tile_size: 6,
                 chunk_size: 16,
                 n_loaded_chunks: 5,
-                debug: true,
+                debug: false,
                 debug_info: false
             }
         }

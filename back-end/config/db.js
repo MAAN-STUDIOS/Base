@@ -66,7 +66,7 @@ async function query(sql, params = []) {
         const [rows] = await pool.execute(sql, params);
         return rows;
     } catch (error) {
-        logger.error(`Query error: ${error.message}`);
+        logger.error(`Query error: ${error.message}, query: ${sql}, params: ${params}`);
         throw error;
     }
 }

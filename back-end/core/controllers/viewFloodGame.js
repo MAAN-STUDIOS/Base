@@ -6,7 +6,7 @@ export class FloodGame {
             const data = await db.query('SELECT * FROM view_flood_view_game');
             res.json(data);
         } catch (err) {
-            console.error('Error in get_viewFloodGame:', error);
+            console.error('Error in get_viewFloodGame:', err.message);
             res.status(500).send('Internal Server Error');
         }
     }

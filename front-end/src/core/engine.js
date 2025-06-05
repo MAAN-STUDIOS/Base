@@ -99,12 +99,13 @@ export class Engine {
         this._world.miniMap.ctx = null;
 
         const configMap = {
-            tiles_per_row: options.map.config.tiles_per_row || 1,
+            tiles_per_row: options.map.config.tiles_per_row || 4,
             tile_size: options.map.config.tile_size || 200,
             chunk_size: options.map.config.chunk_size || 16,
             n_loaded_chunks: options.map.config.n_loaded_chunks || 5,
             debug: options.map.config.debug || false,
-            debug_info: options.map.config.debug_info || false
+            debug_info: options.map.config.debug_info || false,
+            solidTilesID: [1,2,3,4]
         };
 
         const configMiniMap = {

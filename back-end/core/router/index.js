@@ -1,4 +1,6 @@
 import express from 'express';
+import swaggerUi from 'swagger-ui-express';
+import swaggerSpec from '../../config/openapi.js';
 import get_logger from '../utils/logger.js';
 
 import { UserController } from "../controllers/user.js";
@@ -12,12 +14,15 @@ import { ViewDungeon } from '../controllers/viewDungeon.js';
 import { ViewNode } from '../controllers/viewNode.js'
 import { ViewLayout } from '../controllers/viewLayout.js';
 import { viewChunk } from '../controllers/viewChunk.js';
-import { HumanGame } from '../controllers/viewHumanGame.js';
+import {  HumanGame } from '../controllers/viewHumanGame.js';
 import { FloodGame } from '../controllers/viewFloodGame.js';
 import { ViewGameController } from '../controllers/viewGame.js';
+import { authenticateToken } from "../middleware/auth.js";
 
 const router = express.Router();
 const logger = get_logger('GameRouter');
+
+router.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 /**
  * @swagger
@@ -456,7 +461,7 @@ router.post('/auth/refresh', AuthController.refreshAccessToken);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/user/:id', UserController.get_user);
+router.get('/user/:id', authenticateToken, UserController.get_user);
 
 /**
  * @swagger
@@ -769,6 +774,68 @@ router.post('/games/:id/start', GameController.startGame);
 // ================================
 // PLAYER GAME ROUTES
 // ================================
+
+/**
+ * @swagger
+ * /player/register:
+ *   post:
+ *     tags:
+ *       - Players
+ *     summary: Register a new player
+ *     description: Create a new player account with user credentials
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *               - name
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 description: User's email address
+ *               password:
+ *                 type: string
+ *                 format: password
+ *                 description: User's password
+ *               name:
+ *                 type: string
+ *                 description: User's display name
+ *     responses:
+ *       201:
+ *         description: Player registered successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 token:
+ *                   type: string
+ *                   description: Authentication token
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                       description: User ID
+ *                     email:
+ *                       type: string
+ *                       description: User's email
+ *                     name:
+ *                       type: string
+ *                       description: User's name
+ *       400:
+ *         description: Missing required fields
+ *       409:
+ *         description: User already exists
+ *       500:
+ *         description: Internal server error
+ */
+router.post(`/player/register`, PlayerController.create_player);
 
 /**
  * @swagger

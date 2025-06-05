@@ -73,7 +73,7 @@ export class ObjectMap {
         this.hitboxes = [];
 
         /** @type {number[]} Array of tiles index (tiles id) that the player cannot pass through*/
-        this.solidTilesID = options.solidTilesID || [1];
+        this.solidTilesID = options.solidTilesID || [1,2,3,4,5,6];
 
         /** @type {number} Milliseconds between boundary checks */
         this.boundaryCheckCooldown = 1000;
@@ -482,8 +482,8 @@ export class ObjectMap {
 
         if (tileId === 0) return; // NOTE: Skip empty tiles (0)
 
-        const srcX = (tileId % this.tiles_per_row) * this.tile_size;
-        const srcY = Math.floor(tileId / this.tiles_per_row) * this.tile_size;
+        const srcX = ((tileId - 1) % this.tiles_per_row) * this.tile_size;
+        const srcY = Math.floor((tileId - 1) / this.tiles_per_row) * this.tile_size;
 
 
         const tileWorldX = chunkWorldX + tileX * this.tile_size;
@@ -688,6 +688,9 @@ export class ObjectMap {
      * @param {string} chunkKey - Chunk identifier
      */
     #mountChunk(data, chunkKey) {
+        if (!data) {
+            this.chunks_loaded.set(chunkKey, new Array(272).fill(0));
+        }
         if (data) {
             this.chunks_loaded.set(chunkKey, data);
             // logger.info(`Loaded chunk at ${chunkKey}`);
@@ -707,7 +710,7 @@ export class ObjectMap {
      */
     #errorMountingChunk(err, chunkKey) {
         logger.error(`Error loading chunk ${chunkKey}: ${err}`);
-        this.chunks_loaded.set(chunkKey, this.#createFallbackChunk(chunkKey));
+        this.chunks_loaded.set(chunkKey, new Array(272).fill(0));
     }
 
     /**

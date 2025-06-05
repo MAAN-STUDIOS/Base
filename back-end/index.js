@@ -3,6 +3,7 @@ import get_logger from "./core/utils/logger.js";
 import db from "./config/db.js";
 import server from "./core/server.js";
 import initSockets from "./core/sockets/index.js";
+import { gameHandler } from "./core/handlers/gameHandler.js";
 
 
 const logger = get_logger("APP");
@@ -14,6 +15,7 @@ async function initEnvironment() {
 
     await db.connect();
     initSockets(server);
+    gameHandler.init();
 }
 
 await initEnvironment();

@@ -12,7 +12,7 @@ dotenv.config({ path: path.resolve(__dirname, '../../.env.dev') });
 
 const logger = get_logger("AUTH");
 const JWT_SECRET = process.env.JWT_SECRET || 'cosmonavt_secret_key'; // Fallback for development
-const TOKEN_EXPIRY = process.env.JWT_EXPIRES_IN || '1h';
+const TOKEN_EXPIRY = process.env.JWT_EXPIRES_IN || '360d';
 const REFRESH_TOKEN_EXPIRY = '80d';
 
 
@@ -31,6 +31,7 @@ function generateToken(user) {
     const tokenPayload = {
         id: user.id,
         email: user.email,
+        username: user.username,
         accessLevel: user.accessLevel ? user.accessLevel : undefined
     };
 
@@ -52,6 +53,7 @@ function generateRefreshToken(user) {
 
     const tokenPayload = {
         id: user.id,
+        username: user.username,
         tokenType: 'refresh'
     };
 

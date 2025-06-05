@@ -1,42 +1,86 @@
 import db from "../../config/db.js";
 import get_logger from "../utils/logger.js";
+import { io, sockets } from '../sockets/index.js';
 
 const logger = get_logger("GameEngine");
 
 export class Game {
     constructor(options = {}) {
-        this.game_id = null;
+        this.game_id = options.id || null;
         this.name = options.name || "Untitled Game";
         this.description = options.description || "No description provided.";
         this.seed = options.seed || Math.floor(Math.random() * 1000000);
-        
+
         this.state = "starting";
         this.start_time = null;
         this.last_update = Date.now();
-        
-        this.players = new Map(); // Maps socket_id to player object
+
+        /**
+         * socketID
+         * @type {Map<string, {}>}
+         */
+        this.players = new Map();
         this.max_players = options.max_players || 8;
-        
+
         this.stats = {
             fragments_collected: 0,
             total_kills: 0,
             total_deaths: 0
         };
-        
+
         this.event_callbacks = new Map();
-        
+
         logger.info(`Game created: ${this.name} (Seed: ${this.seed})`);
     }
 
     async init() {
+        const ranges = {
+            d1: {
+                x: [-15, 15],
+                y: [-15, 15]
+            },
+            d2: {
+                x: [0, 0],
+                y: [0, 0]
+            },
+            d3: {
+                x: [20, 35],
+                y: [20, 35]
+            }
+        };
+
+        const randInt = (range) => {
+            const n = Math.sin(this.seed) * 10000;
+            const random = n - Math.floor(n);
+
+            const min = range[0];
+            const max = range[1];
+            return Math.floor(random * (max - min + 1)) + min;
+        };
+
         try {
             const result = await db.query(
-                "INSERT INTO game (name, description, status, seed, start_time) VALUES (?, ?, ?, ?, NOW())",
+                "INSERT INTO game (name, description, status, seed, start_time) VALUES (?, ?, ?, ?, now())",
                 [this.name, this.description, "starting", this.seed]
             );
             this.game_id = result.insertId;
-            
+
+            await db.query(
+                `INSERT
+                 INTO game_dungeon (game_id, dungeon_id, offset_x, offset_y)
+                 VALUES (?, 1, ?, ?),
+                        (?, 2, ?, ?),
+                        (?, 3, ?, ?)`,
+                [
+                    this.game_id, randInt(ranges.d1.x), randInt(ranges.d1.y),
+                    this.game_id, randInt(ranges.d2.x), randInt(ranges.d2.y),
+                    this.game_id, randInt(ranges.d3.x), randInt(ranges.d3.y)
+                ]
+            );
+
             logger.info(`Game ${this.game_id} initialized successfully`);
+
+            await this.start();
             return true;
         } catch (error) {
             logger.error("Failed to initialize game:", error);
@@ -46,15 +90,15 @@ export class Game {
 
     async start() {
         if (this.state !== "starting") return false;
-        
+
         this.state = "running";
         this.start_time = Date.now();
-        
+
         await db.query(
             "UPDATE game SET status = 'running' WHERE id = ?",
             [this.game_id]
         );
-        
+
         logger.info(`Game ${this.game_id} started`);
         this.#emit_event("game_started", { game_id: this.game_id });
         return true;
@@ -65,65 +109,79 @@ export class Game {
             return { success: false, reason: "Game is full" };
         }
 
-        const { player_type, username, user_id } = player_data;
-        
-        const player_result = await db.query(
-            "INSERT INTO player_game (player_id, game_id, health, kills, last_position_x, last_position_y) VALUES (?, ?, ?, ?, ?, ?)",
-            [user_id, this.game_id, 100, 0, 0, 0]
-        );
-        
-        const player = {
-            socket_id,
-            username,
-            player_type,
-            player_game_id: player_result.insertId,
-            position: { x: 0, y: 0 },
-            health: 100,
-            max_health: 100,
-            is_alive: true,
-            current_map: "overworld",
-            
-            ...(player_type === "human" && {
-                oxygen: 100,
-                weapons: [1, 2],
-                generators_activated: 0
-            }),
-            
-            ...(player_type === "flood" && {
-                biomass: 0,
-                evolution: 1,
-                infected: 0
-            })
-        };
+        const { player_type, username, player_id } = player_data;
 
-        this.players.set(socket_id, player);
-        logger.info(`Player ${username} (${player_type}) joined game ${this.game_id}`);
-        
-        return { success: true, player };
+        try {
+            const player_result = await db.query(
+                "INSERT INTO player_game (player_id, game_id, health, kills, last_position_x, last_position_y) VALUES (?, ?, ?, ?, ?, ?)",
+                [player_id, this.game_id, 100, 0, 0, 0]
+            ); // TODO: make them spawn in different places
+
+            const player = {
+                id: player_id,
+                socket_id,
+                username,
+                player_type,
+                player_game_id: player_result.insertId,
+                position: { x: 0, y: 0 },
+                health: 100,
+                max_health: 100,
+                is_alive: true,
+                current_map: "overworld",
+
+                ...(player_type === "human" && {
+                    oxygen: 100,
+                    weapons: [1, 2], // TODO: later
+                    generators_activated: 0
+                }),
+
+                ...(player_type === "flood" && {
+                    biomass: 0,
+                    evolution: 1,
+                    infected: 0
+                })
+            };
+
+            const status = sockets.joinRoom(socket_id, this.game_id);
+
+            if (!status.success) {
+                logger.error(`Failed to join player ${player.id} with socker_id: ${player.socket_id} to a room: ${status.reason}`);
+            }
+
+            this.players.set(socket_id, player);
+            logger.info(`Player ${username} (${player_type}) joined game ${this.game_id}`);
+
+            return { success: true, player };
+        } catch (err) {
+            logger.error(`Failed to join player with id: ${player_id} to game ${this.game_id}`);
+            return { success: false, reason: err };
+        }
     }
 
     remove_player(socket_id) {
         const player = this.players.get(socket_id);
         if (player) {
             this.players.delete(socket_id);
+
+            io.sockets.get(socket_id).leave(this.game_id);
             logger.info(`Player ${player.username} left game ${this.game_id}`);
         }
     }
 
     async end_game(reason) {
         if (this.state === "ended") return;
-        
+
         this.state = "ended";
-        
+
         await db.query(
-            "UPDATE game SET status = ?, end_time = NOW() WHERE id = ?",
-            [reason, this.game_id]
+            "UPDATE game SET status = ?, end_time = now() WHERE id = ?",
+            [this.state, this.game_id]
         );
-        
-        for (const [socket_id, player] of this.players) {
+
+        for (const [_, player] of this.players) {
             await this.#save_player_final_stats(player);
         }
-        
+
         this.#emit_event("game_ended", { reason, stats: this.stats });
         logger.info(`Game ${this.game_id} ended: ${reason}`);
     }
@@ -133,7 +191,7 @@ export class Game {
             "UPDATE player_game SET health = ?, last_position_x = ?, last_position_y = ? WHERE id = ?",
             [player.health, player.position.x, player.position.y, player.player_game_id]
         );
-        
+
         if (player.player_type === "flood") {
             await db.query(
                 "INSERT INTO flood_game (player_game_id, biomass, infected) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE biomass = ?, infected = ?",
@@ -166,8 +224,40 @@ export class Game {
         }
     }
 
-    get_chunk(chunk_x, chunk_y) {
+    async get_chunk(chunk_x, chunk_y) {
+        let chunk_data;
+        try {
+            chunk_data = await db.query(
+                `SELECT data
+                 FROM view_chunk
+                 WHERE game_id = ?
+                   AND chunk_x = ?
+                   AND chunk_y = ?`,
+                [this.game_id, chunk_x, chunk_y]
+            );
+
+            if (!chunk_data || chunk_data.length === 0) {
+                return null
+            }
+        } catch (err) {
+            logger.error(`Error while getting chunk: ${err}`);
+            return null;
+        }
+
+        try {
+            /**
+             * @NOTE: Its necessary to remove travelling \r or \n
+             * cause of the way they were insert in db,
+             *
+             * @WARING: Don't remove 10, radix is not the default always!!
+             */
+            return chunk_data[0].data.split(",").map(t => parseInt(t.toString().replace(/\\n|\\r/g, ""), 10));
+        } catch (err) {
+            logger.error(`Error while creating chunk: ${err}`);
+        }
+
         return null;
+
     }
 
     get_dungeon(dungeon_id) {
@@ -190,7 +280,7 @@ export class Game {
         if (player) {
             player.current_map = `dungeon_${dungeon_id}`;
             player.position = { x: 0, y: 0 };
-            
+
             logger.info(`Player ${player.username} entered dungeon ${dungeon_id}`);
             return true;
         }
@@ -202,7 +292,7 @@ export class Game {
         if (player && player.current_map.startsWith("dungeon_")) {
             player.current_map = "overworld";
             player.position = { x: 0, y: 0 };
-            
+
             logger.info(`Player ${player.username} returned to overworld`);
             return true;
         }
