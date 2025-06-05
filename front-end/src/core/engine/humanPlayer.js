@@ -84,7 +84,7 @@ export class HumanPlayer extends Player {
         console.log("SpriteSheet loaded!");
         };
 
-        this.spriteRect = new Rect(0, 0, 64, 64);
+        this.spriteRect = new Rect(0, 0, 308, 307);
         this.previousDirection = "down";
         this.currentDirection = "down";
         this.frame = 0;
@@ -285,8 +285,8 @@ export class HumanPlayer extends Player {
             this.spriteRect.y * this.spriteRect.height,
             this.spriteRect.width,
             this.spriteRect.height,
-            screenCenterX - this.spriteRect.width / 2,
-            screenCenterY - this.spriteRect.height / 2,
+            screenCenterX - this.width / 2,
+            screenCenterY - this.height / 2,
             this.width,
             this.height 
         );   

@@ -12,12 +12,12 @@ export const playerMovement = {
         duration: animationDelay
     },
     left: {
-        frames: [8, 11],
+        frames: [8, 10], //11
         repeat: true,
         duration: animationDelay
     },
     right: {
-        frames: [0, 3], 
+        frames: [0, 2], //3
         repeat: true,
         duration: animationDelay
     }, 
