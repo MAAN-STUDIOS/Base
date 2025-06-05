@@ -66,4 +66,3 @@ initAudio();
 
 // Navigate to the appropriate screen
 navigate(location.pathname.slice(1) || 'menu');
-
