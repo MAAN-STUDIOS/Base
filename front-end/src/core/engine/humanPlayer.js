@@ -192,9 +192,29 @@ export class HumanPlayer extends Player {
             }
         } else {
             if (this.moveDirection.x > 0) {
-                this.currentDirection = "right";
+                if (this.activeSlot == 0){
+                    this.currentDirection = "shoot_pistol_right";
+                } else if (this.activeSlot == 1){
+                    this.currentDirection = "shoot_machinegun_right";
+                } else if (this.activeSlot == 2){
+                    this.currentDirection = "shoot_shotgun_right";
+                } else if (this.activeSlot == 3){
+                    this.currentDirection = "shoot_flamethrower_right";
+                } else {
+                    this.currentDirection = "right";
+                }
             } else if (this.moveDirection.x < 0) {
-                this.currentDirection = "left";
+                if (this.activeSlot == 0){
+                    this.currentDirection = "shoot_pistol_left";
+                } else if (this.activeSlot == 1){
+                    this.currentDirection = "shoot_machinegun_left";
+                } else if (this.activeSlot == 2){
+                    this.currentDirection = "shoot_shotgun_left";
+                } else if (this.activeSlot == 3){
+                    this.currentDirection = "shoot_flamethrower_left";
+                } else {
+                    this.currentDirection = "right";
+                }
             } else {
                 this.currentDirection = "idle";
             }
@@ -219,6 +239,7 @@ export class HumanPlayer extends Player {
         this.updateOxygen(dt);
         this.updateHealth(dt);
         this.updateWeapons(dt);
+
         this.setMovementAnimation();
         this.updateFrame(dt * 1000);
     }
@@ -288,7 +309,7 @@ export class HumanPlayer extends Player {
             screenCenterX - this.width / 2,
             screenCenterY - this.height / 2,
             this.width,
-            this.height 
+            this.height
         );   
     } 
     

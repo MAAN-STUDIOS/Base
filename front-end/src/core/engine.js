@@ -640,8 +640,8 @@ export class Engine {
         const configPlayer = {
             walkSpeed: this._player.walkSpeed,
             runSpeed: this._player.runSpeed,
-            width: this._player.size * 2,
-            height: this._player.size * 2,
+            width: this._player.size,
+            height: this._player.size,
             attackSlots: [
                 new Pistol({ speed: 130 }),
                 new Shotgun({ projectileCount: 2, spread: 15 }),
