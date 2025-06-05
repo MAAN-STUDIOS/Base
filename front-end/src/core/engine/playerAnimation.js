@@ -72,48 +72,65 @@ export const floodMovement = {
     down: {
       frames: [0, 1, 2, 4],
       repeat: true,
-      duration: animationDelay
+      duration: animationDelay,
+      spriteWidth: 78,
+      spriteHeight: 70
     },
     up: {
       frames: [5, 6, 7, 10],
       repeat: true,
-      duration: animationDelay
+      duration: animationDelay,
+      spriteWidth: 78,
+      spriteHeight: 70
     },
     left: {
       frames: [11, 12, 13, 14],
       repeat: true,
-      duration: animationDelay
+      duration: animationDelay,
+      spriteWidth: 78,
+      spriteHeight: 70
     },
     leftRun: {
       frames: [16, 17, 18, 20, 21, 22, 23],
       repeat: true,
-      duration: animationDelay * 0.6
+      duration: animationDelay * 0.6,
+      spriteWidth: 78,
+      spriteHeight: 70
     },
     right: {
-      // Reutilizamos [10..14] y haremos flipX al dibujar
       frames: [11, 12, 13, 14],
       repeat: true,
-      duration: animationDelay
+      duration: animationDelay,
+      spriteWidth: 78,
+      spriteHeight: 70
     },
     rightRun: {
       frames: [16, 17, 18, 20, 21, 22, 23],
       repeat: true,
-      duration: animationDelay * 0.6
+      duration: animationDelay * 0.6,
+      spriteWidth: 78,
+      spriteHeight: 70
     }, 
     death: {
       frames: [26, 27],
       repeat: false,
-      duration: animationDelay * 0.8
+      duration: animationDelay * 0.8,
+      spriteWidth: 78,
+      spriteHeight: 70
     },
     eat: {
       frames: [23, 15, 24],
       repeat: true,
-      duration: animationDelay * 0.8
+      duration: animationDelay * 0.8,
+      spriteWidth: 78,
+      spriteHeight: 70
     },
     attack: {
       frames: [11, 12, 13, 17],
       repeat: true,
-      duration: animationDelay * 0.8
+      duration: animationDelay * 0.8,
+      spriteWidth: 78,
+      spriteHeight: 70
     },
 };
 
@@ -121,36 +138,50 @@ export const clonMovement = {
     down: {
       frames: [0, 1],
       repeat: true,
-      duration: animationDelay
+      duration: animationDelay,
+      spriteWidth: 70,
+      spriteHeight: 62
     },
     up: {
       frames: [2, 4],
       repeat: true,
-      duration: animationDelay
+      duration: animationDelay,
+      spriteWidth: 70,
+      spriteHeight: 62
     },
     left: {
       frames: [5, 6, 7, 9],
       repeat: true,
-      duration: animationDelay
+      duration: animationDelay,
+      spriteWidth: 70,
+      spriteHeight: 62
     },
     leftRun: {
       frames: [8,9, 10, 12, 13],
       repeat: true,
-      duration: animationDelay * 0.6
+      duration: animationDelay * 0.6,
+      spriteWidth: 70,
+      spriteHeight: 62
     },
     right: {
       frames: [14, 16, 17, 22],
       repeat: true,
-      duration: animationDelay
+      duration: animationDelay,
+      spriteWidth: 70,
+      spriteHeight: 62
     },
     rightRun: {
       frames: [14, 15, 16, 17,18, 19, 20, 21],
       repeat: true,
-      duration: animationDelay * 0.6
+      duration: animationDelay * 0.6,
+      spriteWidth: 70,
+      spriteHeight: 62
     },
     death: {
       frames: [3],
       repeat: false,
-      duration: animationDelay * 0.8
+      duration: animationDelay * 0.8,
+      spriteWidth: 70,
+      spriteHeight: 62
     },
 }
