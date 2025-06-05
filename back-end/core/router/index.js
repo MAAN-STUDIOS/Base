@@ -9,7 +9,7 @@ import { PlayerController } from '../controllers/player.js';
 import { AuthController } from '../controllers/auth.js';
 import { GameController } from '../controllers/game.js';
 import { ViewDungeon } from '../controllers/viewDungeon.js';
-import { ViewNode } from '../controllers/viewNode.js'
+import { ViewNode } from '../controllers/viewNode.js';
 import { ViewLayout } from '../controllers/viewLayout.js';
 import { viewChunk } from '../controllers/viewChunk.js';
 import { HumanGame } from '../controllers/viewHumanGame.js';
