@@ -3,6 +3,7 @@ import { Vector } from "@utils/vector.js";
 import { Hitbox } from "@utils/hitbox.js";
 import { FloodClone } from "./floodclone.js";
 import logger from "@utils/logger.js";
+import { floodMovement } from "@engine/playerAnimation.js";
 
 
 /**
@@ -88,8 +89,6 @@ export class FloodPlayer extends Player {
     }
 
     infectHuman(human) {
-        // if (human.infected) return;
-        // human.infected = true;
         this.biomass += 20;
         logger.debug(`Infected human! Biomass: ${this.biomass}`);
     }
