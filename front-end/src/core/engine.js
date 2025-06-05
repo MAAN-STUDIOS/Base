@@ -563,13 +563,13 @@ export class Engine {
         const screenCenterX = this._world.map.width / 2;
         const screenCenterY = this._world.map.height / 2;
 
-        this._world.map.ctx.fillStyle = this._player.obj.color;
-        this._world.map.ctx.fillRect(
-            screenCenterX - this._player.size / 2,
-            screenCenterY - this._player.size / 2,
-            this._player.size,
-            this._player.size
-        );
+        // this._world.map.ctx.fillStyle = this._player.obj.color;
+        // this._world.map.ctx.fillRect(
+        //     screenCenterX - this._player.size / 2,
+        //     screenCenterY - this._player.size / 2,
+        //     this._player.size,
+        //     this._player.size
+        // );
 
         this.drawOthers(this._world.map.ctx);
 
