@@ -348,12 +348,68 @@ async function create_game(name, description, seed, max_players, jwt) {
         },
         body: JSON.stringify({ name, description, seed, max_players }),
     });
+    if (response.status === 401) {
+        logger.error("Unauthorized: JWT is required to create a game");
+        return response;
+    }
     if (!response.ok) {
         logger.error("Error creating game");
         return null;
     }
-    
+
+
+    return response;
+
 }
+async function join_game(game_id, player_type, socket_id, jwt) {
+    if (!jwt) {
+        logger.error("JWT is required to join a game");
+        return null;
+    }
+    const response = await fetch(`${api_url}/games/${game_id}/join`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `${jwt}`
+        },
+        body: JSON.stringify({ player_type, socket_id }),
+    });
+    if (!response.ok) {
+        logger.error("Error joining game");
+        return null;
+    }
+    return await response.json();
+}
+async function game_info(game_id) {
+
+    const response = await fetch(`${api_url}/games/${game_id}`, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+        },
+    });
+    logger.info(`Fetching game info for game ID: ${game_id}`);
+    if (!response.ok) {
+        logger.error("Game not found");
+        return null;
+    }
+    return await response.json();
+}
+async function active_games() {
+    const response = await fetch(`${api_url}/games/`, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+        },
+    });
+    if (!response.ok) {
+        logger.error("Error fetching active games");
+        return null;
+    }
+    return await response.json();
+}
+
+
 
 export {
     get_map_chunk,
@@ -363,5 +419,8 @@ export {
     delete_user,
     get_seed,
     get_ranking,
-    create_game
+    join_game,
+    create_game,
+    game_info,
+    active_games
 }
