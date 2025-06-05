@@ -13,6 +13,10 @@ import Pistola from "@/assets/Armas/pistola.png";
 /** @type {string}*/
 import Granada from "@/assets/Armas/granada.png";
 
+import Barra from "@assets/HUD/Barra_sinfo.png";
+
+import Circulo from "@assets/HUD/Circulo_sinfo.png";
+
 
 /**
  * Represents a human-controlled player in the game.
@@ -63,6 +67,13 @@ export class HumanPlayer extends Player {
 
         this.img4 = new Image();
         this.img4.src = Granada;
+
+        this.img5 = new Image();
+        this.img5.src = Barra;
+
+        this.img6 = new Image();
+        this.img6.src = Circulo;
+
 
         /**
          * @type {Object} - Tracks the current state of movement keys.
@@ -221,8 +232,14 @@ export class HumanPlayer extends Player {
         ctx.fillStyle = "white";
 
         //Imagen HUD
-        ctx.drawImage(this.img, 0, 0, 2304, 1728, 0, 0, ctx.canvas.width, ctx.canvas.height);
+        //ctx.drawImage(this.img, 0, 0, 2304, 1728, 0, 0, ctx.canvas.width, ctx.canvas.height);
+
+        //Barra 
+        ctx.drawImage(this.img5, 0, ctx.canvas.height - 135, 463, 135);
+        //Circulo
+        ctx.drawImage(this.img6, ctx.canvas.width - 134, ctx.canvas.height - 111, 134, 111);
     }
+
 
     drawWeapons(ctx) {
         const screenX = (ctx.canvas.width - this.width) / 2;
@@ -231,12 +248,14 @@ export class HumanPlayer extends Player {
         const canvasWidth = ctx.canvas.width;
         const canvasHeight = ctx.canvas.height;
 
+                        //(image, dx, dy, dWidth, dHeight)
+                        
         // Escopeta (shotgun)
-        ctx.drawImage(this.imga, 20, canvasHeight - 120, 100, 100);
+        ctx.drawImage(this.imga, 37, canvasHeight - 100, 85, 85);
         // Ametralladora (machine gun)
-        ctx.drawImage(this.img2, 140, canvasHeight - 135, 120, 120);
+        ctx.drawImage(this.img2, 140, canvasHeight - 115, 95, 95);
         // Pistola (pistol)
-        ctx.drawImage(this.img3, 280, canvasHeight - 110, 90, 90);
+        ctx.drawImage(this.img3, 262, canvasHeight - 105, 82, 82);
 
         // Grenade
         ctx.drawImage(this.img4, canvasWidth - 110, canvasHeight - 110, 90, 90);
