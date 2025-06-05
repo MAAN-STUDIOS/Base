@@ -197,48 +197,53 @@ export class FloodPlayer extends Player {
         const colors = ["#8b0000", "#b80000", "#ff3030"];
         this.color = colors[this.evolution - 1];
 
+        // Posición fija en la pantalla (un poco arriba de la mitad)
+        const fixedX = ctx.canvas.width / 2 - 25; // Centrado horizontalmente, ajustado para el ancho de las barras
+        const fixedY = ctx.canvas.height / 2 - 50; // Un poco arriba de la mitad
+
         ctx.font = "12px monospace";
         ctx.fillStyle = "white";
-        ctx.fillText(`Biomass: ${this.biomass}`, this.position.x, this.position.y - 20);
-        ctx.fillText(`Evo: ${this.evolution}`, this.position.x, this.position.y - 35);
+        ctx.fillText(`Biomass: ${this.biomass}`, fixedX, fixedY - 20);
+        ctx.fillText(`Evo: ${this.evolution}`, fixedX, fixedY - 35);
 
         const now = performance.now();
-        // Evolution bar
+
+        // Evolution bar (debajo del texto)
         const evoRem = Math.max(0, this.evolutionCooldown - now);
         const evoPct = evoRem / 2000;
         ctx.fillStyle = "gray";
-        ctx.fillRect(this.position.x, this.position.y - 50, 50, 3);
+        ctx.fillRect(fixedX, fixedY - 10, 50, 3);
         if (evoRem > 0) {
             ctx.fillStyle = "purple";
-            ctx.fillRect(this.position.x, this.position.y - 50, 50 * (1 - evoPct), 3);
+            ctx.fillRect(fixedX, fixedY - 10, 50 * (1 - evoPct), 3);
         }
 
         // Clone bar
         const cloneRem = Math.max(0, this.cloneCooldown - (now - this.lastCloneTime));
         const clonePct = this.cloneCooldown > 0 ? cloneRem / this.cloneCooldown : 0;
         ctx.fillStyle = "gray";
-        ctx.fillRect(this.position.x, this.position.y - 45, 50, 5);
+        ctx.fillRect(fixedX, fixedY - 5, 50, 5);
         if (cloneRem > 0) {
             ctx.fillStyle = "blue";
-            ctx.fillRect(this.position.x, this.position.y - 45, 50 * (1 - clonePct), 5);
+            ctx.fillRect(fixedX, fixedY - 5, 50 * (1 - clonePct), 5);
         }
 
         // Consume cooldown bar
         const consumeRem = Math.max(0, this.consumeCooldown - now);
         const consumePct = consumeRem / 2000;
         ctx.fillStyle = "gray";
-        ctx.fillRect(this.position.x, this.position.y - 60, 50, 3);
+        ctx.fillRect(fixedX, fixedY + 2, 50, 3);
         if (consumeRem > 0) {
             ctx.fillStyle = "yellow";
-            ctx.fillRect(this.position.x, this.position.y - 60, 50 * (1 - consumePct), 3);
+            ctx.fillRect(fixedX, fixedY + 2, 50 * (1 - consumePct), 3);
         }
 
         // Attack bars
-        const attackY = this.position.y - 55;
+        const attackY = fixedY + 7;
         Object.entries(this.attackCooldowns).forEach(([type, cd], idx) => {
             const rem = Math.max(0, cd - now);
             const pct = rem / 3000;
-            const x = this.position.x + idx * 15;
+            const x = fixedX + idx * 15;
             ctx.fillStyle = "gray";
             ctx.fillRect(x, attackY, 10, 3);
             if (rem > 0) {

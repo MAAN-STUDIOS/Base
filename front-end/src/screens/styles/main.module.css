@@ -214,5 +214,87 @@
     font-family: 'Press Start 2P', monospace;
     font-size: 0.8rem;
 }
+/* Active Games Section */
+.activeGamesSection {
+    width: 100%;
+    max-width: 500px;
+    margin: 1rem 0;
+}
 
+.activeGamesTitle {
+    color: #cccccc;
+    font-size: 0.9rem;
+    margin-bottom: 0.8rem;
+    text-align: center;
+}
+
+.activeGamesList {
+    background: rgba(0, 0, 0, 0.6);
+    border: 1px solid #cccccc;
+    border-radius: 5px;
+    padding: 1rem;
+    max-height: 200px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.gameItem {
+    background: rgba(204, 204, 204, 0.1);
+    border: 1px solid rgba(204, 204, 204, 0.3);
+    border-radius: 4px;
+    padding: 0.8rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.gameItem:hover {
+    background: rgba(204, 204, 204, 0.2);
+    border-color: #cccccc;
+    transform: translateY(-1px);
+}
+
+.gameName {
+    color: #ffffff;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+.gameInfo {
+    color: #cccccc;
+    font-size: 0.7rem;
+    opacity: 0.8;
+}
+
+.noGames,
+.loadingGames {
+    color: rgba(204, 204, 204, 0.6);
+    font-size: 0.7rem;
+    text-align: center;
+    padding: 1rem;
+    font-style: italic;
+}
+
+/* Scrollbar styling for active games list */
+.activeGamesList::-webkit-scrollbar {
+    width: 8px;
+}
+
+.activeGamesList::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+}
+
+.activeGamesList::-webkit-scrollbar-thumb {
+    background: rgba(204, 204, 204, 0.3);
+    border-radius: 4px;
+}
+
+.activeGamesList::-webkit-scrollbar-thumb:hover {
+    background: rgba(204, 204, 204, 0.5);
+}
 
