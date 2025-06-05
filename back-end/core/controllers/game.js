@@ -278,35 +278,36 @@ export class GameController {
 
     // GET /api/games/:id/chunks/:x/:y - Get chunk data
     static async getChunk(req, res) {
+        const user = authenticateUser(req, res);
+        if (!user) return;
+
+        const game_id = parseInt(req.params.id);
+        const chunk_x = parseInt(req.params.x);
+        const chunk_y = parseInt(req.params.y);
+
+        if (isNaN(game_id) || isNaN(chunk_x) || isNaN(chunk_y)) {
+            return res.status(400).json({
+                success: false,
+                error: 'Invalid parameters'
+            });
+        }
+
+        let result;
         try {
-            // Authenticate user
-            const user = authenticateUser(req, res);
-            if (!user) return;
-
-            const game_id = parseInt(req.params.id);
-            const chunk_x = parseInt(req.params.x);
-            const chunk_y = parseInt(req.params.y);
-
-            if (isNaN(game_id) || isNaN(chunk_x) || isNaN(chunk_y)) {
-                return res.status(400).json({
-                    success: false,
-                    error: 'Invalid parameters'
-                });
-            }
-
-            const result = await gameHandler.get_chunk(game_id, chunk_x, chunk_y);
-
-            if (result.success) {
-                res.status(200).json(result);
-            } else {
-                res.status(404).json(result);
-            }
+            result = await gameHandler.get_chunk(game_id, chunk_x, chunk_y);
         } catch (error) {
-            logger.error('Failed to get chunk:', error);
+            logger.error('Failed to get chunk:', error.message);
             res.status(500).json({
                 success: false,
-                error: 'Failed to retrieve chunk data'
+                error: `Failed to retrieve chunk data: ${error.message}`
             });
+            return;
+        }
+
+        if (result.success) {
+            res.status(200).json(result);
+        } else {
+            res.status(404).json(result);
         }
     }
 
