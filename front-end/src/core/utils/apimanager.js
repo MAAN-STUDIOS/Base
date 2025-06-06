@@ -1,7 +1,7 @@
 "use strict";
 import logger from "./logger.js";
 
-const api_url = "http://localhost:8000";
+const api_url = process.env.BACKEND_URL.replace(/\/+$/, '');
 
 async function get_map_chunk(coordinates_x, coordinates_y, mockup) {
     const token = localStorage.getItem("authToken");
