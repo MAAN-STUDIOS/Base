@@ -4,7 +4,7 @@ import logger from "./logger.js";
 const api_url = "http://localhost:3000";
 
 async function get_map_chunk(coordinates_x, coordinates_y, mockup) {
-    const token = localStorage.getItem("authToken")
+    const token = localStorage.getItem("authToken");
     const game_id = localStorage.getItem("gameId");
     if (!game_id || !token) {
         logger.error("Game ID or auth token not found in local storage");
@@ -22,7 +22,7 @@ async function get_map_chunk(coordinates_x, coordinates_y, mockup) {
             "Authorization": token,
         },
     });
-    if (response.status === 404) {
+    if (response.status === 404 || response.status === 204) {
         return new Array(272).fill(0); // Return empty chunk if not found
     }
 
