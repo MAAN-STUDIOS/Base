@@ -15,6 +15,11 @@ import screenCreateAccount from "@screens/createAccount.js";
 import screenJoinGame from "@screens/joinGame.js";
 import screenDashboard from "@screens/dashboard.js";
 import context_screen from '@screens/context_screen';
+import pistolSound from "@/assets/sfx/pistol.wav";
+import machineGunSound from "@/assets/sfx/machineGunSound.wav";
+import gunshotSound from "@/assets/sfx/gunshotSound.wav";
+import flamethrowerSound from "@/assets/sfx/flamethrowerSound3.wav";
+import stepsSound from "@/assets/sfx/stepsSound.wav";
 
 // Register all screens
 registerScreen('menu', screenMenu);
