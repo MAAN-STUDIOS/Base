@@ -237,7 +237,7 @@ export class Game {
             );
 
             if (!chunk_data || chunk_data.length === 0) {
-                return null
+                return {empty: true};
             }
         } catch (err) {
             logger.error(`Error while getting chunk: ${err}`);
@@ -251,7 +251,9 @@ export class Game {
              *
              * @WARING: Don't remove 10, radix is not the default always!!
              */
-            return chunk_data[0].data.split(",").map(t => parseInt(t.toString().replace(/\\n|\\r/g, ""), 10));
+            return {
+                data: chunk_data[0].data.split(",").map(t => parseInt(t.toString().replace(/\\n|\\r/g, ""), 10))
+            };
         } catch (err) {
             logger.error(`Error while creating chunk: ${err}`);
         }

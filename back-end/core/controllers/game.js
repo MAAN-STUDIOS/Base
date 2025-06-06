@@ -305,7 +305,11 @@ export class GameController {
         }
 
         if (result.success) {
-            res.status(200).json(result);
+            if (result.empty) {
+                res.status(204).json(result)
+            } else {
+                res.status(200).json(result);
+            }
         } else {
             res.status(404).json(result);
         }

@@ -247,7 +247,8 @@ class GameHandler {
 
         return {
             success: true,
-            chunk_data: chunk
+            empty: chunk.empty,
+            chunk_data: chunk.data
         };
     }
 
