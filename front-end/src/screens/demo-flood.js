@@ -85,7 +85,7 @@ export default function floodScreen() {
         fps: 60,
         player: {
             type: "flood",
-            size: 50,
+            size: 130,
             position: Vector.zero(),
             walkSpeed: 100,
             runSpeed: 1000,
