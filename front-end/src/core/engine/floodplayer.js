@@ -63,10 +63,6 @@ export class FloodPlayer extends Player {
         this.img = new Image();
         this.img.src = SpriteSheet;
 
-        this.img.onload = () => {
-            console.log("SpriteSheet loaded!");
-        };
-
         this.spriteRect = new Rect(0, 0, 78, 70);
         this.previousDirection = "down";
         this.currentDirection = "down";

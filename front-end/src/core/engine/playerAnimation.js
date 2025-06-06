@@ -157,4 +157,9 @@ export const clonMovement = {
       repeat: false,
       duration: animationDelay * 0.8,
     },
+    idle: {
+        frames: [0, 0], //17
+        repeat: true,
+        duration: animationDelay,
+    },
 }
