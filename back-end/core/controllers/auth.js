@@ -88,6 +88,22 @@ export class AuthController {
             if (!user) {
                 return res.status(401).send({ error: 'Invalid token' });
             }
+
+            try {
+                const player = await db.query(
+                    `SELECT *
+                 FROM player
+                 WHERE id = ?`,
+                    [user.id]);
+
+                if (!player || player.length === 0) {
+                    res.status(404).send({ error: 'No user founded' });
+                }
+
+                res.status(200);
+            } catch (err) {
+                res.status(500).send(err);
+            }
             res.status(200).send({ user });
         } catch (error) {
             console.error('Token verification failed:', error);
