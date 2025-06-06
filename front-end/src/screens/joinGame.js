@@ -17,7 +17,7 @@ export default function () {
         const modalErrorMessage = document.getElementById("modal-error-message");
         const activeGamesList = document.getElementById("active-games-list");
         
-        localStorage.setItem("gameId", "");
+        localStorage.setItem("gameId", "NOT_SET");
 
         const showError = (message, isModal = false) => {
             const errorEl = isModal ? modalErrorMessage : errorMessage;
@@ -86,6 +86,8 @@ export default function () {
 
                 try {
                     const data = await game_info(gameId);
+                    console.log("Game Info Data:" + gameId);
+                    localStorage.setItem("gameId", gameId);
                     
                     if (!data) {
                         showError("Game not found");
