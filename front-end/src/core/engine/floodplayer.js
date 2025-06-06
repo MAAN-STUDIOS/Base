@@ -331,9 +331,9 @@ export class FloodPlayer extends Player {
     die() {
         super.die();
 
-        // this.biomass = 0;
+        this.biomass = 0;
         this.evolution = 1;
-        this.biomass = 150;
+        // this.biomass = 150; for testing purposes
         this.clones.forEach(clone => clone.die());
         this.clones = [];
 

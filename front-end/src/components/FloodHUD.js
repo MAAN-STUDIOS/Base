@@ -1,5 +1,6 @@
 import styles from "@screens/styles/floodHUD.module.css";
-
+import CloneIcon from "@/assets/Flood/Clone/clone-icon.png";
+import EvolveIcon from "@/assets/Flood/evolve.png";
 
 export default class FloodHUD {
     constructor(gameContainer) {
@@ -107,7 +108,7 @@ export default class FloodHUD {
         this.cloneAbilities.style.display = 'flex';
         this.cloneAbilities.style.gap = '15px';
 
-        const cloneTypes = ['Infectador', 'Tanque', 'Explosivo'];
+        const cloneTypes = ['Clone', 'Evolve'];
         this.cloneSlots = cloneTypes.map((type, index) => this.createCloneSlot(type, index));
     }
 
@@ -129,7 +130,11 @@ export default class FloodHUD {
         icon.className = styles.cloneIcon;
         icon.style.width = '50px';
         icon.style.height = '50px';
-        icon.style.backgroundImage = `url(@assets/icons/${type.toLowerCase()}.png)`;
+        if (type === 'Clone') {
+            icon.style.backgroundImage = `url(${CloneIcon})`;
+        } else if (type === 'Evolve') {
+            icon.style.backgroundImage = `url(${EvolveIcon})`;
+        }
         icon.style.backgroundSize = 'contain';
         icon.style.backgroundRepeat = 'no-repeat';
         icon.style.backgroundPosition = 'center';
@@ -166,7 +171,7 @@ export default class FloodHUD {
         cost.style.textShadow = '1px 1px 2px black';
         
         const key = document.createElement('div');
-        const keyText = index === 0 ? 'C' : (index === 1 ? 'E' : 'F');
+        const keyText = index === 0 ? 'C' : 'E';
         key.textContent = `[${keyText}]`;
         key.style.color = 'white';
         key.style.fontSize = '12px';
@@ -234,7 +239,7 @@ export default class FloodHUD {
         
         this.levelValue.textContent = player.evolution;
         
-        const cloneCosts = [25, 50, 75];
+        const cloneCosts = [25, 50];
         const now = performance.now();
         
         this.cloneSlots.forEach((slot, index) => {
