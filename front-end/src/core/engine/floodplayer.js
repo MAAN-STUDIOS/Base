@@ -1,8 +1,11 @@
-import { Player } from "./objectPlayer.js";
+import { Player } from "@engine/objectPlayer.js";
 import { Vector } from "@utils/vector.js";
 import { Hitbox } from "@utils/hitbox.js";
-import { FloodClone } from "./floodclone.js";
+import { FloodClone } from "@engine/floodclone.js";
 import logger from "@utils/logger.js";
+import { floodMovement } from "@engine/playerAnimation.js";
+import { Rect } from "@utils/rectangle.js";
+import SpriteSheet from "@/assets/Flood/flood-sprites.png";
 
 
 /**
@@ -56,6 +59,21 @@ export class FloodPlayer extends Player {
             consume: false
         };
 
+        // Sprite setup
+        this.img = new Image();
+        this.img.src = SpriteSheet;
+
+        this.spriteRect = new Rect(0, 0, 78, 70);
+        this.previousDirection = "down";
+        this.currentDirection = "down";
+        this.frame = 0;
+        this.minFrame = 0;
+        this.maxFrame = 0;
+        this.repeat = true;
+        this.frameDuration = 100;
+        this.totalTime = 0;
+        this.sheetCols = 5;
+
         this.#setupControls();
         logger.debug("FloodPlayer initialized");
     }
@@ -88,11 +106,74 @@ export class FloodPlayer extends Player {
     }
 
     infectHuman(human) {
-        // if (human.infected) return;
-        // human.infected = true;
         this.biomass += 20;
         logger.debug(`Infected human! Biomass: ${this.biomass}`);
     }
+
+    setAnimation(minFrame, maxFrame, repeat, duration) {
+        this.minFrame = minFrame;
+        this.maxFrame = maxFrame;
+        this.frame = minFrame;
+        this.repeat = repeat;
+        this.totalTime = 0;
+        this.frameDuration = duration * 1000;
+    }
+
+    updateFrame(deltaTime) {
+        this.totalTime += deltaTime;
+
+        if (this.totalTime >= this.frameDuration) {
+            const restartFrame = this.repeat ? this.minFrame : this.frame;
+            this.frame = this.frame < this.maxFrame ? this.frame + 1 : restartFrame;
+    
+            this.spriteRect.x = this.frame % this.sheetCols;
+            this.spriteRect.y = Math.floor(this.frame / this.sheetCols);
+    
+            this.totalTime = 0;
+        }
+    }
+
+    setMovementAnimation() {
+        if (Math.abs(this.moveDirection.y) > Math.abs(this.moveDirection.x)) {
+            if (this.moveDirection.y > 0) {
+                this.currentDirection = "down";
+            } else if (this.moveDirection.y < 0) {
+                this.currentDirection = "up";
+            } else {
+                this.currentDirection = "idle";
+            }
+        } else {
+            if (this.moveDirection.x > 0) {
+                if (this.keys.shift) {
+                    this.currentDirection = "rightRun";
+                } else {
+                    this.currentDirection = "right";
+                }
+            } else if (this.moveDirection.x < 0) {
+                if (this.keys.shift) {
+                    this.currentDirection = "leftRun";
+                } else {
+                    this.currentDirection = "left";
+                }
+            } else {
+                this.currentDirection = "idle";
+            }
+        }
+
+        if (this.keys.consume) {
+            this.currentDirection = "eat";
+        } else if (this.isDead) {
+            this.currentDirection = "death";
+        }
+
+        if (this.currentDirection !== this.previousDirection) {
+            const anim = floodMovement[this.currentDirection];
+            this.setAnimation(...anim.frames, anim.repeat, anim.duration);
+        }
+    
+        this.previousDirection = this.currentDirection;
+    }
+    
 
     createClone() {
         const now = performance.now();
@@ -194,6 +275,21 @@ export class FloodPlayer extends Player {
     draw(ctx) {
         super.draw(ctx);
 
+        const screenCenterX = ctx.canvas.width / 2;
+        const screenCenterY = ctx.canvas.height / 2;
+
+        ctx.drawImage(
+            this.img,
+            this.spriteRect.x * this.spriteRect.width,
+            this.spriteRect.y * this.spriteRect.height,
+            this.spriteRect.width,
+            this.spriteRect.height,
+            screenCenterX - this.width / 2,
+            screenCenterY - this.height / 2,
+            this.width,
+            this.height
+        );
+
         const colors = ["#8b0000", "#b80000", "#ff3030"];
         this.color = colors[this.evolution - 1];
 
@@ -201,56 +297,7 @@ export class FloodPlayer extends Player {
         const fixedX = ctx.canvas.width / 2 - 25; // Centrado horizontalmente, ajustado para el ancho de las barras
         const fixedY = ctx.canvas.height / 2 - 50; // Un poco arriba de la mitad
 
-        ctx.font = "12px monospace";
-        ctx.fillStyle = "white";
-        ctx.fillText(`Biomass: ${this.biomass}`, fixedX, fixedY - 20);
-        ctx.fillText(`Evo: ${this.evolution}`, fixedX, fixedY - 35);
-
         const now = performance.now();
-
-        // Evolution bar (debajo del texto)
-        const evoRem = Math.max(0, this.evolutionCooldown - now);
-        const evoPct = evoRem / 2000;
-        ctx.fillStyle = "gray";
-        ctx.fillRect(fixedX, fixedY - 10, 50, 3);
-        if (evoRem > 0) {
-            ctx.fillStyle = "purple";
-            ctx.fillRect(fixedX, fixedY - 10, 50 * (1 - evoPct), 3);
-        }
-
-        // Clone bar
-        const cloneRem = Math.max(0, this.cloneCooldown - (now - this.lastCloneTime));
-        const clonePct = this.cloneCooldown > 0 ? cloneRem / this.cloneCooldown : 0;
-        ctx.fillStyle = "gray";
-        ctx.fillRect(fixedX, fixedY - 5, 50, 5);
-        if (cloneRem > 0) {
-            ctx.fillStyle = "blue";
-            ctx.fillRect(fixedX, fixedY - 5, 50 * (1 - clonePct), 5);
-        }
-
-        // Consume cooldown bar
-        const consumeRem = Math.max(0, this.consumeCooldown - now);
-        const consumePct = consumeRem / 2000;
-        ctx.fillStyle = "gray";
-        ctx.fillRect(fixedX, fixedY + 2, 50, 3);
-        if (consumeRem > 0) {
-            ctx.fillStyle = "yellow";
-            ctx.fillRect(fixedX, fixedY + 2, 50 * (1 - consumePct), 3);
-        }
-
-        // Attack bars
-        const attackY = fixedY + 7;
-        Object.entries(this.attackCooldowns).forEach(([type, cd], idx) => {
-            const rem = Math.max(0, cd - now);
-            const pct = rem / 3000;
-            const x = fixedX + idx * 15;
-            ctx.fillStyle = "gray";
-            ctx.fillRect(x, attackY, 10, 3);
-            if (rem > 0) {
-                ctx.fillStyle = "red";
-                ctx.fillRect(x, attackY, 10 * (1 - pct), 3);
-            }
-        });
     }
 
     die() {
@@ -262,4 +309,11 @@ export class FloodPlayer extends Player {
 
         logger.debug("Flood died! Respawning in 3 seconds...");
     }
+
+    update(dt) {
+        super.update(dt);
+        this.setMovementAnimation();
+        this.updateFrame(dt * 1000);
+    }
+
 }
