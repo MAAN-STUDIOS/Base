@@ -5,7 +5,7 @@ import { FloodClone } from "@engine/floodclone.js";
 import logger from "@utils/logger.js";
 import { floodMovement } from "@engine/playerAnimation.js";
 import { Rect } from "@utils/rectangle.js";
-import SpriteSheet from "@/assets/Flood/flood-sprites.png";
+import SpriteSheet from "@/assets/Flood/flood-sprites1.png";
 
 
 /**
@@ -135,10 +135,21 @@ export class FloodPlayer extends Player {
 
     setMovementAnimation() {
         if (Math.abs(this.moveDirection.y) > Math.abs(this.moveDirection.x)) {
+            if (this.keys.attack) {
+                this.currentDirection = "attack";
+            } 
+            
             if (this.moveDirection.y > 0) {
-                this.currentDirection = "down";
+                if (this.keys.shift) {
+                    this.currentDirection = "downRun";
+                } else {
+                    this.currentDirection = "down";
+                }
             } else if (this.moveDirection.y < 0) {
                 this.currentDirection = "up";
+                if (this.keys.shift) {
+                    this.currentDirection = "upRun";
+                }
             } else {
                 this.currentDirection = "idle";
             }
