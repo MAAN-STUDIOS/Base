@@ -283,6 +283,18 @@ async function authenticate(email, password) {
     return data;
 }
 
+async function verifyToken(token) {
+    const response = await fetch(`${api_url}/auth/verify`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "authorization": `Bearer ${token}`
+        }
+    });
+
+    return response.ok;
+}
+
 async function register(username, email, password) {
     const response = await fetch(`${api_url}/auth/register`, {
         method: "POST",
@@ -417,6 +429,7 @@ export {
     get_map_chunk,
     userinfo,
     authenticate,
+    verifyToken,
     register,
     delete_user,
     get_seed,

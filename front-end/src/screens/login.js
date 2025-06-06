@@ -1,10 +1,14 @@
 import { navigate } from "@utils/router.js";
 import styles from "./styles/main.module.css";
-import { authenticate } from "../core/utils/apimanager";
+import { authenticate, verifyToken } from "../core/utils/apimanager";
 // import { authenticate } from "@core/utils/apimanager.js";
 import logger from "@utils/logger.js";
 
 export default function () {
+  verifyToken(localStorage.getItem("authToken")).then(valid => {
+    if (valid) navigate("join-game");
+  });
+
   const listener = () => {
     const loginForm = document.getElementById("login-form");
     const createAccountBtn = document.getElementById("create-account-btn");
@@ -27,8 +31,6 @@ export default function () {
             // Log successful login
             logger.debug("Login successful", { email: response.user.email });
             
-            // Navigate to game
-            // navigate("play");
             navigate("join-game");
           } else {
             errorMessage.textContent = "Invalid email or password";

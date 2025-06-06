@@ -76,7 +76,7 @@ export class AuthController {
     static async verifyToken(req, res){
         
         const body = req.body || {};
-        let token = body.token || req.headers.authorization;
+        let token = (body.token || req.headers.authorization).toString();
         token = token.includes("Bearer") ? token.split(' ')[1] : token;
 
         if (!token) {
