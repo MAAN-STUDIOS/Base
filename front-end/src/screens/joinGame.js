@@ -147,9 +147,13 @@ export default function () {
                         showError("Failed to create game. Please try again.");
                         return;
                     }
+                    //console.log("Create Game Response:", data);
+                    if (data.game_id === undefined) {
+                        navigate("join-game")
+                    }
                     if (data.success) {
                         localStorage.setItem("gameId", response.game_id);
-                        navigate("play");
+                        navigate("join-game");
                     } else if (response.status === 401) {
                         showError("You must be logged in to create a game.", true);
                         navigate("login");
