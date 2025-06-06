@@ -3,8 +3,7 @@
 import { io } from "socket.io-client";
 import logger from "./logger.js";
 
-const port = 3000;
-const socket_backend = `http://localhost:${port}/`;
+const socket_backend = process.env.BACKEND_URL.replace(/\/+$/, '');
 const socket = io(socket_backend, {
     autoConnect: true,
     reconnection: true,
