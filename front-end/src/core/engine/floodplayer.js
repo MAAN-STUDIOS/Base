@@ -5,7 +5,7 @@ import { FloodClone } from "@engine/floodclone.js";
 import logger from "@utils/logger.js";
 import { floodMovement } from "@engine/playerAnimation.js";
 import { Rect } from "@utils/rectangle.js";
-import SpriteSheet from "@/assets/Flood/flood-sprites.png";
+import SpriteSheet from "@/assets/Flood/flood-sprites1.png";
 
 
 /**
@@ -43,7 +43,7 @@ export class FloodPlayer extends Player {
         this.cloneCooldown = 5000;
         this.lastCloneTime = 0;
         this.evolutionCooldown = 0;
-        this.attackCooldowns = { melee: 0, acid: 0, toxicSmoke: 0, spikes: 0 };
+        this.attackCooldowns = { melee: 0, acid: 0};
         this.consumeCooldown = 0;
 
         /** @type {Array<FloodClone>} - Active clones of this player */
@@ -135,10 +135,18 @@ export class FloodPlayer extends Player {
 
     setMovementAnimation() {
         if (Math.abs(this.moveDirection.y) > Math.abs(this.moveDirection.x)) {
+
             if (this.moveDirection.y > 0) {
-                this.currentDirection = "down";
+                if (this.keys.shift) {
+                    this.currentDirection = "downRun";
+                } else {
+                    this.currentDirection = "down";
+                }
             } else if (this.moveDirection.y < 0) {
                 this.currentDirection = "up";
+                if (this.keys.shift) {
+                    this.currentDirection = "upRun";
+                }
             } else {
                 this.currentDirection = "idle";
             }
@@ -165,6 +173,15 @@ export class FloodPlayer extends Player {
         } else if (this.isDead) {
             this.currentDirection = "death";
         }
+
+        if (this.isAttacking) {
+            this.currentDirection = "attack";
+        }
+
+        if (this.keys.attack) {
+            this.currentDirection = "attack";
+        }
+        
 
         if (this.currentDirection !== this.previousDirection) {
             const anim = floodMovement[this.currentDirection];
@@ -214,24 +231,28 @@ export class FloodPlayer extends Player {
     }
 
     attack(type, target) {
-
+        if (this.isAttacking) return;
+        for (let i = 0; i < 3; i++) {
+            setTimeout(() => {
+                this.isAttacking = false;
+            }, 1000);
+        }
+        this.isAttacking = true;
 
         const now = performance.now();
+
         const cooldown = this.attackCooldowns[type] || 0;
         if (now < cooldown) return;
         switch (type) {
             case "melee":
-                target.takeDamage?.(15);
+                if (this.evolution === 1) {
+                    target.takeDamage?.(15);
+                } else if (this.evolution === 2) {
+                    target.takeDamage?.(25);
+                } else if (this.evolution === 3) {
+                    target.takeDamage?.(50);
+                }
                 this.attackCooldowns.melee = now + 1000;
-                break;
-            case "acid":
-                target.takeDamage?.(5);
-                target.status = "corroded";
-                this.attackCooldowns.acid = now + 2000;
-                break;
-            case "toxicSmoke":
-                target.status = "confused";
-                this.attackCooldowns.toxicSmoke = now + 3000;
                 break;
         }
         logger.debug(`Attack ${type} executed on target`);
@@ -278,6 +299,13 @@ export class FloodPlayer extends Player {
         const screenCenterX = ctx.canvas.width / 2;
         const screenCenterY = ctx.canvas.height / 2;
 
+        let scale = 1.8;
+        if (this.evolution === 2) scale = 2.4;
+        else if (this.evolution === 3) scale = 3.2;
+
+        const drawWidth = this.width * scale;
+        const drawHeight = this.height * scale;
+
         ctx.drawImage(
             this.img,
             this.spriteRect.x * this.spriteRect.width,
@@ -286,8 +314,8 @@ export class FloodPlayer extends Player {
             this.spriteRect.height,
             screenCenterX - this.width / 2,
             screenCenterY - this.height / 2,
-            this.width,
-            this.height
+            drawWidth,
+            drawHeight
         );
 
         const colors = ["#8b0000", "#b80000", "#ff3030"];
@@ -304,6 +332,8 @@ export class FloodPlayer extends Player {
         super.die();
 
         this.biomass = 0;
+        this.evolution = 1;
+        // this.biomass = 150; for testing purposes
         this.clones.forEach(clone => clone.die());
         this.clones = [];
 

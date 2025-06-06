@@ -228,13 +228,13 @@ export default function floodScreen() {
                 <button id="btn-back-to-play">Back to menu</button>
             </div>
             <div class=${styles.controls}>
-                <div class=${styles.controlsTitle}>CONTROLES</div>
-                <div class=${styles.controlItem}>Movimiento: ↑ ↓ ← →</div>
-                <div class=${styles.controlItem}>Correr: Shift + Flechas</div>
-                <div class=${styles.controlItem}>Clonar: [C]</div>
-                <div class=${styles.controlItem}>Evolucionar: [E]</div>
-                <div class=${styles.controlItem}>Atacar: [F]</div>
-                <div class=${styles.controlItem}>Consumir (+80 vida): [Q]</div>
+                <div class=${styles.controlsTitle}>CONTROLS</div>
+                <div class=${styles.controlItem}>Movements: ↑ ↓ ← →</div>
+                <div class=${styles.controlItem}>Run: Shift + Arrows</div>
+                <div class=${styles.controlItem}>Clone: [C]</div>
+                <div class=${styles.controlItem}>Evolve: [E]</div>
+                <div class=${styles.controlItem}>Attack: [F]</div>
+                <div class=${styles.controlItem}>Consume (+80 Health): [Q]</div>
             </div> 
           </div>
 
