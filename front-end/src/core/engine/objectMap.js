@@ -328,7 +328,7 @@ export class ObjectMap {
 
                 this.chunks_loaded.set(chunkKey, null);
 
-                get_map_chunk(x, y, this.local)
+                get_map_chunk(x, y, false)
                     .then(data => this.#mountChunk(data, chunkKey))
                     .catch(err => this.#errorMountingChunk(err, chunkKey));
             }

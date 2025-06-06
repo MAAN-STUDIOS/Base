@@ -26,6 +26,7 @@ export default function () {
       }
       
       const gameId = localStorage.getItem("gameId");
+      console.log("Game ID:", gameId);
       if (!gameId || gameId == "" || gameId == "null") {
         showError("Please enter a game ID");
         navigate("join-game");

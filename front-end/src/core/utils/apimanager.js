@@ -4,56 +4,37 @@ import logger from "./logger.js";
 const api_url = "http://localhost:3000";
 
 async function get_map_chunk(coordinates_x, coordinates_y, mockup) {
-    if (mockup) {
-        return generateTempMapChunk(coordinates_x, coordinates_y);
-        /*return [
-            0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0,
-            0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0,
-            0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0,
-            0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 1, 1, 0, 0, 0,
-            0, 1, 1, 1, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0,
-            0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0,
-            0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0,
-            0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0,
-            0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0,
-            0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0,
-            0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0,
-            0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 0, 0,
-            0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0,
-            0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0,
-            0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-        ]*/
-        // return [
-        //     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        //     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        //     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        //     0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0,
-        //     0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0,
-        //     0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0,
-        //     0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0,
-        //     0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0,
-        //     0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0,
-        //     0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0,
-        //     0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0,
-        //     0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0,
-        //     0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0,
-        //     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        //     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-        // ];
+    const token = localStorage.getItem("authToken")
+    const game_id = localStorage.getItem("gameId");
+    if (!game_id || !token) {
+        logger.error("Game ID or auth token not found in local storage");
+        return null;
     }
 
-    const response = await fetch(`${api_url}/map/chunk/${coordinates_x}/${coordinates_y}`);
+    if (mockup) {
+        return generateTempMapChunk(coordinates_x, coordinates_y);
+    }
+
+    const response = await fetch(`${api_url}/games/${game_id}/chunks/${coordinates_x}/${coordinates_y}`, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": token,
+        },
+    });
+    if (response.status === 404) {
+        return new Array(272).fill(0); // Return empty chunk if not found
+    }
+
     if (!response.ok) {
         logger.error("Error fetching map chunk");
         return null;
     }
-    if (response.status === 204) {
-        logger.warn(`No map chunk found for coordinates (${coordinates_x}, ${coordinates_y})`);
-        return null;
-    }
-    return await response.json();
+    const data = await response.json();
+    console.log("coords: ", coordinates_x, coordinates_y);
+    console.log("Map chunk data received:", data);
+    console.log("Map chunk data:", data.chunk_data);
+    return data.chunk_data || null;
 }
 function generateTempMapChunk(x, y) {
     if (x < -1 || x > 1 || y < -1 || y > 1) {
@@ -296,7 +277,7 @@ async function verifyToken(token) {
 }
 
 async function register(username, email, password) {
-    const response = await fetch(`${api_url}/auth/register`, {
+    const response = await fetch(`${api_url}/player/register`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -392,6 +373,7 @@ async function join_game(game_id, player_type, socket_id, jwt) {
         logger.error("Error joining game");
         return null;
     }
+    //console.log("Response from join_game:", response);
     return await response.json();
 }
 async function game_info(game_id) {

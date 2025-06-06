@@ -101,7 +101,7 @@ export default function floodScreen() {
                 chunk_size: 16,
                 n_loaded_chunks: 5,
                 debug: false,
-                debug_info: false
+                debug_info: true
             }
         },
         miniMap: {
