@@ -19,7 +19,7 @@ import Barra from "@assets/HUD/Barra_sinfo.png";
 
 import Circulo from "@assets/HUD/Circulo_sinfo.png";
 
-import SpriteSheet from "@/assets/human/human.png";
+import SpriteSheet from "@/assets/human/final.png";
 
 /**
  * Represents a human-controlled player in the game.
@@ -84,7 +84,8 @@ export class HumanPlayer extends Player {
         console.log("SpriteSheet loaded!");
         };
 
-        this.spriteRect = new Rect(0, 0, 308, 307);
+        //this.spriteRect = new Rect(0, 0, 308, 307);
+        this.spriteRect = new Rect(0, 0, 153, 153);
         this.previousDirection = "down";
         this.currentDirection = "down";
         this.frame = 0;
@@ -93,7 +94,7 @@ export class HumanPlayer extends Player {
         this.repeat = true;
         this.frameDuration = 100;
         this.totalTime = 0;
-        this.sheetCols = 8;
+        this.sheetCols = 6;
 
 
         /**
@@ -190,30 +191,72 @@ export class HumanPlayer extends Player {
             } else {
                 this.currentDirection = "idle";
             }
+        } else if (this.moveDirection.x !== 0 && this.moveDirection.y !== 0) {
+            if (this.moveDirection.x < 0 && this.moveDirection.y < 0) {
+                if (this.activeSlot == 0) {
+                    this.currentDirection = "pistol_diagonal_left_up";
+                } else if (this.activeSlot == 1) {
+                    this.currentDirection = "machinegun_diagonal_left_up";
+                } else if (this.activeSlot == 2) {
+                    this.currentDirection = "shotgun_diagonal_left_up";
+                } else if (this.activeSlot == 3) {
+                    this.currentDirection = "flamethrower_diagonal_left_up";
+                }
+            } else if (this.moveDirection.x > 0 && this.moveDirection.y < 0) {
+                if (this.activeSlot == 0) {
+                    this.currentDirection = "pistol_diagonal_right_up";
+                } else if (this.activeSlot == 1) {
+                    this.currentDirection = "machinegun_diagonal_right_up";
+                } else if (this.activeSlot == 2) {
+                    this.currentDirection = "shotgun_diagonal_right_up";
+                } else if (this.activeSlot == 3) {
+                    this.currentDirection = "flamethrower_diagonal_right_up";
+                }
+            } else if (this.moveDirection.x < 0 && this.moveDirection.y > 0) {
+                if (this.activeSlot == 0) {
+                    this.currentDirection = "pistol_diagonal_left_down";
+                } else if (this.activeSlot == 1) {
+                    this.currentDirection = "machinegun_diagonal_left_down";
+                } else if (this.activeSlot == 2) {
+                    this.currentDirection = "shotgun_diagonal_left_down";
+                } else if (this.activeSlot == 3) {
+                    this.currentDirection = "flamethrower_diagonal_left_down";
+                }
+            } else if (this.moveDirection.x > 0 && this.moveDirection.y > 0) {
+                if (this.activeSlot == 0) {
+                    this.currentDirection = "pistol_diagonal_right_down";
+                } else if (this.activeSlot == 1) {
+                    this.currentDirection = "machinegun_diagonal_right_down";
+                } else if (this.activeSlot == 2) {
+                    this.currentDirection = "shotgun_diagonal_right_down";
+                } else if (this.activeSlot == 3) {
+                    this.currentDirection = "flamethrower_diagonal_right_down";
+                }
+            }
         } else {
             if (this.moveDirection.x > 0) {
-                if (this.activeSlot == 0){
+                if (this.activeSlot == 0) {
                     this.currentDirection = "shoot_pistol_right";
-                } else if (this.activeSlot == 1){
+                } else if (this.activeSlot == 1) {
                     this.currentDirection = "shoot_machinegun_right";
-                } else if (this.activeSlot == 2){
+                } else if (this.activeSlot == 2) {
                     this.currentDirection = "shoot_shotgun_right";
-                } else if (this.activeSlot == 3){
+                } else if (this.activeSlot == 3) {
                     this.currentDirection = "shoot_flamethrower_right";
                 } else {
                     this.currentDirection = "right";
                 }
             } else if (this.moveDirection.x < 0) {
-                if (this.activeSlot == 0){
+                if (this.activeSlot == 0) {
                     this.currentDirection = "shoot_pistol_left";
-                } else if (this.activeSlot == 1){
+                } else if (this.activeSlot == 1) {
                     this.currentDirection = "shoot_machinegun_left";
-                } else if (this.activeSlot == 2){
+                } else if (this.activeSlot == 2) {
                     this.currentDirection = "shoot_shotgun_left";
-                } else if (this.activeSlot == 3){
+                } else if (this.activeSlot == 3) {
                     this.currentDirection = "shoot_flamethrower_left";
                 } else {
-                    this.currentDirection = "right";
+                    this.currentDirection = "left";
                 }
             } else {
                 this.currentDirection = "idle";
@@ -226,7 +269,7 @@ export class HumanPlayer extends Player {
         }
     
         this.previousDirection = this.currentDirection;
-    }    
+    }     
 
     /**
      * Updates the player's state and position based on current key inputs.
