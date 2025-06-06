@@ -54,7 +54,6 @@ export default function humanScreen() {
         const minimap = document.getElementById("minimap");
 
         const start = document.getElementById("btn-continue")
-        const stop = document.getElementById("btn-stop");
         const back = document.getElementById("btn-back-to-play");
 
         game.init(map, minimap);
@@ -73,14 +72,41 @@ export default function humanScreen() {
             ShootingSystem.drawAll(ctx);
         });
 
-        stop?.addEventListener("click", () => game.stop());
-        start?.addEventListener("click", () => game.start());
+        start?.addEventListener("click", () => {
+            menu.style.display = "none";
+            game.start();
+        });
+
         back?.addEventListener("click", () => {
             game.stop();
             navigate("play");
         });
 
         game.start();
+
+        const menu = document.getElementById("menu");
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape") {
+                if (menu.style.display === "block") {
+                    menu.style.display = "none";
+                    game.start();
+                } else {
+                    game.stop();
+                    menu.style.display = "block";
+                }
+            }
+            if (e.key === "r" && game.player.isDead) {
+                game.respawnPlayer();
+            }
+        });
+
+        document.addEventListener("click", (event) => {
+            if (menu.style.display === "block" && !menu.contains(event.target)) {
+                event.preventDefault();
+                menu.style.display = "none";
+                game.start();
+            }
+        })
     };
 
     return [setup, `
@@ -89,17 +115,19 @@ export default function humanScreen() {
           <canvas class="${styles.map}" id="minimap"></canvas>  
           <div class="${styles.mapBg}"></div>
           
-          <div class="${styles.miniMenu}">
-            <button id="btn-stop">Stop</button>
-            <button id="btn-continue">Continue</button>
-            <button id="btn-back-to-play">Back to Play</button>
+          <div class="${styles.menu}" id="menu">
+            <div class="${styles.miniMenu}">
+                <button id="btn-continue">Continue</button>
+                <button id="btn-back-to-play">Back to menu</button>
+            </div>
+            <div class="${styles.controls}">
+                <div class="${styles.controlsTitle}">CONTROLS</div>
+                <div class="${styles.controlItem}">Move: ↑ ↓ ← → / WASD</div>
+                <div class="${styles.controlItem}">Run: Shift + Flechas / WASD</div>
+                <div class="${styles.controlItem}">Attack: Mouse Aim + [F] / [SPACE] / [Left click]</div>
+                <div class="${styles.controlItem}">Switch Weapon: [1, 2, 3, 4]</div>
+            </div> 
           </div>
-          <div class="${styles.controls}">
-            <div class="${styles.controlsTitle}">CONTROLS</div>
-            <div class="${styles.controlItem}">Move: ↑ ↓ ← → / WASD</div>
-            <div class="${styles.controlItem}">Run: Shift + Flechas / WASD</div>
-            <div class="${styles.controlItem}">Attack: [F] / [ ]</div>
-          </div> 
         </main>
    `];
 }

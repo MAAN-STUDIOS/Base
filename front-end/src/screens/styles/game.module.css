@@ -66,11 +66,17 @@
     height: 125px;
 }
 
-.mini-menu, .controls {
-    position: absolute;
-    bottom: 50dvh;
-    left: 10px;
+.menu {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: none;
+    padding: var(--spacing-m);
+}
 
+.mini-menu, .controls {
+    margin: var(--spacing-s);
     z-index: 4;
     padding: 15px;
 
@@ -90,9 +96,7 @@
 
 
 .controls {
-    bottom: 150px;
-    left: 20px;
-
+    margin: var(--spacing-s);
     display: flex;
     flex-direction: column;
     gap: 8px;

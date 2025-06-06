@@ -135,7 +135,6 @@ export default function floodScreen() {
         const minimap = document.getElementById("minimap");
 
         const start = document.getElementById("btn-continue")
-        const stop = document.getElementById("btn-stop");
         const back = document.getElementById("btn-back-to-play");
 
         const gameContainer = document.querySelector(`.${styles.container}`);
@@ -180,14 +179,41 @@ export default function floodScreen() {
         window.addEventListener('keydown', partialAbilities(true, abilityKeys));
         window.addEventListener('keyup', partialAbilities(false, abilityKeys));
 
-        stop?.addEventListener("click", () => game.stop());
-        start?.addEventListener("click", () => game.start());
+        start?.addEventListener("click", () => {
+            menu.style.display = "none";
+            game.start();
+        });
+
         back?.addEventListener("click", () => {
             game.stop();
             navigate("play");
         });
 
         game.start();
+
+        const menu = document.getElementById("menu");
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape") {
+                if (menu.style.display === "block") {
+                    menu.style.display = "none";
+                    game.start();
+                } else {
+                    game.stop();
+                    menu.style.display = "block";
+                }
+            }
+            if (e.key === "r" && game.player.isDead) {
+                game.respawnPlayer();
+            }
+        });
+
+        document.addEventListener("click", (event) => {
+            if (menu.style.display === "block" && !menu.contains(event.target)) {
+                event.preventDefault();
+                menu.style.display = "none";
+                game.start();
+            }
+        })
     };
 
     return [setup, `
@@ -196,21 +222,24 @@ export default function floodScreen() {
           <canvas class="${styles.map}" id="minimap"></canvas>  
           <div class="${styles.mapBg}"></div>
           
-          <div class="${styles.miniMenu}">
-            <button id="btn-stop">Stop</button>
-            <button id="btn-continue">Continue</button>
-            <button id="btn-back-to-play">Back to Play</button>
+          <div class="${styles.menu}" id="menu">
+            <div class="${styles.miniMenu}">
+                <button id="btn-continue">Continue</button>
+                <button id="btn-back-to-play">Back to menu</button>
+            </div>
+            <div class=${styles.controls}>
+                <div class=${styles.controlsTitle}>CONTROLES</div>
+                <div class=${styles.controlItem}>Movimiento: ↑ ↓ ← →</div>
+                <div class=${styles.controlItem}>Correr: Shift + Flechas</div>
+                <div class=${styles.controlItem}>Clonar: [C]</div>
+                <div class=${styles.controlItem}>Evolucionar: [E]</div>
+                <div class=${styles.controlItem}>Atacar: [F]</div>
+                <div class=${styles.controlItem}>Consumir (+80 vida): [Q]</div>
+            </div> 
           </div>
+
           
-          <div class=${styles.controls}>
-              <div class=${styles.controlsTitle}>CONTROLES</div>
-              <div class=${styles.controlItem}>Movimiento: ↑ ↓ ← →</div>
-              <div class=${styles.controlItem}>Correr: Shift + Flechas</div>
-              <div class=${styles.controlItem}>Clonar: [C]</div>
-              <div class=${styles.controlItem}>Evolucionar: [E]</div>
-              <div class=${styles.controlItem}>Atacar: [F]</div>
-              <div class=${styles.controlItem}>Consumir (+80 vida): [Q]</div>
-          </div> 
+
         </main>
    `];
 }
