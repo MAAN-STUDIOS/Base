@@ -23,7 +23,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/socket.io': {
-        target: "http://localhost:3000",
+        target: "http://localhost:8000",
         ws: true,
         changeOrigin: true
       }

@@ -221,17 +221,14 @@ export class FloodPlayer extends Player {
         if (now < cooldown) return;
         switch (type) {
             case "melee":
-                target.takeDamage?.(15);
+                if (this.evolution === 1) {
+                    target.takeDamage?.(15);
+                } else if (this.evolution === 2) {
+                    target.takeDamage?.(25);
+                } else if (this.evolution === 3) {
+                    target.takeDamage?.(50);
+                }
                 this.attackCooldowns.melee = now + 1000;
-                break;
-            case "acid":
-                target.takeDamage?.(5);
-                target.status = "corroded";
-                this.attackCooldowns.acid = now + 2000;
-                break;
-            case "toxicSmoke":
-                target.status = "confused";
-                this.attackCooldowns.toxicSmoke = now + 3000;
                 break;
         }
         logger.debug(`Attack ${type} executed on target`);
@@ -303,7 +300,8 @@ export class FloodPlayer extends Player {
     die() {
         super.die();
 
-        this.biomass = 0;
+        // this.biomass = 0;
+        this.biomass = 150;
         this.clones.forEach(clone => clone.die());
         this.clones = [];
 

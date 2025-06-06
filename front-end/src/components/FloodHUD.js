@@ -38,11 +38,11 @@ export default class FloodHUD {
         this.statsContainer.style.flexDirection = 'column';
         this.statsContainer.style.gap = '10px';
 
-        this.healthBar = this.createStatBar('Vida', '#16742d');
+        this.healthBar = this.createStatBar('Health', '#16742d');
         this.statsContainer.appendChild(this.healthBar.label);
         this.statsContainer.appendChild(this.healthBar.bar);
         
-        this.biomassBar = this.createStatBar('Biomasa', '#77ff00');
+        this.biomassBar = this.createStatBar('Biomass', '#77ff00');
         this.statsContainer.appendChild(this.biomassBar.label);
         this.statsContainer.appendChild(this.biomassBar.bar);
 
@@ -53,7 +53,7 @@ export default class FloodHUD {
         this.levelContainer.style.marginTop = '5px';
 
         const levelLabel = document.createElement('div');
-        levelLabel.textContent = 'Nivel';
+        levelLabel.textContent = 'Evolution';
         levelLabel.style.color = 'white';
         levelLabel.style.fontSize = '14px';
         levelLabel.style.textShadow = '1px 1px 2px black';
@@ -136,7 +136,7 @@ export default class FloodHUD {
         
         const cooldown = document.createElement('div');
         cooldown.className = styles.cooldownOverlay;
-        cooldown.textContent = 'Listo';
+        cooldown.textContent = 'Ready';
         cooldown.style.position = 'absolute';
         cooldown.style.bottom = '0';
         cooldown.style.left = '0';
@@ -250,7 +250,7 @@ export default class FloodHUD {
                 slot.cooldown.textContent = `${cooldownSeconds}s`;
                 slot.cooldown.style.background = 'rgba(255, 0, 0, 0.7)';
             } else {
-                slot.cooldown.textContent = 'Listo';
+                slot.cooldown.textContent = 'Ready';
                 slot.cooldown.style.background = 'rgba(0, 0, 0, 0.7)';
             }
         });
