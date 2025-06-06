@@ -135,10 +135,7 @@ export class FloodPlayer extends Player {
 
     setMovementAnimation() {
         if (Math.abs(this.moveDirection.y) > Math.abs(this.moveDirection.x)) {
-            if (this.keys.attack) {
-                this.currentDirection = "attack";
-            } 
-            
+
             if (this.moveDirection.y > 0) {
                 if (this.keys.shift) {
                     this.currentDirection = "downRun";
@@ -176,6 +173,15 @@ export class FloodPlayer extends Player {
         } else if (this.isDead) {
             this.currentDirection = "death";
         }
+
+        if (this.isAttacking) {
+            this.currentDirection = "attack";
+        }
+
+        if (this.keys.attack) {
+            this.currentDirection = "attack";
+        }
+        
 
         if (this.currentDirection !== this.previousDirection) {
             const anim = floodMovement[this.currentDirection];
@@ -225,7 +231,13 @@ export class FloodPlayer extends Player {
     }
 
     attack(type, target) {
-
+        if (this.isAttacking) return;
+        for (let i = 0; i < 3; i++) {
+            setTimeout(() => {
+                this.isAttacking = false;
+            }, 1000);
+        }
+        this.isAttacking = true;
 
         const now = performance.now();
 

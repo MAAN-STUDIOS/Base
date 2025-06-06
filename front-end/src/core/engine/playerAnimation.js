@@ -122,7 +122,7 @@ export const floodMovement = {
     attack: {
       frames: [15, 19], 
       repeat: true,
-      duration: animationDelay + 4.5,
+      duration: animationDelay + 2.5,
     },
     idle: {
         frames: [0, 0], 
