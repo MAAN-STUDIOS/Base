@@ -2,7 +2,7 @@ import { GameObject } from "./gameobject.js";
 import { Hitbox } from "@utils/hitbox.js";
 import { Vector } from "@utils/vector.js";
 import logger from "@utils/logger.js";
-import { cloneMovement } from "@engine/playerAnimation.js";
+import { clonMovement } from "@engine/playerAnimation.js";
 import { Rect } from "@utils/rectangle.js";
 import spriteSheet from "@/assets/Flood/Clone/clone-sprites.png";
 

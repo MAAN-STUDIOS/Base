@@ -1,10 +1,11 @@
-import { Player } from "./objectPlayer.js";
+import { Player } from "@engine/objectPlayer.js";
 import { Vector } from "@utils/vector.js";
 import { Hitbox } from "@utils/hitbox.js";
-import { FloodClone } from "./floodclone.js";
+import { FloodClone } from "@engine/floodclone.js";
 import logger from "@utils/logger.js";
 import { floodMovement } from "@engine/playerAnimation.js";
 import { Rect } from "@utils/rectangle.js";
+import SpriteSheet from "@/assets/Flood/flood-sprites.png";
 
 
 /**
@@ -60,7 +61,11 @@ export class FloodPlayer extends Player {
 
         // Sprite setup
         this.img = new Image();
-        this.img.src = new URL("@/assets/Flood/flood-sprites.png", import.meta.url).href;
+        this.img.src = SpriteSheet;
+
+        this.img.onload = () => {
+            console.log("SpriteSheet loaded!");
+        };
 
         this.spriteRect = new Rect(0, 0, 78, 70);
         this.previousDirection = "down";
@@ -112,6 +117,7 @@ export class FloodPlayer extends Player {
     setAnimation(minFrame, maxFrame, repeat, duration) {
         this.minFrame = minFrame;
         this.maxFrame = maxFrame;
+        this.frame = minFrame;
         this.repeat = repeat;
         this.totalTime = 0;
         this.frameDuration = duration * 1000;
@@ -142,12 +148,26 @@ export class FloodPlayer extends Player {
             }
         } else {
             if (this.moveDirection.x > 0) {
-                this.currentDirection = "right";
+                if (this.keys.shift) {
+                    this.currentDirection = "rightRun";
+                } else {
+                    this.currentDirection = "right";
+                }
             } else if (this.moveDirection.x < 0) {
-                this.currentDirection = "left";
+                if (this.keys.shift) {
+                    this.currentDirection = "leftRun";
+                } else {
+                    this.currentDirection = "left";
+                }
             } else {
                 this.currentDirection = "idle";
             }
+        }
+
+        if (this.keys.consume) {
+            this.currentDirection = "eat";
+        } else if (this.isDead) {
+            this.currentDirection = "death";
         }
 
         if (this.currentDirection !== this.previousDirection) {
@@ -293,17 +313,11 @@ export class FloodPlayer extends Player {
 
         logger.debug("Flood died! Respawning in 3 seconds...");
     }
-    /// ESTO SE ROMPEEE
-    // /**
-    //  * Updates the player's state and position based on current key inputs.
-    //  * Handles movement direction, speed (walk/run), and normalization for diagonal movement.
-    //  * @param {number} dt - Delta time in seconds since the last update.
-    //  * @override
-    //  */
-    // update(dt) {
-    //     super.update(dt);
-    //     this.setMovementAnimation();
-    //     this.updateFrame(dt * 1000);
-    // }
+
+    update(dt) {
+        super.update(dt);
+        this.setMovementAnimation();
+        this.updateFrame(dt * 1000);
+    }
 
 }
