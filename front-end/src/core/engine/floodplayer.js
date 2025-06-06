@@ -43,7 +43,7 @@ export class FloodPlayer extends Player {
         this.cloneCooldown = 5000;
         this.lastCloneTime = 0;
         this.evolutionCooldown = 0;
-        this.attackCooldowns = { melee: 0, acid: 0, toxicSmoke: 0, spikes: 0 };
+        this.attackCooldowns = { melee: 0, acid: 0};
         this.consumeCooldown = 0;
 
         /** @type {Array<FloodClone>} - Active clones of this player */
@@ -217,6 +217,7 @@ export class FloodPlayer extends Player {
 
 
         const now = performance.now();
+
         const cooldown = this.attackCooldowns[type] || 0;
         if (now < cooldown) return;
         switch (type) {
@@ -275,6 +276,13 @@ export class FloodPlayer extends Player {
         const screenCenterX = ctx.canvas.width / 2;
         const screenCenterY = ctx.canvas.height / 2;
 
+        let scale = 1.8;
+        if (this.evolution === 2) scale = 2.4;
+        else if (this.evolution === 3) scale = 3.2;
+
+        const drawWidth = this.width * scale;
+        const drawHeight = this.height * scale;
+
         ctx.drawImage(
             this.img,
             this.spriteRect.x * this.spriteRect.width,
@@ -283,8 +291,8 @@ export class FloodPlayer extends Player {
             this.spriteRect.height,
             screenCenterX - this.width / 2,
             screenCenterY - this.height / 2,
-            this.width,
-            this.height
+            drawWidth,
+            drawHeight
         );
 
         const colors = ["#8b0000", "#b80000", "#ff3030"];
@@ -301,6 +309,7 @@ export class FloodPlayer extends Player {
         super.die();
 
         // this.biomass = 0;
+        this.evolution = 1;
         this.biomass = 150;
         this.clones.forEach(clone => clone.die());
         this.clones = [];
