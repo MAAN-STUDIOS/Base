@@ -1,5 +1,6 @@
 import styles from "@screens/styles/floodHUD.module.css";
-
+import CloneIcon from "@/assets/Flood/Clone/clone-icon.png";
+import EvolveIcon from "@/assets/Flood/evolve.png";
 
 export default class FloodHUD {
     constructor(gameContainer) {
@@ -38,11 +39,11 @@ export default class FloodHUD {
         this.statsContainer.style.flexDirection = 'column';
         this.statsContainer.style.gap = '10px';
 
-        this.healthBar = this.createStatBar('Vida', '#16742d');
+        this.healthBar = this.createStatBar('Health', '#16742d');
         this.statsContainer.appendChild(this.healthBar.label);
         this.statsContainer.appendChild(this.healthBar.bar);
         
-        this.biomassBar = this.createStatBar('Biomasa', '#77ff00');
+        this.biomassBar = this.createStatBar('Biomass', '#77ff00');
         this.statsContainer.appendChild(this.biomassBar.label);
         this.statsContainer.appendChild(this.biomassBar.bar);
 
@@ -53,7 +54,7 @@ export default class FloodHUD {
         this.levelContainer.style.marginTop = '5px';
 
         const levelLabel = document.createElement('div');
-        levelLabel.textContent = 'Nivel';
+        levelLabel.textContent = 'Evolution';
         levelLabel.style.color = 'white';
         levelLabel.style.fontSize = '14px';
         levelLabel.style.textShadow = '1px 1px 2px black';
@@ -107,7 +108,7 @@ export default class FloodHUD {
         this.cloneAbilities.style.display = 'flex';
         this.cloneAbilities.style.gap = '15px';
 
-        const cloneTypes = ['Infectador', 'Tanque', 'Explosivo'];
+        const cloneTypes = ['Clone', 'Evolve'];
         this.cloneSlots = cloneTypes.map((type, index) => this.createCloneSlot(type, index));
     }
 
@@ -129,14 +130,18 @@ export default class FloodHUD {
         icon.className = styles.cloneIcon;
         icon.style.width = '50px';
         icon.style.height = '50px';
-        icon.style.backgroundImage = `url(@assets/icons/${type.toLowerCase()}.png)`;
+        if (type === 'Clone') {
+            icon.style.backgroundImage = `url(${CloneIcon})`;
+        } else if (type === 'Evolve') {
+            icon.style.backgroundImage = `url(${EvolveIcon})`;
+        }
         icon.style.backgroundSize = 'contain';
         icon.style.backgroundRepeat = 'no-repeat';
         icon.style.backgroundPosition = 'center';
         
         const cooldown = document.createElement('div');
         cooldown.className = styles.cooldownOverlay;
-        cooldown.textContent = 'Listo';
+        cooldown.textContent = 'Ready';
         cooldown.style.position = 'absolute';
         cooldown.style.bottom = '0';
         cooldown.style.left = '0';
@@ -166,7 +171,7 @@ export default class FloodHUD {
         cost.style.textShadow = '1px 1px 2px black';
         
         const key = document.createElement('div');
-        const keyText = index === 0 ? 'C' : (index === 1 ? 'E' : 'F');
+        const keyText = index === 0 ? 'C' : 'E';
         key.textContent = `[${keyText}]`;
         key.style.color = 'white';
         key.style.fontSize = '12px';
@@ -234,7 +239,7 @@ export default class FloodHUD {
         
         this.levelValue.textContent = player.evolution;
         
-        const cloneCosts = [25, 50, 75];
+        const cloneCosts = [25, 50];
         const now = performance.now();
         
         this.cloneSlots.forEach((slot, index) => {
@@ -250,7 +255,7 @@ export default class FloodHUD {
                 slot.cooldown.textContent = `${cooldownSeconds}s`;
                 slot.cooldown.style.background = 'rgba(255, 0, 0, 0.7)';
             } else {
-                slot.cooldown.textContent = 'Listo';
+                slot.cooldown.textContent = 'Ready';
                 slot.cooldown.style.background = 'rgba(0, 0, 0, 0.7)';
             }
         });

@@ -68,9 +68,9 @@ Make sure you have docker installed
      - DB_DATABASE=cosmonavt
 
      - # ——— Configuración del servidor Node ———
-     - PORT=8000
+     - PORT=3000
      - DEBUG=true
-     - API_URL=http://localhost:8000/
+     - API_URL=http://localhost:3000/
      - FRONTEND_URL=http://localhost:5173/
      - JWT_SECRET=cosmonavt_secret_key
 
