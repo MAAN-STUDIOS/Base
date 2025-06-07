@@ -460,12 +460,18 @@ export class HumanPlayer extends Player {
     
         const soundToPlay = soundMap[this.activeSlot];
         if (soundToPlay) {
-            try {
-                audioManager.play(soundToPlay); 
-                //console.log(`Sound played: ${soundToPlay}`);
-            } catch (e) {
-                console.error(`Error trying to play sound ${soundToPlay}:`, e);
-            }
+            if (weapon.cooldownTimer == 0) {
+                console.log(`Playing sound: ${soundToPlay}`);
+                try {
+                  audioManager.play(soundToPlay);
+                  //console.log(`Sound played: ${soundToPlay}`);
+                } catch (e) {
+                  console.error(`Error trying to play sound ${soundToPlay}:`, e);
+                }
+              } else {
+                console.log("RARO");
+                return;
+              }
         }
     }
 
