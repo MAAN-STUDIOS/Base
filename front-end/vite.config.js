@@ -7,14 +7,16 @@ import dotenv from 'dotenv';
 export default defineConfig(({ mode }) => {
     let envFile = '.env.dev';
 
-    if (mode === 'production') {
+    if (mode === "docker_dev") {
+        envFile = null;
+    } else if (mode === 'production') {
         envFile = '.env.production';
     } else if (!fs.existsSync(path.resolve(__dirname, envFile))) {
         envFile = '.env.develop';
     }
 
-    let env = {};
-    if (fs.existsSync(path.resolve(__dirname, envFile))) {
+    let env = process.env;
+    if (envFile && fs.existsSync(path.resolve(__dirname, envFile))) {
         console.log(`Loading environment from ${envFile}`);
         const result = dotenv.config({ path: path.resolve(__dirname, envFile) });
         if (result.parsed) {

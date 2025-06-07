@@ -1,0 +1,76 @@
+services:
+  server:
+    container_name: consmonavt_server
+    build:
+      context: ./back-end
+    environment:
+      NODE_ENV: docker_dev
+      PORT: 3000
+      DEBUG: true
+      FRONTEND_URL: http://localhost:5173/
+      API_URL: http://localhost:3000/
+      JWT_SECRET: a_super_secret_key
+      DB_HOST: db
+      DB_DATABASE: cosmonavt
+      DB_PORT: 3306
+      DB_USER: root
+      DB_ROOT_PASSWORD: MyDevelopmentPassword
+      DB_PASSWORD: MyDevelopmentPassword
+      COMPOSE_PROJECT_NAME: cosmonavt_api
+      TZ: UTC
+    volumes:
+      - ./back-end:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    networks:
+      - cosmonavt_network
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    container_name: consmonavt_frontend
+    build:
+      context: ./front-end
+    environment:
+      NODE_ENV: docker_dev
+      DEBUG: true
+      BACKEND_URL: http://localhost:3000/
+    volumes:
+      - ./front-end:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    networks:
+      - cosmonavt_network
+
+  db:
+    image: mysql:8.0
+    container_name: consmonavt_db
+    environment:
+      MYSQL_ROOT_PASSWORD: MyDevelopmentPassword
+      MYSQL_DATABASE: cosmonavt
+      MYSQL_USER: appuser
+      MYSQL_PASSWORD: MyDevelopmentPassword
+    ports:
+      - "3307:3306"
+    volumes:
+      - cosmonavt_data:/var/lib/mysql
+      - ./db/init.sql:/docker-entrypoint-initdb.d/01-init.sql
+      - ./db/data.sql:/docker-entrypoint-initdb.d/02-data.sql
+    networks:
+      - cosmonavt_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pMyDevelopmentPassword"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+volumes:
+  cosmonavt_data:
+
+networks:
+  cosmonavt_network:
