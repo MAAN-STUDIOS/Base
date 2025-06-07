@@ -97,7 +97,7 @@ export default function humanScreen() {
                 tile_size: 200,
                 chunk_size: 16,
                 n_loaded_chunks: 5,
-                debug: true,
+                debug: false,
                 debug_info: false
             }
         },
