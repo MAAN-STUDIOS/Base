@@ -276,4 +276,15 @@
     .container {
         padding: 20px 15px;
     }
+
+    .controls-section {
+        background: rgba(20, 20, 0, 0.8);
+        border: 2px solid #ffaa00;
+        border-radius: 15px;
+        padding: 30px;
+        margin: 30px 0;
+        box-shadow: 
+            0 0 20px rgba(255, 170, 0, 0.3),
+            inset 0 0 20px rgba(255, 170, 0, 0.1);
+    }
 }

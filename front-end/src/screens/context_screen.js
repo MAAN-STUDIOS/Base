@@ -1,8 +1,8 @@
 import { navigate } from "@utils/router.js";
 import styles from "./styles/context_screen.module.css";
 
-// import clone from "@assets/flood-clone.png";
-// import beast from "@assets/flood-beast.png";
+import clone from "@assets/Flood/Clone/clone_sinfondo.png";
+import beast from "@assets/Flood/Flood_sinfondo.png";
 import ametralladora from "@assets/Armas/ametralladora.png";
 import lanzallamas from "@assets/Armas/lanzallamas.png";
 import escopeta from "@assets/Armas/escopeta.png";
@@ -23,7 +23,7 @@ export default function () {
         }
 
         document.getElementById("btn-play")?.addEventListener('click', () => {
-            alert('¡La misión comienza! Buena suerte, Ronan Rhys...');
+            alert('¡La misión comienza! Buena suerte Ronan Rhys... La necesitarás');
             navigate("human");
         });
     };
@@ -38,16 +38,16 @@ export default function () {
         <div class="${styles.storySection}">
             <h2 class="${styles.sectionTitle}">What Happened?</h2>
             <div class="${styles.storyText}">
-                The EpsilonDarth ship, en route to Saturn and crewed by six USGC engineers, passed through the ergosphere of Geminis D3 — a black hole sixteen times the size of Earth.
+                The Stellar Odyssey ship, en route to Saturn and crewed by six Astral Dynamics engineers, passed through the ergosphere of Geminis D3, a black hole sixteen times the size of Earth.
             </div>
             <div class="${styles.storyText}">
                 The force of spacetime pulled them into the event horizon, a place where no one is supposed to survive.
             </div>
             <div class="${styles.storyText}">
-                Ronan Rhys (you) was the only one who managed to escape the ship and redirect back to the USGC fleet, only to realize that what felt like a brief moment had actually been 103 years, due to the time distortion caused by the event horizon.
+                Ronan Rhys (you) was the only one who managed to escape the ship and redirect back to the Astral Dynamics fleet, only to realize that what felt like a brief moment had actually been 72 years, due to the time distortion caused by the event horizon.
             </div>
             <div class="${styles.storyText}">
-                The USGC fleet "Prometheus" was attacked by a never-before-seen enemy — a mysterious alien race whose sole purpose is to wipe out all life. Your mission is to find a possible cure to destroy the Flood and escape the ship.
+                The A.D fleet "Prometheus" was attacked by a never-before-seen enemy — a mysterious alien race whose sole purpose is to wipe out all life. Your mission is to find a possible cure to destroy the Flood and escape the ship. "Survival is not expected..."
             </div>
         </div>
         
@@ -79,14 +79,14 @@ export default function () {
                 </div>
                 <div class="${styles.itemCard}">
                     <div class="${styles.itemImage}">
-                        <img src="${lanzallamas}" alt="MV-4 Ceris Machine Gun" class="${styles.weaponImg}">
+                        <img src="${ametralladora}" alt="MV-4 Ceris Machine Gun" class="${styles.weaponImg}">
                     </div>
                     <div class="${styles.itemName}">MV-4 Ceris Machine Gun</div>
                     <div class="${styles.itemDescription}">High-caliber automatic weapon with a rapid rate of fire. Designed to suppress alien hordes and destroy light cover. Overheats quickly—but leaves no survivors</div>
                 </div>
                 <div class="${styles.itemCard}">
                     <div class="${styles.itemImage}">
-                        <img src="${ametralladora}" alt="MV-6 Plasma Flamethrower" class="${styles.weaponImg}">
+                        <img src="${lanzallamas}" alt="MV-6 Plasma Flamethrower" class="${styles.weaponImg}">
                     </div>
                     <div class="${styles.itemName}">MV-6 Plasma Flamethrower</div>
                     <div class="item-description">Experimental device that projects jets of incandescent plasma. Engineered to burn organic material at the molecular level—ideal against Flood biological threats</div>
@@ -99,22 +99,56 @@ export default function () {
             <div class="item-grid">
                 <div class="${styles.itemCard}">
                     <div class="${styles.itemImage}">
-                        <img src="${ametralladora}" alt="Flood-Beast" class="${styles.weaponImg}">
+                        <img src="${beast}" alt="Flood-Beast" class="${styles.weaponImg}">
                     </div>
                     <div class="${styles.itemName}">Flood-Beast</div>
                     <div class="${styles.itemDescription}">Extremely hostile organic lifeforms; at close range, they deal heavy damage</div>
                 </div>
                 <div class="${styles.itemCard}">
                     <div class="${styles.itemImage}">
-                        <img src="${ametralladora}" alt="Flood Clone" class="${styles.weaponImg}">
+                        <img src="${clone}" alt="Flood Clone" class="${styles.weaponImg}">
                     </div>
                     <div class="${styles.itemName}">Flood Clone</div>
                     <div class="${styles.itemDescription}">Parasites originating from the Flood-Beast, these are created from the biomass obtained by killing the surviving humans</div>
                 </div>
             </div>
         </div>
+
+        <div class="${styles.controlsSection}">
+    <h2 class="${styles.sectionTitle}">Controls</h2>
+    <div class="${styles.itemGrid}">
+        <div class="${styles.itemCard}">
+            <div class="${styles.itemImage}">
+                <div style="color: #ffaa00; font-size: 2rem;">⌨️</div>
+            </div>
+            <div class="${styles.itemName}">Movement</div>
+            <div class="${styles.itemDescription}">Use WASD or the arrows in your keyboard to move around the ship. Hold SHIFT to run when escaping dangerous situations *Remember that this consumes oxygen.</div>
+        </div>
+        <div class="${styles.itemCard}">
+            <div class="${styles.itemImage}">
+                <div style="color: #ffaa00; font-size: 2rem;">🖱️</div>
+            </div>
+            <div class="${styles.itemName}">Shooting Control</div>
+            <div class="${styles.itemDescription}">Use the F key to shoot and aim with your keyboard cursor.</div>
+        </div>
+        <div class="${styles.itemCard}">
+            <div class="${styles.itemImage}">
+                <div style="color: #ffaa00; font-size: 2rem;">🔄</div>
+            </div>
+            <div class="${styles.itemName}">Weapon Switch</div>
+            <div class="${styles.itemDescription}">Press numbers 1-4 to switch between weapons.1 for Pistol, 2 for Shotgun, 3 for Machinegun and 4 for Flamethrower.</div>
+        </div>
+        <div class="${styles.itemCard}">
+            <div class="${styles.itemImage}">
+                <div style="color: #ffaa00; font-size: 2rem;">⚕️</div>
+            </div>
+            <div class="${styles.itemName}">Respawn</div>
+            <div class="${styles.itemDescription}">You will respawn automatically.</div>
+        </div>
+    </div>
+</div>
         
-        <button class="${styles.startButton}" id="btn-play"">Iniciar Misión</button>
+        <button class="${styles.startButton}" id="btn-play"">Begin mission</button>
     </div>
 </main>
   `];
