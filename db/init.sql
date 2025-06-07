@@ -20,6 +20,7 @@ CREATE TABLE player (
     played_time_seconds INT      DEFAULT 0 NOT NULL,
     kills               SMALLINT DEFAULT 0 NOT NULL,
     deaths              SMALLINT DEFAULT 0 NOT NULL,
+    description         TEXT               NOT NULL,
     FOREIGN KEY (user_id) REFERENCES cosmonavt_user (id) ON DELETE CASCADE
 ) CHARACTER SET utf8mb4
   ENGINE = InnoDB;

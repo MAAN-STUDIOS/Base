@@ -1,12 +1,12 @@
 import { navigate } from "@utils/router.js";
 import styles from "./styles/main.module.css";
-import { authenticate, verifyToken } from "../core/utils/apimanager";
-// import { authenticate } from "@core/utils/apimanager.js";
+import { authenticate, verifyToken } from "@utils/apimanager.js";
 import logger from "@utils/logger.js";
+
 
 export default function () {
   verifyToken(localStorage.getItem("authToken")).then(valid => {
-    if (valid) navigate("join-game");
+    if (valid) navigate("menu");
   });
 
   const listener = () => {
@@ -27,7 +27,8 @@ export default function () {
             localStorage.setItem('authToken', response.token);
             localStorage.setItem('userEmail', response.user.email);
             localStorage.setItem('username', response.user.name);
-            
+            localStorage.setItem('userID', response.user.id);
+
             // Log successful login
             logger.debug("Login successful", { email: response.user.email });
             

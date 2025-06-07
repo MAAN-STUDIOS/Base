@@ -8,14 +8,22 @@ const logger = get_logger("CONTROLLER-PLAYER");
 
 export class PlayerController {
     static async get_player(req, res) {
-        const id = req.params.id;
-
         try {
+            const id = parseInt(req.params.id);
+
+            if (id !== req.user.id) {
+                res.status(403).json({ message: 'Unauthorized' });
+                return;
+            }
+
             const [rows] = await db.query(
-                `SELECT * FROM view_player WHERE id = ?`,
+                `SELECT *
+                 FROM view_player
+                 WHERE id = ?`,
                 [id]
             );
-            res.status(200).json(rows);
+            const { password, last_login, ...player } = rows;
+            res.status(200).json(player);
         } catch (error) {
             console.error('Error in get_player:', error);
             res.status(500).send('Internal Server Error');
@@ -45,18 +53,18 @@ export class PlayerController {
             );
 
             if (result.affectedRows === 0) {
-                const msg  = 'Failed to create user';
+                const msg = 'Failed to create user';
                 logger.error(msg);
                 return res.status(500).send({ error: msg });
             }
 
             const user = await db.query(
-                'INSERT INTO player (user_id) VALUES (?)',
-                [result.insertId],
+                'INSERT INTO player (user_id, description) VALUES (?, ?)',
+                [result.insertId, body.description],
             );
 
             if (result.affectedRows === 0) {
-                const msg  = 'Failed to create player';
+                const msg = 'Failed to create player';
                 logger.error(msg);
                 return res.status(500).send({ error: msg });
             }

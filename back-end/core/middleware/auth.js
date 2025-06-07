@@ -92,6 +92,14 @@ function authenticateToken(req, res, next) {
 
             logger.debug(`User ${user.id} authenticated successfully`);
             req.user = user;
+
+            if (user.id && !isNaN(parseInt(user.id))) {
+                req.user.id = parseInt(user.id);
+            } else {
+                logger.warn('Invalid user ID');
+                req.user.id = null;
+            }
+
             next();
         });
     } catch (error) {
@@ -105,6 +113,7 @@ function authenticateToken(req, res, next) {
  */
 function verifyToken(token) {
     try {
+        logger.debug("Verifying token");
         return jwt.verify(token, JWT_SECRET);
     } catch (error) {
         logger.error(`Token verification failed: ${error.message}`);

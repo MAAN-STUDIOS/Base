@@ -593,7 +593,7 @@ router.get('/config/:id', ConfigController.get_config);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/player/:id', PlayerController.get_player);
+router.get('/player/:id', authenticateToken, PlayerController.get_player);
 
 // ================================
 // GAME MANAGEMENT ROUTES

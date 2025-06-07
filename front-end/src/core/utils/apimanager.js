@@ -276,13 +276,13 @@ async function verifyToken(token) {
     return response.ok;
 }
 
-async function register(username, email, password) {
+async function register(username, email, password, description) {
     const response = await fetch(`${api_url}/player/register`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
         },
-        body: JSON.stringify({ name: username, email, password }),
+        body: JSON.stringify({ name: username, email, password, description }),
     });
 
     if (response.status === 409) {

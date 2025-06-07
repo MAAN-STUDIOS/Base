@@ -27,7 +27,7 @@ export default function () {
         }
 
         try {
-          const response = await register(username, email, password);
+          const response = await register(username, email, password, "");
           if (response) {
             // Save token and user info in localStorage
             localStorage.setItem('authToken', response.token);

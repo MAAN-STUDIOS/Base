@@ -5,7 +5,7 @@ export default function () {
   const listener = () => {
     const startButton = document.getElementById("start-game-btn");
     if (startButton) {
-      startButton.addEventListener("click", () => navigate("login"));
+      startButton.addEventListener("click", () => navigate("join-game"));
     }
 
     const goToCredits = () => navigate("credits");

@@ -1,14 +1,131 @@
 import { navigate } from "@utils/router.js";
 import styles from "@screens/styles/main.module.css";
-import { create_game, game_info, active_games } from "../core/utils/apimanager";
+import { create_game, game_info, active_games, verifyToken } from "../core/utils/apimanager.js";
+import copy from "@assets/copy.svg";
+
 
 export default function () {
+    verifyToken(localStorage.getItem("authToken")).then(valid => {
+        if (!valid) navigate("login");
+    });
+
+    const config = () => {
+        const settingsBtn = document.getElementById("settings-btn");
+        const c_menu = document.getElementById("config-menu");
+        const logout = document.getElementById("btn-logout");
+
+        const user = {};
+        const userID = localStorage.getItem("userID");
+        const authToken = localStorage.getItem("authToken");
+
+        fetch(`${process.env.BACKEND_URL}/player/${userID}`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${authToken}`,
+            }
+        }).then(res => res.json()).then(fetched_user => {
+            user.id = fetched_user.id ?? 0;
+            user.name = fetched_user.name ?? "UserName";
+            user.email = fetched_user.email ?? "Email";
+            user.description = fetched_user.description ?? "Description";
+            user.creation_date = fetched_user.creation_date ?? "";
+        }).catch(err => console.log(err));
+
+        const tabs = {
+            game: {
+                trigger: document.getElementById('config-tab-trigger-game'),
+                representation: document.getElementById('config-tab-game'),
+                content: []
+            },
+            account: {
+                trigger: document.getElementById('config-tab-trigger-account'),
+                representation: document.getElementById('config-tab-account'),
+                content: [{
+                    where: document.getElementById('content-username'),
+                    how: function () {
+                        this.where.innerText = user.name;
+                    },
+                    what: document.getElementById('copy-name'),
+                }, {
+                    where: document.getElementById('content-email'),
+                    how: function () {
+                        this.where.innerText = user.email;
+                    },
+                    what: document.getElementById('copy-email'),
+                }, {
+                    where: document.getElementById('content-description'),
+                    how: function () {
+                        this.where.innerText = user.description;
+                    },
+                }
+                ]
+            }
+        };
+
+        const toggler = (t) => {
+            if (t.style.display === "none") {
+                t.style.display = "flex";
+            } else {
+                t.style.display = "none";
+            }
+        };
+
+        const load = (t) => {
+            t.forEach(c => {
+                c.how();
+            });
+        }
+
+        const hideAll = () => {
+            for (let v of Object.values(tabs)) {
+                v.representation.style.display = "none";
+            }
+        };
+
+        for (let v of Object.values(tabs)) {
+            v.trigger.addEventListener('click', e => {
+                if (v.trigger.contains(e.target)) {
+                    e.preventDefault();
+                    hideAll();
+                    toggler(v.representation);
+                    load(v.content);
+                }
+            });
+        }
+
+        const toggleMenu = () => {
+            if (c_menu.style.display === "none") {
+                c_menu.style.display = "flex";
+            } else {
+                c_menu.style.display = "none";
+            }
+        }
+
+        document.addEventListener("click", (event) => {
+            const outsideClick = c_menu?.style.display !== "none" && !c_menu?.contains(event.target);
+
+            if (outsideClick || settingsBtn?.contains(event.target)) {
+                toggleMenu();
+            }
+        });
+
+        logout?.addEventListener("click", () => {
+            localStorage.setItem('authToken', null);
+            localStorage.setItem('userEmail', null);
+            localStorage.setItem('username', null);
+            localStorage.setItem('userID', null);
+            navigate("menu");
+            alert("Successfully loged out");
+        })
+    };
+
     const listener = () => {
+        config();
         const backBtn = document.getElementById("back-btn");
         const joinBtn = document.getElementById("join-game-btn");
         const createBtn = document.getElementById("create-game-btn");
         const statsBtn = document.getElementById("stats-btn");
-        const settingsBtn = document.getElementById("settings-btn");
         const gameIdInput = document.getElementById("game-id-input");
         const createGameForm = document.getElementById("create-game-form");
         const createGameModal = document.getElementById("create-game-modal");
@@ -16,7 +133,7 @@ export default function () {
         const errorMessage = document.getElementById("error-message");
         const modalErrorMessage = document.getElementById("modal-error-message");
         const activeGamesList = document.getElementById("active-games-list");
-        
+
         localStorage.setItem("gameId", "NOT_SET");
 
         const showError = (message, isModal = false) => {
@@ -33,12 +150,12 @@ export default function () {
         const loadActiveGames = async () => {
             try {
                 const data = await active_games();
-                
+
                 if (data.success) {
-                    const activeGames = data.games.filter(game => 
+                    const activeGames = data.games.filter(game =>
                         game.state === "starting" || game.state === "running"
                     );
-                    
+
                     if (activeGames.length > 0) {
                         activeGamesList.innerHTML = activeGames.map(game => `
                             <div class="${styles.gameItem}" data-game-id="${game.game_id}">
@@ -49,7 +166,7 @@ export default function () {
                                 </div>
                             </div>
                         `).join('');
-                        
+
                         document.querySelectorAll(`.${styles.gameItem}`).forEach(item => {
                             item.addEventListener('click', () => {
                                 const gameId = item.getAttribute('data-game-id');
@@ -88,7 +205,7 @@ export default function () {
                     const data = await game_info(gameId);
                     console.log("Game Info Data:" + gameId);
                     localStorage.setItem("gameId", gameId);
-                    
+
                     if (!data) {
                         showError("Game not found");
                         return;
@@ -99,7 +216,7 @@ export default function () {
                         showError("Game has already ended");
                         return;
                     }
-                    
+
                     localStorage.setItem("gameId", gameId);
                     navigate("play");
                 } catch (error) {
@@ -126,7 +243,7 @@ export default function () {
             createGameForm.addEventListener("submit", async (e) => {
                 e.preventDefault();
                 hideError(true);
-                
+
                 const formData = new FormData(createGameForm);
                 const gameData = {
                     name: formData.get("name"),
@@ -134,14 +251,14 @@ export default function () {
                     seed: formData.get("seed") || Math.floor(Math.random() * 1000000),
                     max_players: formData.get("max_players") || 8
                 };
-                
+
                 try {
                     const response = await create_game(gameData.name, gameData.description, gameData.seed, gameData.max_players, localStorage.getItem("authToken"));
                     if (response.status === 401) {
                         showError("You must be logged in to create a game.", true);
                         navigate("login");
                         return;
-                    } 
+                    }
                     const data = await response.json();
                     if (!data) {
                         showError("Failed to create game. Please try again.");
@@ -169,10 +286,6 @@ export default function () {
 
         if (statsBtn) {
             statsBtn.addEventListener("click", () => console.log("Navigate to stats"));
-        }
-
-        if (settingsBtn) {
-            settingsBtn.addEventListener("click", () => console.log("Navigate to settings"));
         }
     };
 
@@ -278,6 +391,44 @@ export default function () {
                             <button type="button" id="close-modal-btn" class="${styles.backButton}">Cancel</button>
                         </div>
                     </form>
+                </div>
+            </div>
+            
+            <div id="config-menu" class="${styles.settingMenu}" style="display: none;">
+                <ul class="${styles.settingNavBar}">
+                    <li class="${styles.settingNavBarToggle}"><button></button></li>
+                    <li class="${styles.settingNavBarToggle}"><button id="config-tab-trigger-game">Game</button></li>
+                    <li class="${styles.settingNavBarToggle}"><button id="config-tab-trigger-account">Account</button></li>
+                    <li class="${styles.settingNavBarToggle}"><button></button></li>
+                    <li class="${styles.settingNavBarToggle}"><button></button></li>
+                    <li class="${styles.settingNavBarToggle}"><button></button></li>
+                </ul>
+                <div class="${styles.settingTabContainer}">
+                    <div id="config-tab-game" class="${styles.settingTab}" style="display: none;"></div>
+                    <div id="config-tab-account" class="${styles.settingTab}" style="display: none;">
+                        <section>
+                            <div class="${styles.settingTabInnerContainer}">
+                                User Name
+                                <div class="${styles.copybable}">
+                                    <img id="copy-name" class="${styles.copybableBtn}" src="${copy}" alt="copy"/>
+                                    <strong id="content-username">UserName</strong>
+                                </div> 
+                            </div>
+                            <div class="${styles.settingTabInnerContainer}">
+                                Email
+                                <div class="${styles.copybable}">
+                                    <img id="copy-email" class="${styles.copybableBtn}" src="${copy}" alt="copy"/>
+                                    <strong id="content-email">Email</strong>
+                                </div> 
+                            </div>
+                            <div class="${styles.settingTabInnerContainer}">
+                                Me
+                                <br/>
+                                <strong id="content-description">Description</strong> 
+                            </div>
+                        </section>
+                        <button id="btn-logout">Log Out</button>
+                    </div>
                 </div>
             </div>
         </section>
