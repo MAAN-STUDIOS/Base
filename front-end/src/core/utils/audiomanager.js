@@ -31,7 +31,10 @@ class AudioManager {
             "human:takeDamage": "humanDamage",
             "human:die": "humanDie",
             "human:attack": "humanAttack",
-            "human:shoot": "humanShoot",
+            "human:shoot:pistol": "gunPistol",
+            "human:shoot:machinegun": "gunMachinegun",
+            "human:shoot:shotgun": "gunShotgun",
+            "human:shoot:flamethrower": "gunFlamethrower",
             
 
             "ui:buttonClick": "click"

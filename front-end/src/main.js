@@ -15,9 +15,10 @@ import screenCreateAccount from "@screens/createAccount.js";
 import screenJoinGame from "@screens/joinGame.js";
 import screenDashboard from "@screens/dashboard.js";
 import context_screen from '@screens/context_screen';
+
 import pistolSound from "@/assets/sfx/pistol.wav";
 import machineGunSound from "@/assets/sfx/machineGunSound.wav";
-import gunshotSound from "@/assets/sfx/gunshotSound.wav";
+import shotgunSound from "@/assets/sfx/gunshotSound.wav";
 import flamethrowerSound from "@/assets/sfx/flamethrowerSound3.wav";
 import stepsSound from "@/assets/sfx/stepsSound.wav";
 
@@ -52,6 +53,12 @@ function initAudio() {
     // Load sounds first
     audioManager.loadSound("clone", cloneSound);
     audioManager.loadSound("humanDamage", playerDamage);
+
+    audioManager.loadSound("gunPistol", pistolSound);
+    audioManager.loadSound("gunMachinegun", machineGunSound);
+    audioManager.loadSound("gunShotgun", shotgunSound);
+    audioManager.loadSound("gunFlamethrower", flamethrowerSound);
+    audioManager.loadSound("humanSteps", stepsSound);
  
     audioManager
         .loadSound("menu", terrorMusic, { 
