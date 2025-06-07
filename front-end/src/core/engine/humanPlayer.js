@@ -3,6 +3,7 @@ import { Vector } from "@utils/vector.js";
 import { Rect } from "@utils/rectangle.js";
 import { playerMovement } from "@engine/playerAnimation.js";
 import logger from "@utils/logger.js";
+import audioManager from "@utils/audiomanager";
 
 /** @type {string}*/
 import HUD from "@/assets/HUD/fondo.png";
@@ -449,6 +450,23 @@ export class HumanPlayer extends Player {
 
         const direction = this.mouseDirection.clone();
         weapon.fire(this.real_position.clone(), direction, this);
+
+        const soundMap = [
+            "gunPistol",
+            "gunShotgun",
+            "gunMachinegun",
+            "gunFlamethrower"
+        ];
+    
+        const soundToPlay = soundMap[this.activeSlot];
+        if (soundToPlay) {
+            try {
+                audioManager.play(soundToPlay); 
+                //console.log(`Sound played: ${soundToPlay}`);
+            } catch (e) {
+                console.error(`Error trying to play sound ${soundToPlay}:`, e);
+            }
+        }
     }
 
     die() {
