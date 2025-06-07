@@ -80,9 +80,9 @@ export class HumanPlayer extends Player {
         this.img7 = new Image();
         this.img7.src = SpriteSheet;
 
-        this.img7.onload = () => {
-        console.log("SpriteSheet loaded!");
-        };
+        // this.img7.onload = () => {
+        // console.log("SpriteSheet loaded!");
+        // };
 
         //this.spriteRect = new Rect(0, 0, 308, 307);
         this.spriteRect = new Rect(0, 0, 153, 153);

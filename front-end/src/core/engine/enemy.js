@@ -1,4 +1,6 @@
 import { Hitbox } from "@utils/hitbox.js";
+import SpriteSheet from "@/assets/enemy/enemy.png";
+import { floodEnemy } from "@engine/playerAnimation.js";
 
 const STATES = {
     IDLE: 'IDLE',
@@ -49,11 +51,66 @@ export class Enemy {
         this.retreatDistance = retreatDistance;
 
         this.hitbox = new Hitbox(this);
+
+        this.img = new Image();
+        this.img.src = SpriteSheet;
+
+        this.spriteRect = new Rect(0, 0, 153, 153);
+        this.previousDirection = "down";
+        this.currentDirection = "down";
+        this.frame = 0;
+        this.minFrame = 0;
+        this.maxFrame = 0;
+        this.repeat = true;
+        this.frameDuration = 100;
+        this.totalTime = 0;
+        this.sheetCols = 6;
     }
 
     collidesWith(hb) {
         return this.hitbox.collidesWith(hb);
     }
+
+    setAnimation(minFrame, maxFrame, repeat, duration) {
+        this.minFrame = minFrame;
+        this.maxFrame = maxFrame;
+        this.frame = minFrame;
+        this.repeat = repeat;
+        this.totalTime = 0;
+        this.frameDuration = duration * 1000;
+    }
+    
+    updateFrame(deltaTime) {
+        this.totalTime += deltaTime;
+    
+        if (this.totalTime > this.frameDuration) {
+            const restartFrame = this.repeat ? this.minFrame : this.frame;
+            this.frame = this.frame < this.maxFrame ? this.frame + 1 : restartFrame;
+    
+            this.spriteRect.x = this.frame % this.sheetCols;
+            this.spriteRect.y = Math.floor(this.frame / this.sheetCols);
+    
+            this.totalTime = 0;
+        }
+    }
+
+    setMovementAnimation() {
+        const stateAnimations = {
+            [STATES.IDLE]: floodEnemy.idle,
+            [STATES.PURSUE]: floodEnemy.pursue,
+            [STATES.SEARCH]: floodEnemy.search,
+            [STATES.ATTACK]: floodEnemy.attack,
+            [STATES.RETREAT]: floodEnemy.retreat
+        };
+    
+        const anim = stateAnimations[this.state];
+    
+        if (anim && this.currentDirection !== this.state) {
+            this.setAnimation(...anim.frames, anim.repeat, anim.duration);
+            this.currentDirection = this.state;
+        }
+    }
+    
 
     /**
      * @param dt
@@ -89,6 +146,9 @@ export class Enemy {
         }
         
         this.stateTimer += dt;
+
+        this.setMovementAnimation();
+        this.updateFrame(dt * 1000);
     }
 
     /**

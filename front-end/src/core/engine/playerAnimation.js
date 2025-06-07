@@ -248,3 +248,69 @@ export const clonMovement = {
         duration: animationDelay,
     },
 }
+
+export const floodEnemy = {
+    idle: {
+        frames: [0, 2], 
+        repeat: true,
+        duration: animationDelay,
+    },
+    pursue: {
+        frames: [3, 5], 
+        repeat: true,
+        duration: animationDelay,
+    },
+    search: {
+        frames: [6, 8], 
+        repeat: true,
+        duration: animationDelay,
+    },
+    attack: {
+        frames: [9, 11], 
+        repeat: true,
+        duration: animationDelay,
+    },
+    retrack: {
+        frames: [12, 14], 
+        repeat: true,
+        duration: animationDelay,
+    },
+    retreat: {
+        frames: [15, 17], 
+        repeat: true,
+        duration: animationDelay,
+    },
+}
+
+export const humanEnemy = {
+    idle: {
+        frames: [18, 18], 
+        repeat: true,
+        duration: animationDelay,
+    },
+    pursue: {
+        frames: [21, 23], 
+        repeat: true,
+        duration: animationDelay,
+    },
+    search: {
+        frames: [27, 28], 
+        repeat: true,
+        duration: animationDelay,
+    },
+    attack: {
+        frames: [19, 20], 
+        repeat: true,
+        duration: animationDelay,
+    },
+    retrack: {
+        frames: [22, 23], 
+        repeat: true,
+        duration: animationDelay,
+    },
+    retreat: {
+        frames: [31, 33], 
+        repeat: true,
+        duration: animationDelay,
+    },
+}
