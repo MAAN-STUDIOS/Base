@@ -10,7 +10,7 @@
        projectileType: options.projectileType || "flame",
        projectileCount: options.projectileCount || 15,
        spread: options.spread || 0.2, 
-       cooldown: options.cooldown || 0.1, 
+       cooldown: options.cooldown || 0, 
      };
  
      this.cooldownTimer = 0;
