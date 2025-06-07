@@ -299,9 +299,9 @@ export class FloodPlayer extends Player {
         const screenCenterX = ctx.canvas.width / 2;
         const screenCenterY = ctx.canvas.height / 2;
 
-        let scale = 1.8;
-        if (this.evolution === 2) scale = 2.4;
-        else if (this.evolution === 3) scale = 3.2;
+        let scale = 1.3;
+        if (this.evolution === 2) scale = 1.4;
+        else if (this.evolution === 3) scale = 1.8;
 
         const drawWidth = this.width * scale;
         const drawHeight = this.height * scale;
@@ -333,7 +333,7 @@ export class FloodPlayer extends Player {
 
         this.biomass = 0;
         this.evolution = 1;
-        // this.biomass = 150; for testing purposes
+        // this.biomass = 150; 
         this.clones.forEach(clone => clone.die());
         this.clones = [];
 
