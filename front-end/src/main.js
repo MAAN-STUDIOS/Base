@@ -14,7 +14,8 @@ import screenLogin from "@screens/login.js";
 import screenCreateAccount from "@screens/createAccount.js";
 import screenJoinGame from "@screens/joinGame.js";
 import screenDashboard from "@screens/dashboard.js";
-import context_screen from '@screens/context_screen';
+import context_screen from '@screens/context_screen.js';
+import context_Flood_screen from '@screens/context_screenFlood.js';
 
 // Register all screens
 registerScreen('menu', screenMenu);
@@ -27,6 +28,7 @@ registerScreen('login', screenLogin);
 registerScreen('create-account', screenCreateAccount);
 registerScreen('dashboard', screenDashboard);
 registerScreen('context_screen', context_screen);
+registerScreen('context_Flood', context_Flood_screen);
 
 registerScreen('join-game', screenJoinGame);
 registerScreen('dashboard', screenDashboard);
