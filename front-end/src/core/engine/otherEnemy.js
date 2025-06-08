@@ -1,6 +1,16 @@
 import SpriteSheet from "@/assets/enemy/enemy.png";
 import { floodEnemy } from "@engine/playerAnimation.js";
 import { humanEnemy } from "@engine/playerAnimation.js";
+import { Rect } from "@utils/rectangle.js";
+
+
+const STATES = {
+    IDLE: 'IDLE',
+    PURSUE: 'PURSUE',
+    SEARCH: 'SEARCH',
+    ATTACK: 'ATTACK',
+    RETREAT: 'RETREAT'
+};
 
 export class OtherEnemy {
     constructor(position, state = 'IDLE', type) {
