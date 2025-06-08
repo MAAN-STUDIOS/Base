@@ -432,7 +432,7 @@ export class Engine {
      * Spawns a random enemy around the player
      * @param {ObjectMap} gameMap - The game map
      */
-    spawnRandomEnemy(gameMap) {
+    spawnRandomEnemy(gameMap, type = 'flood') {
         const enemyId = `${socket.id}-${this.enemyIdCounter++}`;
 
         const angle = Math.random() * Math.PI * 2;
@@ -451,7 +451,8 @@ export class Engine {
             homePoint: homePoint,
             tileGrid: gameMap,
             obstacles: gameMap.hitboxes || [],
-            ...this.enemyConfig.enemySettings
+            ...this.enemyConfig.enemySettings,
+            type: type
         });
 
         enemy.id = enemyId;
