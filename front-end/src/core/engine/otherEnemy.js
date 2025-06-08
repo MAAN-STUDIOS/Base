@@ -15,7 +15,6 @@ export class OtherEnemy {
         // this.img.src = SpriteSheet;
 
         // this.spriteRect = new Rect(0, 0, 153, 153);
-        // this.previousDirection = "down";
         // this.currentDirection = "down";
         // this.frame = 0;
         // this.minFrame = 0;
@@ -75,7 +74,7 @@ export class OtherEnemy {
     //     }
     // }
 
-    update() {
+    update(dt) {
         this.position.lerpEqual(this.target, 1.0);
 
         // this.setMovementAnimation();

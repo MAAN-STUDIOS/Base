@@ -60,8 +60,7 @@ export class Enemy {
         this.img.src = SpriteSheet;
 
         this.spriteRect = new Rect(0, 0, 153, 153);
-        this.previousDirection = "down";
-        this.currentDirection = "down";
+        this.previousState = STATES.IDLE;
         this.frame = 0;
         this.minFrame = 0;
         this.maxFrame = 0;
@@ -117,9 +116,9 @@ export class Enemy {
         
         const anim = stateAnimations[this.state];
     
-        if (this.state !== this.previousDirection) {
+        if (this.state !== this.previousState) {
             this.setAnimation(...anim.frames, anim.repeat, anim.duration);
-            this.previousDirection = this.state;
+            this.previousState = this.state;
         }
     }
     
