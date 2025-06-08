@@ -2,152 +2,152 @@ const animationDelay = 0.1;
 
 export const playerMovement = {
     up: {
-        frames: [31, 34], 
+        frames: [0, 3], 
         repeat: true,
-        duration: animationDelay
+        duration: animationDelay * 35
     }, 
     down: {
-        frames: [2, 4], 
+        frames: [60, 69], 
         repeat: true,
-        duration: animationDelay
+        duration: animationDelay * 35
     },
     left: {
-        frames: [0, 0],
+        frames: [6, 16],
         repeat: true,
-        duration: animationDelay
+        duration: animationDelay * 35
     },
     right: {
-        frames: [1, 1],
+        frames: [60, 69],
         repeat: true,
-        duration: animationDelay
+        duration: animationDelay * 35
     }, 
     idle: {
-        frames: [2, 2], 
+        frames: [57, 57], 
         repeat: true,
         duration: animationDelay
     },
     shoot_pistol_right: {
-        frames: [6, 6], 
+        frames: [70, 79], 
         repeat: true,
         duration: animationDelay
     }, 
     shoot_pistol_left: {
-        frames: [5, 5],
+        frames: [17, 26],
         repeat: true,
         duration: animationDelay
     },
     pistol_diagonal_right_up: {
-        frames: [7, 7],
+        frames: [110, 111],
         repeat: true,
         duration: animationDelay
     },
     pistol_diagonal_left_up: {
-        frames: [8, 8],
+        frames: [116, 117],
         repeat: true,
         duration: animationDelay
     },
     pistol_diagonal_right_down: {
-        frames: [10, 10],
+        frames: [114, 115],
         repeat: true,
         duration: animationDelay
     },
     pistol_diagonal_left_down: {
-        frames: [9, 9],
+        frames: [112, 113],
         repeat: true,
         duration: animationDelay
     },
     shoot_machinegun_right: {
-        frames: [18, 18],
+        frames: [90, 99],
         repeat: true,
         duration: animationDelay
     }, 
     shoot_machinegun_left: {
-        frames: [17, 17],
+        frames: [37, 46],
         repeat: true,
         duration: animationDelay
     },
     machinegun_diagonal_right_up: {
-        frames: [19, 19],
+        frames: [125, 126],
         repeat: true,
         duration: animationDelay
     },
     machinegun_diagonal_left_up: {
-        frames: [20, 20],
+        frames: [131, 132],
         repeat: true,
         duration: animationDelay
     },
     machinegun_diagonal_right_down: {
-        frames: [22, 22],
+        frames: [129, 130],
         repeat: true,
         duration: animationDelay
     },
     machinegun_diagonal_left_down: {
-        frames: [21, 21],
+        frames: [127, 128],
         repeat: true,
         duration: animationDelay
     },
     shoot_flamethrower_right: {
-        frames: [24, 24],
+        frames: [100, 109],
         repeat: true,
         duration: animationDelay
     }, 
     shoot_flamethrower_left: {
-        frames: [23, 23],
+        frames: [47, 56],
         repeat: true,
         duration: animationDelay
     },
     flamethrower_diagonal_right_up: {
-        frames: [25, 25],
+        frames: [133, 134],
         repeat: true,
         duration: animationDelay
     },
     flamethrower_diagonal_left_up: {
-        frames: [26, 26],
+        frames: [137, 138],
         repeat: true,
         duration: animationDelay
     },
     flamethrower_diagonal_right_down: {
-        frames: [28, 28],
+        frames: [139, 140],
         repeat: true,
         duration: animationDelay
     },
     flamethrower_diagonal_left_down: {
-        frames: [27, 27],
+        frames: [135, 136],
         repeat: true,
         duration: animationDelay
     }, 
     shoot_shotgun_right: {
-        frames: [12, 12],
+        frames: [27, 36],
         repeat: true,
         duration: animationDelay
     }, 
     shoot_shotgun_left: {
-        frames: [11, 11],
+        frames: [81, 89],
         repeat: true,
         duration: animationDelay
     },
     shotgun_diagonal_right_up: {
-        frames: [13, 13],
+        frames: [118, 119],
         repeat: true,
         duration: animationDelay
     },
     shotgun_diagonal_left_up: {
-        frames: [14, 14],
+        frames: [124, 125],
         repeat: true,
         duration: animationDelay
     },
     shotgun_diagonal_right_down: {
-        frames: [16, 16],
+        frames: [122, 123],
         repeat: true,
         duration: animationDelay
     },
     shotgun_diagonal_left_down: {
-        frames: [15, 15],
+        frames: [120, 121],
         repeat: true,
         duration: animationDelay
     },
     dead: {
-        frames: [29, 30],
+        frames: [59, 59],
         repeat: true,
         duration: animationDelay
     },

@@ -20,7 +20,7 @@ import Barra from "@assets/HUD/Barra_sinfo.png";
 
 import Circulo from "@assets/HUD/Circulo_sinfo.png";
 
-import SpriteSheet from "@/assets/human/final.png";
+import SpriteSheet from "@/assets/human/astronaut.png";
 
 /**
  * Represents a human-controlled player in the game.
@@ -86,7 +86,7 @@ export class HumanPlayer extends Player {
         };
 
         //this.spriteRect = new Rect(0, 0, 308, 307);
-        this.spriteRect = new Rect(0, 0, 153, 153);
+        this.spriteRect = new Rect(0, 0, 152, 152);
         this.previousDirection = "down";
         this.currentDirection = "down";
         this.frame = 0;
