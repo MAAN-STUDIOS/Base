@@ -18,8 +18,8 @@ export default function () {
         }
 
         document.getElementById("btn-play")?.addEventListener('click', () => {
-            alert('Let the carnage begin!');
-            navigate("human");
+            // alert('Let the carnage begin!'); not sure about it
+            navigate("flood");
         });
     };
 
