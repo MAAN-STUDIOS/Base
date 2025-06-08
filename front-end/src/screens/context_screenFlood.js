@@ -1,8 +1,7 @@
 import { navigate } from "@utils/router.js";
 import styles from "./styles/context_screenFlood.module.css";
 
-import clone from "@assets/Flood/Clone/clone_sinfondo.png";
-import beast from "@assets/Flood/Flood_sinfondo.png";
+import astronauta from "@assets/Flood/astronauta_sinfondo.png";
 
 export default function () {
     const listener = () => {
@@ -40,7 +39,7 @@ export default function () {
                 The Prometheus fleet, while conducting exploration missions for mining purposes, found a strange rock on a star made of promethium, which they transported back to the Astral Dynamics mainframe only to discover that inside it lay a kind of viscous liquid. After being released, it escaped, evolved rapidly, and multiplied, destroying all life forms other than itself.
             </div>
             <div class="${styles.storyText}">
-                Your objective is to exterminate any anthropomorphic form in your path; harness your immense strength.Multiply and create more floods. Remember, you need to kill humans to do this.
+                Your objective is to exterminate any anthropomorphic form in your path; harness your immense strength.Multiply and create more floods. Remember, you need to kill humans to obtain biomass from them.
             </div>
             <div class="${styles.storyText}">
                 To win, you need to collect all the cure fragments before the surviving astronauts inside the ship do.
@@ -61,17 +60,10 @@ export default function () {
             <div class="item-grid">
                 <div class="${styles.itemCard}">
                     <div class="${styles.itemImage}">
-                        <img src="${beast}" alt="Flood-Beast" class="${styles.weaponImg}">
+                        <img src="${astronauta}" alt="Cosmonavts" class="${styles.weaponImg}">
                     </div>
                     <div class="${styles.itemName}">Cosmonavts</div>
                     <div class="${styles.itemDescription}">Human survivors inside the ship, handling heavy weaponry.</div>
-                </div>
-                <div class="${styles.itemCard}">
-                    <div class="${styles.itemImage}">
-                        <img src="${clone}" alt="Flood Clone" class="${styles.weaponImg}">
-                    </div>
-                    <div class="${styles.itemName}">Flood Clone</div>
-                    <div class="${styles.itemDescription}">Parasites originating from the Flood-Beast, these are created from the biomass obtained by killing the surviving humans</div>
                 </div>
             </div>
         </div>

@@ -18,8 +18,8 @@ import context_screen from '@screens/context_screen.js';
 import context_Flood_screen from '@screens/context_screenFlood.js';
 
 // Register all screens
-registerScreen('menu', screenMenu);
-registerScreen('play', screenStartGame);
+registerScreen('menu', screenMenu);         //Main screen
+registerScreen('play', screenStartGame);    //"Choose your side screen"
 registerScreen('flood', screenFloodTest);
 registerScreen('human', screenHumanDemo);
 registerScreen(404, screenPageNotFound);
