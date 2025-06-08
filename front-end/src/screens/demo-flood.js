@@ -158,8 +158,8 @@ export default function floodScreen() {
             type: "flood",
             size: 130,
             position: Vector.zero(),
-            walkSpeed: 100,
-            runSpeed: 1000,
+            walkSpeed: 21,
+            runSpeed: 60,
 
         },
         map: {
