@@ -163,8 +163,8 @@ export class Engine {
             spawnInterval: 3000,
             lastSpawnTime: 0,
             enemySettings: {
-                width: 32,
-                height: 32,
+                width: 60,
+                height: 60,
                 health: 100,
                 speed: 6,
                 damage: 10,
@@ -593,10 +593,6 @@ export class Engine {
                     enemyScreenY <= this.map.camaraHeight + enemy.height
                 );
                 if (visibleEnemy) {
-                    this._world.map.ctx.fillStyle = "white";
-                    this._world.map.ctx.font = "12px Arial";
-                    this._world.map.ctx.fillText(`Enemy: ${enemy.health}/${enemy.maxHealth}`, enemyScreenX + 10, enemyScreenY + 10);
-
                     enemy.drawAtPosition(this._world.map.ctx, enemyScreenX, enemyScreenY);
                 }
             }
