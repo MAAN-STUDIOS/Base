@@ -9,7 +9,7 @@ export class Pistol {
      * @param [options.damage]
      * @param [options.range]
      * @param [options.projectileType]
-     * @param [options.cooldown]
+     * @param [options.cooldown] tiempo que debe pasar entre disparos
      */
     constructor(options = {}) {
         this.config = {
@@ -23,7 +23,7 @@ export class Pistol {
     }
 
     update(dt) {
-        this.cooldownTimer += dt;
+        this.cooldownTimer += dt; //contador que acumula el tiempo transcurrido
       }
 
     fire(origin, direction, owner = null) {
