@@ -344,6 +344,15 @@ export class FloodPlayer extends Player {
         super.update(dt);
         this.setMovementAnimation();
         this.updateFrame(dt * 1000);
+
+        // Auto-restore health if below 30% 
+        if (!this._lastAutoRestore) this._lastAutoRestore = 0;
+        const now = performance.now();
+        if (this.health < 0.3 * this.maxHealth && (now - this._lastAutoRestore > 2000)) {
+            this.health = Math.max(this.health, Math.floor(0.3 * this.maxHealth));
+            this._lastAutoRestore = now;
+            logger.debug('Flood auto-restored to 30% health!');
+        }
     }
 
 }
