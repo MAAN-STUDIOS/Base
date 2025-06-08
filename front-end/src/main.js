@@ -6,10 +6,6 @@ import screenFloodTest from "@/screens/demo-flood.js";
 import screenPageNotFound from "@screens/404.js";
 import screenCredits from "@screens/credits.js";
 import screenHumanDemo from "@screens/demo.js";
-import audioManager from "@utils/audiomanager.js";
-import cloneSound from "@/assets/sfx/clone.wav";
-import terrorMusic from "@/assets/sfx/Terror.mp3";
-import playerDamage from "@/assets/sfx/player_damage.wav";
 import screenLogin from "@screens/login.js";
 import screenCreateAccount from "@screens/createAccount.js";
 import screenJoinGame from "@screens/joinGame.js";
@@ -17,6 +13,11 @@ import screenDashboard from "@screens/dashboard.js";
 import context_screen from '@screens/context_screen.js';
 import context_Flood_screen from '@screens/context_screenFlood.js';
 
+
+import audioManager from "@utils/audiomanager.js";
+import cloneSound from "@/assets/sfx/clone.wav";
+import terrorMusic from "@/assets/sfx/Terror.mp3";
+import playerDamage from "@/assets/sfx/player_damage.wav";
 import pistolSound from "@/assets/sfx/pistol.wav";
 import machineGunSound from "@/assets/sfx/machinegun.wav";
 import shotgunSound from "@/assets/sfx/shotgun.wav";
@@ -34,7 +35,7 @@ registerScreen('login', screenLogin);
 registerScreen('create-account', screenCreateAccount);
 registerScreen('dashboard', screenDashboard);
 registerScreen('context_screen', context_screen);
-registerScreen('context_Flood', context_Flood_screen);
+registerScreen('context_flood', context_Flood_screen);
 
 registerScreen('join-game', screenJoinGame);
 registerScreen('dashboard', screenDashboard);
@@ -52,7 +53,6 @@ document.addEventListener("click", function unlockAudio() {
 }, { once: true });
 
 function initAudio() {
-    // Load sounds first
     audioManager.loadSound("clone", cloneSound);
     audioManager.loadSound("humanDamage", playerDamage);
 
@@ -76,12 +76,12 @@ function initAudio() {
         volume: 0.1,
         type: "sfx"
     });
- 
+
     audioManager
         .loadSound("menu", terrorMusic, { 
             loop: true, 
             volume: 0.6, 
-            type: "music" // This is critical - must specify it's music
+            type: "music"
         })
         .then(() => {
             console.log("Menu music loaded successfully");
@@ -93,5 +93,4 @@ function initAudio() {
 
 initAudio();
 
-// Navigate to the appropriate screen
 navigate(location.pathname.slice(1) || 'menu');

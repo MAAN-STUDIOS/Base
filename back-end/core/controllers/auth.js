@@ -1,5 +1,9 @@
 import db from '../../config/db.js';
 import {generateToken, verifyToken, refreshAccessToken} from '../middleware/auth.js';
+import get_logger from "../utils/logger.js";
+
+
+const logger = get_logger("CONTROLLER-AUTH");
 
 
 export class AuthController {
@@ -85,6 +89,7 @@ export class AuthController {
 
         try {
             const user = verifyToken(token);
+            logger.debug("Token Verified");
             if (!user) {
                 return res.status(401).send({ error: 'Invalid token' });
             }
@@ -97,14 +102,15 @@ export class AuthController {
                     [user.id]);
 
                 if (!player || player.length === 0) {
+                    logger.warn(`No player found for ${user.id}`);
                     res.status(404).send({ error: 'No user founded' });
                 }
 
                 res.status(200);
             } catch (err) {
+                logger.error(err.message);
                 res.status(500).send(err);
             }
-            res.status(200).send({ user });
         } catch (error) {
             console.error('Token verification failed:', error);
             res.status(500).send({ error: 'Failed to verify token' });

@@ -6,7 +6,6 @@ import mapsSpriteSheet from "@assets/map.png";
 import { ShootingSystem } from "@engine/shootingsystem.js";
 import minimapsSpriteSheet from "@assets/minimap.png";
 
-// Star field configuration
 const starField = {
    stars: [],
    nebulae: [],
@@ -21,7 +20,6 @@ const starField = {
                speed: Math.random() * 0.2 + 0.1
            });
        }
-       // Generate nebulae
        for (let i = 0; i < 5; i++) {
            this.nebulae.push({
                x: Math.random() * canvas.width,
@@ -49,11 +47,9 @@ const starField = {
        });
    },
    draw(ctx) {
-       // Clear with black space background
        ctx.fillStyle = '#000011';
        ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
-       // Draw nebulae
        this.nebulae.forEach(nebula => {
            const gradient = ctx.createRadialGradient(
                nebula.x, nebula.y, 0,
@@ -68,7 +64,6 @@ const starField = {
            ctx.fill();
        });
 
-       // Draw stars
        this.stars.forEach(star => {
            ctx.fillStyle = `rgba(255, 255, 255, ${star.brightness})`;
            ctx.beginPath();
@@ -86,7 +81,7 @@ export default function humanScreen() {
             size: 150,
             position: Vector.zero(),
             walkSpeed: 20,
-            runSpeed: 40
+            runSpeed: 1000
         },
         map: {
             spriteSheet: mapsSpriteSheet,
@@ -130,6 +125,16 @@ export default function humanScreen() {
         game.init(map, minimap);
         starField.init(map);
 
+        game.handleEnemySpawning = function(currentTime, gameMap) {
+            const timeToSpawn = currentTime - this.enemyConfig.lastSpawnTime > this.enemyConfig.spawnInterval;
+            const notReachMaxEnemies = this.enemies.length < this.enemyConfig.maxEnemies;
+    
+            if (timeToSpawn && notReachMaxEnemies) {
+                this.spawnRandomEnemy(gameMap, 'flood');
+                this.enemyConfig.lastSpawnTime = currentTime;
+            }
+        };
+
         game.on("playerDeath", () => {
             game.enemies.length = 0;
         });
@@ -144,7 +149,6 @@ export default function humanScreen() {
         const originalMapDraw = game.map.draw;
         game.map.draw = function(ctx) {
             starField.draw(ctx);
-            // after draw the map tiles on top of stars
             originalMapDraw.call(this, ctx);
         };
 
