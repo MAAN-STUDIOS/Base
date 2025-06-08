@@ -634,6 +634,31 @@ export class Engine {
         if (this._gameState.deathScreenShown) {
             this.showDeathScreen(this._world.map.ctx);
         }
+
+        // Border effect for enemy states
+        let borderColor = null;
+        let isAttack = false;
+        for (let enemy of this.enemies) {
+            if (enemy.state === 'ATTACK') {
+                isAttack = true;
+                break;
+            } 
+        }
+        if (isAttack) {
+            // Blinking effect for red border
+            const t = performance.now() / 300;
+            const alpha = 0.2 + 0.2 * Math.abs(Math.sin(t)); // oscillates between 0.2 and 0.4
+            borderColor = `rgba(255,0,0,${alpha})`;
+        }
+        if (borderColor) {
+            this._world.map.ctx.save();
+            this._world.map.ctx.strokeStyle = borderColor;
+            this._world.map.ctx.lineWidth = 32;
+            this._world.map.ctx.shadowColor = borderColor;
+            this._world.map.ctx.shadowBlur = 40;
+            this._world.map.ctx.strokeRect(0, 0, this._world.map.width, this._world.map.height);
+            this._world.map.ctx.restore();
+        }
     }
 
     #initPlayer(initialPosition, type) {
