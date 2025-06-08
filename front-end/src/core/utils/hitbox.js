@@ -23,12 +23,12 @@ export class Hitbox {
 
 
     get x() {
-        return this.gameObject.position.x;
+        return this.gameObject.real_position?.x ?? this.gameObject.position.x;
     }
 
 
     get y() {
-        return this.gameObject.position.y;
+        return this.gameObject.real_position?.y ?? this.gameObject.position.y;
     }
 
 

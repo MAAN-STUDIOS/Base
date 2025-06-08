@@ -4,7 +4,7 @@ import { humanEnemy } from "@engine/playerAnimation.js";
 import { Rect } from "@utils/rectangle.js";
 
 
-const STATES = {
+export const STATES = {
     IDLE: 'IDLE',
     PURSUE: 'PURSUE',
     SEARCH: 'SEARCH',
@@ -19,7 +19,7 @@ export class OtherEnemy {
         this.state = state;
         this.width = 32;
         this.height = 32;
-        this.enemyType = type;
+        this.enemyType = type || "human";
 
         this.img = new Image();
         this.img.src = SpriteSheet;
@@ -33,6 +33,9 @@ export class OtherEnemy {
         this.frameDuration = 100;
         this.totalTime = 0;
         this.sheetCols = 6;
+
+        this.maxHealth = 100;
+        this.health = this.maxHealth;
 
     }
 
@@ -62,18 +65,18 @@ export class OtherEnemy {
     setMovementAnimation() {
         const stateAnimations = this.enemyType === 'flood'
             ? {
-                'IDLE': floodEnemy.idle,
-                'PURSUE': floodEnemy.pursue,
-                'SEARCH': floodEnemy.search,
-                'ATTACK': floodEnemy.attack,
-                'RETREAT': floodEnemy.retreat
+                [STATES.IDLE]: floodEnemy.idle,
+                [STATES.PURSUE]: floodEnemy.pursue,
+                [STATES.SEARCH]: floodEnemy.search,
+                [STATES.ATTACK]: floodEnemy.attack,
+                [STATES.RETREAT]: floodEnemy.retreat
             }
             : {
-                'IDLE': humanEnemy.idle,
-                'PURSUE': humanEnemy.pursue,
-                'SEARCH': humanEnemy.search,
-                'ATTACK': humanEnemy.attack,
-                'RETREAT': humanEnemy.retreat
+                [STATES.IDLE]: humanEnemy.idle,
+                [STATES.PURSUE]: humanEnemy.pursue,
+                [STATES.SEARCH]: humanEnemy.search,
+                [STATES.ATTACK]: humanEnemy.attack,
+                [STATES.RETREAT]: humanEnemy.retreat
             };
 
         const anim = stateAnimations[this.state];
@@ -116,8 +119,25 @@ export class OtherEnemy {
             this.height
         );
 
-        ctx.fillStyle = this.getStateColor();
-        ctx.fillRect(screenX - this.width / 2, screenY - this.height / 2, this.width, this.height);
+        const healthBarWidth = this.width;
+        const healthBarHeight = 5;
+        const healthPercentage = this.health / this.maxHealth;
+
+        ctx.fillStyle = 'red';
+        ctx.fillRect(
+            screenX - healthBarWidth / 2,
+            screenY - this.height / 2 - 10,
+            healthBarWidth,
+            healthBarHeight
+        );
+
+        ctx.fillStyle = 'green';
+        ctx.fillRect(
+            screenX - healthBarWidth / 2,
+            screenY - this.height / 2 - 10,
+            healthBarWidth * healthPercentage,
+            healthBarHeight
+        );
     }
 
     getStateColor() {

@@ -314,10 +314,6 @@ export class Vector {
     normalize() {
         const len = this.magnitude();
 
-        if (len === 0) {
-            logger.warn("Attempted to normalize a zero-length vector");
-        }
-
         return len === 0 ? new Vector(0, 0) : this.div(len);
     }
 
@@ -504,5 +500,10 @@ export class Vector {
     clear() {
         this.x = 0;
         this.y = 0;
+    }
+
+    update(x, y) {
+        this.x = x;
+        this.y = y;
     }
 }

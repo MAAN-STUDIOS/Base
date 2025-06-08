@@ -799,18 +799,20 @@ export class ObjectMap {
      */
     #drawDebugInfo(ctx) {
         const info = this.getPositionInfo(this.real_position);
+        const offsetX = 0;
+        const offsetY = window.innerHeight / 2;
 
         ctx.save();
         ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-        ctx.fillRect(10, 10, 300, 120);
+        ctx.fillRect(10 + offsetX, 10 + offsetY, 300, 120);
 
         ctx.fillStyle = 'white';
         ctx.font = '14px monospace';
-        ctx.fillText(`World Pos: ${Math.floor(info.worldPosition.x)}, ${Math.floor(info.worldPosition.y)}`, 20, 30);
-        ctx.fillText(`Chunk: ${info.chunk.x}, ${info.chunk.y}`, 20, 50);
-        ctx.fillText(`Pos in Chunk: ${Math.floor(info.positionInChunk.x)}, ${Math.floor(info.positionInChunk.y)}`, 20, 70);
-        ctx.fillText(`Tile in Chunk: ${info.tileInChunk.x}, ${info.tileInChunk.y}`, 20, 90);
-        ctx.fillText(`Loaded Chunks: ${this.chunks_loaded.size}`, 20, 110);
+        ctx.fillText(`World Pos: ${Math.floor(info.worldPosition.x)}, ${Math.floor(info.worldPosition.y)}`, 20 + offsetX, 30 + offsetY);
+        ctx.fillText(`Chunk: ${info.chunk.x}, ${info.chunk.y}`, 20 + offsetX, 50 + offsetY);
+        ctx.fillText(`Pos in Chunk: ${Math.floor(info.positionInChunk.x)}, ${Math.floor(info.positionInChunk.y)}`, 20 + offsetX, 70 + offsetY);
+        ctx.fillText(`Tile in Chunk: ${info.tileInChunk.x}, ${info.tileInChunk.y}`, 20 + offsetX, 90 + offsetY);
+        ctx.fillText(`Loaded Chunks: ${this.chunks_loaded.size}`, 20 + offsetX, 110 + offsetY);
         ctx.restore();
     }
 

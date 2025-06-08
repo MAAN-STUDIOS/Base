@@ -7,8 +7,11 @@ import ametralladora from "@assets/Armas/ametralladora.png";
 import lanzallamas from "@assets/Armas/lanzallamas.png";
 import escopeta from "@assets/Armas/escopeta.png";
 import pistola from "@assets/Armas/pistola.png";
+import { redirectIfNotLoggedIn } from "@utils/redirects.js";
 
 export default function () {
+    redirectIfNotLoggedIn();
+
     const listener = () => {
         const starsContainer = document.getElementById('stars');
         const numStars = 150;

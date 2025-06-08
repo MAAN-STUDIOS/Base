@@ -7,6 +7,8 @@ import mapsSpriteSheet from "@assets/map.png";
 import minimapsSpriteSheet from "@assets/minimap.png";
 import logger from "@utils/logger.js";
 import FloodHUD from "@/components/FloodHUD.js";
+import { redirectIfNotLoggedIn } from "@utils/redirects.js";
+import { ShootingSystem } from "@engine/shootingsystem.js";
 
 // Star field for background
 const starField = {
@@ -152,6 +154,7 @@ function partialAbilities(state, abilityKeys) {
 }
 
 export default function floodScreen() {
+    redirectIfNotLoggedIn();
 
 
     const setup = async () => {
@@ -165,7 +168,7 @@ export default function floodScreen() {
             }
 
             logger.info("Fetching spawn position...");
-            const spawnData = await get_spawn(gameId, "flood", token);
+            let spawnData = await get_spawn(gameId, "flood", token);
 
             if (!spawnData) {
                 logger.error("Failed to get spawn position");
@@ -250,26 +253,27 @@ export default function floodScreen() {
                 starField.update(dt);
                 handleAbilities(game.player, abilityKeys, clones, game.enemies);
 
-                if (abilityKeys.restart && game._gameState.isGameOver) {
-                    game.respawnPlayer();
-                    abilityKeys.restart = false;
+            if (abilityKeys.restart && game._gameState.isGameOver) {
+                game.respawnPlayer();
+                abilityKeys.restart = false;
+            }
+        
+            for (let i = 0; i < clones.length; ++i) {
+                if (clones[i].isDead === true) {
+                    clones.splice(i, 1);
+                    continue;
                 }
-
-                for (let i = 0; i < clones.length; ++i) {
-                    if (clones[i].isDead === true) {
+                if (clones[i] && clones[i].update) {
+                    clones[i].update(dt, game.player, game.enemies);
+                    if (clones[i].health <= 0) {
                         clones.splice(i, 1);
-                        continue;
-                    }
-                    if (clones[i] && clones[i].update) {
-                        clones[i].update(dt, game.player, game.enemies);
-                        if (clones[i].health <= 0) {
-                            clones.splice(i, 1);
-                        }
                     }
                 }
-
-                hud.update(game.player);
-            });
+            }
+        
+            hud.update(game.player);
+            ShootingSystem.updateAll(dt);
+        });
 
             const originalMapDraw = game.map.draw;
             game.map.draw = function (ctx) {
@@ -277,13 +281,15 @@ export default function floodScreen() {
                 originalMapDraw.call(this, ctx);
             };
 
-            game.on("render", (ctx) => {
-                for (let clone of clones) {
-                    if (clone && clone.draw) {
-                        clone.draw(ctx);
-                    }
+        game.on("render", (ctx) => {
+            for (let clone of clones) {
+                if (clone && clone.draw) {
+                    clone.draw(ctx);
                 }
-            });
+            }
+
+            ShootingSystem.drawAll(ctx, game.player.real_position.clone());
+        });
 
             window.addEventListener('keydown', partialAbilities(true, abilityKeys));
             window.addEventListener('keyup', partialAbilities(false, abilityKeys));
@@ -293,10 +299,10 @@ export default function floodScreen() {
                 game.start();
             });
 
-            back?.addEventListener("click", () => {
-                game.stop();
-                navigate("play");
-            });
+        back?.addEventListener("click", () => {
+            game.stop();
+            navigate("join-game");
+        });
 
             game.start();
 
@@ -342,7 +348,7 @@ export default function floodScreen() {
             </div>
             <div class="${styles.miniMenu}">
                 <button id="btn-continue">Continue</button>
-                <button id="btn-back-to-play">Back to menu</button>
+                <button id="btn-back-to-play">Back to Choose Side</button>
             </div>
             <div class=${styles.controls}>
                 <div class=${styles.controlsTitle}>CONTROLS</div>

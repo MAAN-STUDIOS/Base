@@ -1,9 +1,90 @@
 import { Server } from 'socket.io';
 import get_logger from "../utils/logger.js";
-import players from "./players.js";
 
 const logger = get_logger("SOCKET");
 let io = null;
+
+
+/**
+ *
+ * @type {{entities: [
+ *     {
+ *         id, x, y, type, kind
+ *     }
+ * ]}
+ * }
+ */
+const game = {
+    entities: [],
+    players: [],
+};
+
+const games = new Map();
+
+function createGame(id) {
+    if (games.has(id)) return;
+
+    games.set(id, {
+        entities: [],
+        players: []
+    });
+}
+
+function joinGame(socket_id, id) {
+    try {
+        const socket = io.sockets.sockets.get(socket_id);
+        // games.get(game_id).players.push({id: player_id, socket: socket_id});
+        if (!socket) {
+            return {
+                success: false,
+                reason: "Socket not found"
+            };
+        }
+        socket.join(id);
+        return {
+            success: true
+        };
+    } catch (err) {
+        return {
+            success: false,
+            reason: err.message ?? "Failed to join room"
+        };
+    }
+}
+
+function players(io, socket) {
+    socket.on("join", (data) => {
+        if (!data) return;
+
+        socket.emit("gameEntities", game.entities.filter(entity => entity.id !== data.id));
+
+        if (data.kind !== "projectile") {
+            game.entities.push({
+                id: data.id,
+                eid: data.eid,
+                cid: data.cid,
+                x: data.x,
+                y: data.y,
+                kind: data.kind,
+                type: data.type
+            });
+        }
+
+        socket.broadcast.emit("join", data);
+    });
+
+    socket.on("update", (data) => {
+        socket.broadcast.emit("update", data);
+    });
+
+    socket.on("damage", (data) => {
+        socket.broadcast.emit("damage", data);
+    });
+
+    socket.on("death", (data) => {
+        socket.broadcast.emit("death", data);
+    });
+}
 
 export default function initSockets(server) {
     if (io) {
@@ -57,29 +138,9 @@ export default function initSockets(server) {
     return io;
 }
 
-function joinRoom(socket_id, id) {
-    try {
-        const socket = io.sockets.sockets.get(socket_id);
-        if (!socket) {
-            return {
-                success: false,
-                reason: "Socket not found"
-            };
-        }
-        socket.join(id);
-        return {
-            success: true
-        };
-    } catch (err) {
-        return {
-            success: false,
-            reason: err.message ?? "Failed to join room"
-        };
-    }
-}
-
 const sockets = {
-    joinRoom,
+    joinGame,
+    initSockets
 };
 
 export { io, sockets };

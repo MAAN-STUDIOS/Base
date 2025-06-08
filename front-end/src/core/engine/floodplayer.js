@@ -1,6 +1,5 @@
 import { Player } from "@engine/objectPlayer.js";
 import { Vector } from "@utils/vector.js";
-import { Hitbox } from "@utils/hitbox.js";
 import { FloodClone } from "@engine/floodclone.js";
 import logger from "@utils/logger.js";
 import { floodMovement } from "@engine/playerAnimation.js";
@@ -39,13 +38,14 @@ export class FloodPlayer extends Player {
             ...options
         });
 
-        this.biomass = 0;
+        this.biomass = 100;
         this.evolution = 1;
         this.cloneCooldown = 5000;
         this.lastCloneTime = 0;
         this.evolutionCooldown = 0;
         this.attackCooldowns = { melee: 0, acid: 0};
         this.consumeCooldown = 0;
+        this.cloneCounter = 0;
 
         /** @type {Array<FloodClone>} - Active clones of this player */
         this.clones = [];
@@ -205,13 +205,15 @@ export class FloodPlayer extends Player {
             height: this.height / 3,
             color: this.color,
             evolution: this.evolution,
-            _player: this
+            _player: this,
+            id: ++this.cloneCounter
         });
 
         if (!this.clones) {
             this.clones = [];
         }
         this.clones.push(clone);
+        this.onClone?.(clone);
 
         logger.debug(`Clone created. Remaining biomass: ${this.biomass}`);
         return clone;
@@ -321,12 +323,6 @@ export class FloodPlayer extends Player {
 
         const colors = ["#8b0000", "#b80000", "#ff3030"];
         this.color = colors[this.evolution - 1];
-
-        // Posición fija en la pantalla (un poco arriba de la mitad)
-        const fixedX = ctx.canvas.width / 2 - 25; // Centrado horizontalmente, ajustado para el ancho de las barras
-        const fixedY = ctx.canvas.height / 2 - 50; // Un poco arriba de la mitad
-
-        const now = performance.now();
     }
 
     die() {

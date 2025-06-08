@@ -431,7 +431,7 @@ export class GameController {
                 res.status(200).json(result);
             }
         } else {
-            res.status(404).json(result);
+            res.status(204).json(result)
         }
     }
     // GET /games/:id/spawns/:player_type

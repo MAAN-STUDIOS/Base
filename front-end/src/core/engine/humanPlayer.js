@@ -420,7 +420,7 @@ export class HumanPlayer extends Player {
         //Circulo
         ctx.drawImage(this.img6, ctx.canvas.width - 134, ctx.canvas.height - 111, 134, 111);
 
-        // Coordenadas 
+        // Coordenadas
         const coordX = ctx.canvas.width - 210;
         const coordY = 150;
         ctx.save();
@@ -542,12 +542,12 @@ export class HumanPlayer extends Player {
         super.die();
         this.health = this.maxHealth;
         this.oxygen = this.maxOxygen;
-        
+
         // Reiniciar sistema de niveles
         this.level = 1;
         this.kills = 0;
         this.killsNeededForNextLevel = 5;
-        
+
         // Reiniciar armas desbloqueadas
         this.unlockedWeapons = {
             1: true,  // Pistola (nivel 1)
@@ -555,7 +555,7 @@ export class HumanPlayer extends Player {
             3: false, // Machine Gun (nivel 3)
             4: false  // Flamethrower (nivel 4)
         };
-        
+
         // Volver a la primera arma
         this.activeSlot = 0;
     }
@@ -586,7 +586,7 @@ export class HumanPlayer extends Player {
             this.level++;
             this.unlockedWeapons[this.level] = true;
             this.kills = 0;
-            this.killsNeededForNextLevel = Math.floor(this.killsNeededForNextLevel * 1.25); 
+            this.killsNeededForNextLevel = Math.floor(this.killsNeededForNextLevel * 1.25);
             console.log(`¡Nivel ${this.level} desbloqueado!`);
         }
     }

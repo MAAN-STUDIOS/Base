@@ -28,6 +28,7 @@ export class FloodClone extends GameObject {
         this.urgentFollowSpeed = 100;
         this.urgentDistance = 10000;
         this.isDead = false;
+        this.id = options.id;
 
         this.img = new Image();
         this.img.src = SpriteSheet;
