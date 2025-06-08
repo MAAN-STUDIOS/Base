@@ -3,7 +3,7 @@ import { floodEnemy } from "@engine/playerAnimation.js";
 import { humanEnemy } from "@engine/playerAnimation.js";
 
 export class OtherEnemy {
-    constructor(position, state = 'IDLE') {
+    constructor(position, state = 'IDLE', type) {
         this.position = position;
         this.target = position.clone();
         this.state = state;

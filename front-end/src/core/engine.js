@@ -308,7 +308,8 @@ export class Engine {
             if (data.id.startsWith(socket.id)) return;
             this.otherEnemies.set(data.id, new OtherEnemy(
                 new Vector(data.x, data.y),
-                data.state
+                data.state,
+                data.type
             ));
         });
 
@@ -461,6 +462,7 @@ export class Engine {
         emitEvent(this.socket_events.ENEMY_JOIN, {
             id: enemyId,
             state: enemy.state,
+            type: enemy.enemyType,
             x: enemy.position.x,
             y: enemy.position.y,
         });
