@@ -1,6 +1,8 @@
 import { Hitbox } from "@utils/hitbox.js";
 import SpriteSheet from "@/assets/enemy/enemy.png";
 import { floodEnemy } from "@engine/playerAnimation.js";
+import { humanEnemy } from "@engine/playerAnimation.js";
+import { Rect } from "@utils/rectangle.js";
 
 const STATES = {
     IDLE: 'IDLE',
@@ -24,8 +26,10 @@ export class Enemy {
             chaseRadius = 300,
             attackRadius = 50,
             retreatHealthThreshold = 30,
-            retreatDistance = 150
+            retreatDistance = 150,
         } = config;
+
+        this.enemyType = config.type || 'flood'
 
         this.position = position;
         this.prevPosition = position.clone();
@@ -95,19 +99,27 @@ export class Enemy {
     }
 
     setMovementAnimation() {
-        const stateAnimations = {
+        const stateAnimations = this.enemyType === 'flood'
+        ? {
             [STATES.IDLE]: floodEnemy.idle,
             [STATES.PURSUE]: floodEnemy.pursue,
             [STATES.SEARCH]: floodEnemy.search,
             [STATES.ATTACK]: floodEnemy.attack,
             [STATES.RETREAT]: floodEnemy.retreat
+        }
+        : {
+            [STATES.IDLE]: humanEnemy.idle,
+            [STATES.PURSUE]: humanEnemy.pursue,
+            [STATES.SEARCH]: humanEnemy.search,
+            [STATES.ATTACK]: humanEnemy.attack,
+            [STATES.RETREAT]: humanEnemy.retreat
         };
-    
+        
         const anim = stateAnimations[this.state];
     
-        if (anim && this.currentDirection !== this.state) {
+        if (this.state !== this.previousDirection) {
             this.setAnimation(...anim.frames, anim.repeat, anim.duration);
-            this.currentDirection = this.state;
+            this.previousDirection = this.state;
         }
     }
     
@@ -343,8 +355,19 @@ export class Enemy {
     }
 
     drawAtPosition(ctx, screenX, screenY) {
-        ctx.fillStyle = this.getStateColor();
-        ctx.fillRect(screenX - this.width/2, screenY - this.height/2, this.width, this.height);
+        //ctx.fillStyle = this.getStateColor();
+        //ctx.fillRect(screenX - this.width/2, screenY - this.height/2, this.width, this.height);
+        ctx.drawImage(
+            this.img,
+            this.spriteRect.x * this.spriteRect.width,
+            this.spriteRect.y * this.spriteRect.height,
+            this.spriteRect.width,
+            this.spriteRect.height,
+            screenX - this.width / 2,
+            screenY - this.height / 2,
+            this.width,
+            this.height
+        );
 
         const healthBarWidth = this.width;
         const healthBarHeight = 5;

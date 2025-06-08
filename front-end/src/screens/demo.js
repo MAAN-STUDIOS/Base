@@ -130,6 +130,16 @@ export default function humanScreen() {
         game.init(map, minimap);
         starField.init(map);
 
+        game.handleEnemySpawning = function(currentTime, gameMap) {
+            const timeToSpawn = currentTime - this.enemyConfig.lastSpawnTime > this.enemyConfig.spawnInterval;
+            const notReachMaxEnemies = this.enemies.length < this.enemyConfig.maxEnemies;
+    
+            if (timeToSpawn && notReachMaxEnemies) {
+                this.spawnRandomEnemy(gameMap, 'flood');
+                this.enemyConfig.lastSpawnTime = currentTime;
+            }
+        };
+
         game.on("playerDeath", () => {
             game.enemies.length = 0;
         });

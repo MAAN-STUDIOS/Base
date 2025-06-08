@@ -7,52 +7,8 @@ export class OtherEnemy {
         this.height = 32;
     }
 
-    setAnimation(minFrame, maxFrame, repeat, duration) {
-        this.minFrame = minFrame;
-        this.maxFrame = maxFrame;
-        this.frame = minFrame;
-        this.repeat = repeat;
-        this.totalTime = 0;
-        this.frameDuration = duration * 1000;
-    }
-    
-    updateFrame(deltaTime) {
-        this.totalTime += deltaTime;
-    
-        if (this.totalTime > this.frameDuration) {
-            const restartFrame = this.repeat ? this.minFrame : this.frame;
-            this.frame = this.frame < this.maxFrame ? this.frame + 1 : restartFrame;
-    
-            this.spriteRect.x = this.frame % this.sheetCols;
-            this.spriteRect.y = Math.floor(this.frame / this.sheetCols);
-    
-            this.totalTime = 0;
-        }
-    }
-
-    setMovementAnimation() {
-        const stateAnimations = {
-            'IDLE': humanEnemy.idle,
-            'PURSUE': humanEnemy.pursue,
-            'SEARCH': humanEnemy.search,
-            'ATTACK': humanEnemy.attack,
-            'RETREAT': humanEnemy.retreat
-        };
-    
-        const anim = stateAnimations[this.state];
-    
-        if (anim && this.currentDirection !== this.state) {
-            this.setAnimation(...anim.frames, anim.repeat, anim.duration);
-            this.currentDirection = this.state;
-        }
-    }
-    
-
     update() {
         this.position.lerpEqual(this.target, 1.0);
-
-        this.setMovementAnimation();
-        this.updateFrame(dt * 1000);
     }
 
     draw(ctx, playerPosition, cameraWidth, cameraHeight) {
