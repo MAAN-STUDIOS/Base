@@ -1,10 +1,14 @@
 import { navigate } from "@utils/router.js";
 import styles from "./styles/startgame.module.css";
-import { join_game } from "../core/utils/apimanager";
-import logger from "../core/utils/logger.js";
+import { join_game } from "@utils/apimanager.js";
 
 
 export default function () {
+  const PLAYER_TYPE = {
+    flood: 'flood',
+    human: 'human'
+  };
+
   const listener = () => {
     const errorMessage = document.getElementById("error-message");
     
@@ -17,17 +21,32 @@ export default function () {
       errorMessage.style.display = "none";
     };
 
+    const redirectToContext = (playerType) => {
+      // TODO: add logic to only redirect n times, or not, idk.
+      switch (playerType) {
+        case PLAYER_TYPE.flood:
+          navigate("context_flood");
+          break;
+        case PLAYER_TYPE.human:
+          navigate("context_screen");
+          break;
+        default:
+          showError("Incorrect Type Selected.");
+          break;
+      }
+    };
+
     const handleJoinGame = async (playerType) => {
       hideError();
-      
-      if (!localStorage.getItem("authToken")) {
+
+      const auntToken = localStorage.getItem("authToken");
+      if (!auntToken) {
         showError(`You must be logged in to play as ${playerType}.`);
         return;
       }
       
       const gameId = localStorage.getItem("gameId");
-      //console.log("Game ID:", gameId);
-      if (!gameId || gameId == "" || gameId == "null" || gameId == "undefined") {
+      if (!gameId) {
         showError("Please enter a game ID");
         navigate("join-game");
         return;
@@ -40,7 +59,12 @@ export default function () {
       }
       
       try {
-        const data = await join_game(localStorage.getItem("gameId"), playerType, localStorage.getItem("socketId"), localStorage.getItem("authToken"));
+        const data = await join_game(
+            gameId,
+            playerType,
+            socketId,
+            auntToken
+        );
 
         if (!data) {
           showError("Game not found");
@@ -48,7 +72,7 @@ export default function () {
         } else if (data.current_players >= data.max_players) {
           showError("Game is full");
           return;
-        } else if (data.status == "ended") {
+        } else if (data.status === "ended") {
           showError("Game has already ended");
           return;
         }
@@ -60,14 +84,14 @@ export default function () {
         return;
       }
       
-      navigate(playerType);
+      redirectToContext(playerType);
     };
 
     const floodBtn = document.getElementById("flood-btn");
-    if (floodBtn) floodBtn.addEventListener("click", () => handleJoinGame('flood'));
+    if (floodBtn) floodBtn.addEventListener("click", () => handleJoinGame(PLAYER_TYPE.flood));
 
     const humanBtn = document.getElementById("human-btn");
-    if (humanBtn) humanBtn.addEventListener("click", () => handleJoinGame('human'));
+    if (humanBtn) humanBtn.addEventListener("click", () => handleJoinGame(PLAYER_TYPE.human));
 
     const tutorialBtn = document.getElementById("tutorial-btn");
     if (tutorialBtn) tutorialBtn.addEventListener("click", () => navigate("tutorial"));
