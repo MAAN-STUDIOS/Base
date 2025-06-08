@@ -404,6 +404,20 @@ async function active_games() {
     }
     return await response.json();
 }
+async function get_spawn(game_id, player_type, jwt) {
+    const response = await fetch(`${api_url}/games/${game_id}/spawn/${player_type}`, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `${jwt}`
+        }
+    });
+    if (!response.ok) {
+        logger.error("Error fetching spawn point");
+        return null;
+    }
+    return await response.json();
+}
 
 
 
@@ -419,5 +433,6 @@ export {
     join_game,
     create_game,
     game_info,
-    active_games
+    active_games,
+    get_spawn
 }

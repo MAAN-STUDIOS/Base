@@ -276,7 +276,7 @@ export class GameController {
         }
     }
 
-    // GET /api/games/:id/chunks/:x/:y - Get chunk data
+    // GET /games/:id/chunks/:x/:y - Get chunk data
     static async getChunk(req, res) {
         const user = authenticateUser(req, res);
         if (!user) return;
@@ -310,6 +310,43 @@ export class GameController {
             } else {
                 res.status(200).json(result);
             }
+        } else {
+            res.status(404).json(result);
+        }
+    }
+    // GET /games/:id/spawns/:player_type
+
+    static async getSpawn(req, res) {
+        //console.log('getSpawn called');
+        const user = authenticateUser(req, res);
+        if (!user) return;
+
+        const game_id = parseInt(req.params.id);
+        const player_type = req.params.player_type;
+
+
+        if (isNaN(game_id) || !['human', 'flood'].includes(player_type)) {
+            return res.status(400).json({
+                success: false,
+                error: 'Invalid parameters'
+            });
+        }
+
+        let result;
+        try {
+            result = await gameHandler.get_spawn(game_id, player_type);
+        } catch (error) {
+            logger.error('Failed to get spawn:', error.message);
+            res.status(500).json({
+                success: false,
+                error: `Failed to retrieve spawn data: ${error.message}`
+            });
+            return;
+        }
+        //console.log('getSpawn result:', result);
+
+        if (result.success) {
+            res.status(200).json(result);
         } else {
             res.status(404).json(result);
         }
@@ -348,78 +385,6 @@ export class GameController {
         }
     }
 
-    // POST /api/games/dungeons/:dungeon_id/enter - Enter a dungeon
-    static async enterDungeon(req, res) {
-        try {
-
-            const user = authenticateUser(req, res);
-            if (!user) return;
-
-            const dungeon_id = parseInt(req.params.dungeon_id);
-            const { socket_id } = req.body;
-
-            if (isNaN(dungeon_id) || !socket_id) {
-                return res.status(400).json({
-                    success: false,
-                    error: 'Invalid parameters'
-                });
-            }
-
-            if (dungeon_id < 1 || dungeon_id > 3) {
-                return res.status(400).json({
-                    success: false,
-                    error: 'Dungeon ID must be between 1 and 3'
-                });
-            }
-
-            const result = await gameHandler.player_enter_dungeon(socket_id, dungeon_id);
-
-            if (result.success) {
-                logger.info(`User ${user.username} entered dungeon ${dungeon_id}`);
-                res.status(200).json(result);
-            } else {
-                res.status(400).json(result);
-            }
-        } catch (error) {
-            logger.error('Failed to enter dungeon:', error);
-            res.status(500).json({
-                success: false,
-                error: 'Failed to enter dungeon'
-            });
-        }
-    }
-
-    // POST /api/games/dungeons/exit - Exit current dungeon
-    static async exitDungeon(req, res) {
-        try {
-            const user = authenticateUser(req, res);
-            if (!user) return;
-
-            const { socket_id } = req.body;
-
-            if (!socket_id) {
-                return res.status(400).json({
-                    success: false,
-                    error: 'Socket ID is required'
-                });
-            }
-
-            const result = await gameHandler.player_exit_dungeon(socket_id);
-
-            if (result.success) {
-                logger.info(`User ${user.username} exited dungeon`);
-                res.status(200).json(result);
-            } else {
-                res.status(400).json(result);
-            }
-        } catch (error) {
-            logger.error('Failed to exit dungeon:', error);
-            res.status(500).json({
-                success: false,
-                error: 'Failed to exit dungeon'
-            });
-        }
-    }
 
 
     // GET /api/games/player/current - Get player's current game

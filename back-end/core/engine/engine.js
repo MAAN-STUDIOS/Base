@@ -36,16 +36,16 @@ export class Game {
     async init() {
         const ranges = {
             d1: {
-                x: [-15, 15],
-                y: [-15, 15]
+                x: [-14, -7],
+                y: [-5, 5]
             },
             d2: {
-                x: [0, 0],
-                y: [0, 0]
+                x: [7, 14],
+                y: [-5, 5]
             },
             d3: {
-                x: [20, 35],
-                y: [20, 35]
+                x: [-3, 3],
+                y: [-10, 10]
             }
         };
 
@@ -64,17 +64,27 @@ export class Game {
                 [this.name, this.description, "starting", this.seed]
             );
             this.game_id = result.insertId;
+            const dungeon_1_x = randInt(ranges.d1.x);
+            const dungeon_1_y = randInt(ranges.d1.y);
+            const dungeon_2_x = randInt(ranges.d2.x);
+            const dungeon_2_y = randInt(ranges.d2.y);
+            const dungeon_3_x = randInt(ranges.d3.x);
+            const dungeon_3_y = randInt(ranges.d3.y);
 
             await db.query(
                 `INSERT
                  INTO game_dungeon (game_id, dungeon_id, offset_x, offset_y)
                  VALUES (?, 1, ?, ?),
                         (?, 2, ?, ?),
-                        (?, 3, ?, ?)`,
+                        (?, 3, ?, ?),
+                        (?, 4, ?, ?),
+                        (?, 5, ?, ?)`,
                 [
-                    this.game_id, randInt(ranges.d1.x), randInt(ranges.d1.y),
-                    this.game_id, randInt(ranges.d2.x), randInt(ranges.d2.y),
-                    this.game_id, randInt(ranges.d3.x), randInt(ranges.d3.y)
+                    this.game_id, dungeon_1_x, dungeon_1_y,
+                    this.game_id, dungeon_2_x, dungeon_2_y,
+                    this.game_id, dungeon_3_x, dungeon_3_y,
+                    this.game_id, dungeon_1_x - 1, dungeon_1_y - 1,
+                    this.game_id, dungeon_2_x - 1, dungeon_2_y - 1
                 ]
             );
 
@@ -260,6 +270,37 @@ export class Game {
 
         return null;
 
+    } 
+    async get_spawn(player_type){
+        try {
+            let spawn_data;
+            if (player_type === "human") {
+                spawn_data = await db.query(
+                    `SELECT offset_x, offset_y
+                     FROM game_dungeon WHERE game_id = ? AND dungeon_id = 4`,
+                    [this.game_id]
+                );
+            } else {
+                spawn_data = await db.query(
+                    `SELECT offset_x, offset_y
+                     FROM game_dungeon WHERE game_id = ? AND dungeon_id = 5`,
+                    [this.game_id]
+                );
+            }
+            //console.log(spawn_data);
+            if (spawn_data && spawn_data.length > 0) {
+                return {
+                    x: spawn_data[0].offset_x * 3200 + 1600,
+                    y: spawn_data[0].offset_y * 3200 + 1600
+                };
+            }
+            console.log(spawn_data);
+            return null;
+
+        } catch (err) {
+            logger.error(`Error while getting spawn for player type ${player_type}:`, err);
+            return null;
+        }
     }
 
     get_dungeon(dungeon_id) {

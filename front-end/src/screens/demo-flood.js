@@ -1,6 +1,7 @@
 import { Vector } from "@utils/vector.js";
 import { Engine } from "@engine";
 import styles from "@screens/styles/game.module.css";
+import { get_spawn } from "@utils/apimanager.js";
 
 import mapsSpriteSheet from "@assets/map.png";
 import minimapsSpriteSheet from "@assets/minimap.png";
@@ -9,74 +10,74 @@ import FloodHUD from "@/components/FloodHUD.js";
 
 // Star field for background
 const starField = {
-   stars: [],
-   nebulae: [],
-   init(canvas) {
-       // Generate stars
-       for (let i = 0; i < 200; i++) {
-           this.stars.push({
-               x: Math.random() * canvas.width,
-               y: Math.random() * canvas.height,
-               size: Math.random() * 2 + 0.5,
-               brightness: Math.random(),
-               speed: Math.random() * 0.2 + 0.1
-           });
-       }
-       // Generate nebulae
-       for (let i = 0; i < 5; i++) {
-           this.nebulae.push({
-               x: Math.random() * canvas.width,
-               y: Math.random() * canvas.height,
-               radius: Math.random() * 200 + 100,
-               color: `rgba(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255}, 0.1)`,
-               speed: Math.random() * 0.1 + 0.05
-           });
-       }
-   },
-   update(dt) {
-       this.stars.forEach(star => {
-           star.y += star.speed * dt;
-           if (star.y > window.innerHeight) {
-               star.y = 0;
-               star.x = Math.random() * window.innerWidth;
-           }
-       });
-       this.nebulae.forEach(nebula => {
-           nebula.y += nebula.speed * dt;
-           if (nebula.y > window.innerHeight + nebula.radius) {
-               nebula.y = -nebula.radius;
-               nebula.x = Math.random() * window.innerWidth;
-           }
-       });
-   },
-   draw(ctx) {
-       // Clear with black space background
-       ctx.fillStyle = '#000011';
-       ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    stars: [],
+    nebulae: [],
+    init(canvas) {
+        // Generate stars
+        for (let i = 0; i < 200; i++) {
+            this.stars.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                size: Math.random() * 2 + 0.5,
+                brightness: Math.random(),
+                speed: Math.random() * 0.2 + 0.1
+            });
+        }
+        // Generate nebulae
+        for (let i = 0; i < 5; i++) {
+            this.nebulae.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                radius: Math.random() * 200 + 100,
+                color: `rgba(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255}, 0.1)`,
+                speed: Math.random() * 0.1 + 0.05
+            });
+        }
+    },
+    update(dt) {
+        this.stars.forEach(star => {
+            star.y += star.speed * dt;
+            if (star.y > window.innerHeight) {
+                star.y = 0;
+                star.x = Math.random() * window.innerWidth;
+            }
+        });
+        this.nebulae.forEach(nebula => {
+            nebula.y += nebula.speed * dt;
+            if (nebula.y > window.innerHeight + nebula.radius) {
+                nebula.y = -nebula.radius;
+                nebula.x = Math.random() * window.innerWidth;
+            }
+        });
+    },
+    draw(ctx) {
+        // Clear with black space background
+        ctx.fillStyle = '#000011';
+        ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
-       // Draw nebulae
-       this.nebulae.forEach(nebula => {
-           const gradient = ctx.createRadialGradient(
-               nebula.x, nebula.y, 0,
-               nebula.x, nebula.y, nebula.radius
-           );
-           gradient.addColorStop(0, nebula.color);
-           gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        // Draw nebulae
+        this.nebulae.forEach(nebula => {
+            const gradient = ctx.createRadialGradient(
+                nebula.x, nebula.y, 0,
+                nebula.x, nebula.y, nebula.radius
+            );
+            gradient.addColorStop(0, nebula.color);
+            gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
 
-           ctx.fillStyle = gradient;
-           ctx.beginPath();
-           ctx.arc(nebula.x, nebula.y, nebula.radius, 0, Math.PI * 2);
-           ctx.fill();
-       });
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(nebula.x, nebula.y, nebula.radius, 0, Math.PI * 2);
+            ctx.fill();
+        });
 
-       // Draw stars
-       this.stars.forEach(star => {
-           ctx.fillStyle = `rgba(255, 255, 255, ${star.brightness})`;
-           ctx.beginPath();
-           ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
-           ctx.fill();
-       });
-   }
+        // Draw stars
+        this.stars.forEach(star => {
+            ctx.fillStyle = `rgba(255, 255, 255, ${star.brightness})`;
+            ctx.beginPath();
+            ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+            ctx.fill();
+        });
+    }
 };
 
 /**
@@ -152,158 +153,177 @@ function partialAbilities(state, abilityKeys) {
 
 export default function floodScreen() {
 
-    const game = new Engine({
-        fps: 60,
-        player: {
-            type: "flood",
-            size: 130,
-            position: Vector.zero(),
-            walkSpeed: 100,
-            runSpeed: 1000,
+    const setup = async () => {
+        try {
+            const token = localStorage.getItem("authToken");
+            const gameId = localStorage.getItem("gameId");
 
-        },
-        map: {
-            spriteSheet: mapsSpriteSheet,
-            width: window.innerWidth,
-            height: window.innerHeight,
-            config: {
-                tiles_per_row: 2,
-                tile_size: 200,
-                chunk_size: 16,
-                n_loaded_chunks: 5,
-                debug: false,
-                debug_info: true
+            if (!token || !gameId) {
+                logger.error("Missing authentication token or game ID");
+                return;
             }
-        },
-        miniMap: {
-            spriteSheet: minimapsSpriteSheet,
-            width: 250,
-            height: 125,
-            config: {
-                tiles_per_row: 2,
-                tile_size: 6,
-                chunk_size: 16,
-                n_loaded_chunks: 5,
-                debug: false,
-                debug_info: false
+
+            logger.info("Fetching spawn position...");
+            const spawnData = await get_spawn(gameId, "flood", token);
+
+            if (!spawnData) {
+                logger.error("Failed to get spawn position");
+                spawnData = { x: 0, y: 0 };
             }
-        }
-    });
 
-    /** @type {FloodClone[]} */
-    const clones = [];
+            logger.info("Spawn data received:", spawnData);
 
-    const abilityKeys = {
-        evolve: false,
-        clone: false,
-        attack: false,
-        restart: false
-    };
+            const spawnPosition = new Vector(spawnData.x || 0, spawnData.y || 0);
 
-
-    const setup = () => {
-        const map = document.getElementById("game");
-        const minimap = document.getElementById("minimap");
-
-        const start = document.getElementById("btn-continue")
-        const back = document.getElementById("btn-back-to-play");
-
-        const gameContainer = document.querySelector(`.${styles.container}`);
-        const hud = new FloodHUD(gameContainer);
-
-        game.init(map, minimap);
-        starField.init(map);
-
-        game.handleEnemySpawning = function(currentTime, gameMap) {
-            const timeToSpawn = currentTime - this.enemyConfig.lastSpawnTime > this.enemyConfig.spawnInterval;
-            const notReachMaxEnemies = this.enemies.length < this.enemyConfig.maxEnemies;
-    
-            if (timeToSpawn && notReachMaxEnemies) {
-                this.spawnRandomEnemy(gameMap, 'human');  
-                this.enemyConfig.lastSpawnTime = currentTime;
-            }
-        };
-
-        game.on("update", (dt) => {
-            if (game.player.isDead) return;
-
-            starField.update(dt);
-            handleAbilities(game.player, abilityKeys, clones, game.enemies);
-
-            if (abilityKeys.restart && game._gameState.isGameOver) {
-                game.respawnPlayer();
-                abilityKeys.restart = false;
-            }
-        
-            for (let i = 0; i < clones.length; ++i) {
-                if (clones[i].isDead === true) {
-                    clones.splice(i, 1);
-                    continue;
-                }
-                if (clones[i] && clones[i].update) {
-                    clones[i].update(dt, game.player, game.enemies);
-                    if (clones[i].health <= 0) {
-                        clones.splice(i, 1);
+            const game = new Engine({
+                fps: 60,
+                player: {
+                    type: "flood",
+                    size: 130,
+                    position: spawnPosition,
+                    walkSpeed: 100,
+                    runSpeed: 1000,
+                },
+                map: {
+                    spriteSheet: mapsSpriteSheet,
+                    width: window.innerWidth,
+                    height: window.innerHeight,
+                    config: {
+                        tiles_per_row: 2,
+                        tile_size: 200,
+                        chunk_size: 16,
+                        n_loaded_chunks: 5,
+                        debug: false,
+                        debug_info: true
+                    }
+                },
+                miniMap: {
+                    spriteSheet: minimapsSpriteSheet,
+                    width: 250,
+                    height: 125,
+                    config: {
+                        tiles_per_row: 2,
+                        tile_size: 6,
+                        chunk_size: 16,
+                        n_loaded_chunks: 5,
+                        debug: false,
+                        debug_info: false
                     }
                 }
-            }
-        
-            hud.update(game.player);
-        });
+            });
 
-        const originalMapDraw = game.map.draw;
-        game.map.draw = function(ctx) {
-            starField.draw(ctx);
-            // after draw the map tiles on top of stars
-            originalMapDraw.call(this, ctx);
-        };
+            /** @type {FloodClone[]} */
+            const clones = [];
 
-        game.on("render", (ctx) => {
-            for (let clone of clones) {
-                if (clone && clone.draw) {
-                    clone.draw(ctx);
+            const abilityKeys = {
+                evolve: false,
+                clone: false,
+                attack: false,
+                restart: false
+            };
+
+            const map = document.getElementById("game");
+            const minimap = document.getElementById("minimap");
+            const start = document.getElementById("btn-continue")
+            const back = document.getElementById("btn-back-to-play");
+            const gameContainer = document.querySelector(`.${styles.container}`);
+            const hud = new FloodHUD(gameContainer);
+
+            game.init(map, minimap);
+            starField.init(map);
+            game.handleEnemySpawning = function (currentTime, gameMap) {
+                const timeToSpawn = currentTime - this.enemyConfig.lastSpawnTime > this.enemyConfig.spawnInterval;
+                const notReachMaxEnemies = this.enemies.length < this.enemyConfig.maxEnemies;
+
+                if (timeToSpawn && notReachMaxEnemies) {
+                    this.spawnRandomEnemy(gameMap, 'human');
+                    this.enemyConfig.lastSpawnTime = currentTime;
                 }
-            }
-        });
+            };
 
-        window.addEventListener('keydown', partialAbilities(true, abilityKeys));
-        window.addEventListener('keyup', partialAbilities(false, abilityKeys));
+            game.on("update", (dt) => {
+                if (game.player.isDead) return;
 
-        start?.addEventListener("click", () => {
-            menu.style.display = "none";
-            game.start();
-        });
+                starField.update(dt);
+                handleAbilities(game.player, abilityKeys, clones, game.enemies);
 
-        back?.addEventListener("click", () => {
-            game.stop();
-            navigate("play");
-        });
-
-        game.start();
-
-        const menu = document.getElementById("menu");
-        document.addEventListener("keydown", (e) => {
-            if (e.key === "Escape") {
-                if (menu.style.display === "block") {
-                    menu.style.display = "none";
-                    game.start();
-                } else {
-                    game.stop();
-                    menu.style.display = "block";
+                if (abilityKeys.restart && game._gameState.isGameOver) {
+                    game.respawnPlayer();
+                    abilityKeys.restart = false;
                 }
-            }
-            if (e.key === "r" && game.player.isDead) {
-                game.respawnPlayer();
-            }
-        });
 
-        document.addEventListener("click", (event) => {
-            if (menu.style.display === "block" && !menu.contains(event.target)) {
-                event.preventDefault();
+                for (let i = 0; i < clones.length; ++i) {
+                    if (clones[i].isDead === true) {
+                        clones.splice(i, 1);
+                        continue;
+                    }
+                    if (clones[i] && clones[i].update) {
+                        clones[i].update(dt, game.player, game.enemies);
+                        if (clones[i].health <= 0) {
+                            clones.splice(i, 1);
+                        }
+                    }
+                }
+
+                hud.update(game.player);
+            });
+
+            const originalMapDraw = game.map.draw;
+            game.map.draw = function (ctx) {
+                starField.draw(ctx);
+                originalMapDraw.call(this, ctx);
+            };
+
+            game.on("render", (ctx) => {
+                for (let clone of clones) {
+                    if (clone && clone.draw) {
+                        clone.draw(ctx);
+                    }
+                }
+            });
+
+            window.addEventListener('keydown', partialAbilities(true, abilityKeys));
+            window.addEventListener('keyup', partialAbilities(false, abilityKeys));
+
+            start?.addEventListener("click", () => {
                 menu.style.display = "none";
                 game.start();
-            }
-        })
+            });
+
+            back?.addEventListener("click", () => {
+                game.stop();
+                navigate("play");
+            });
+
+            game.start();
+
+            const menu = document.getElementById("menu");
+            document.addEventListener("keydown", (e) => {
+                if (e.key === "Escape") {
+                    if (menu.style.display === "block") {
+                        menu.style.display = "none";
+                        game.start();
+                    } else {
+                        game.stop();
+                        menu.style.display = "block";
+                    }
+                }
+                if (e.key === "r" && game.player.isDead) {
+                    game.respawnPlayer();
+                }
+            });
+
+            document.addEventListener("click", (event) => {
+                if (menu.style.display === "block" && !menu.contains(event.target)) {
+                    event.preventDefault();
+                    menu.style.display = "none";
+                    game.start();
+                }
+            });
+
+        } catch (error) {
+            logger.error("Error setting up game with spawn position:", error);
+        }
     };
 
     return [setup, `
