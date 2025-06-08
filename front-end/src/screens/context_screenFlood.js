@@ -99,6 +99,13 @@ export default function () {
             <div class="${styles.itemName}">Respawn</div>
             <div class="${styles.itemDescription}">You will respawn automatically.</div>
         </div>
+        <div class="${styles.itemCard}">
+            <div class="${styles.itemImage}">
+                <div style="color: #ffaa00; font-size: 2rem;">🍖</div>
+            </div>
+            <div class="${styles.itemName}">Consume Clone</div>
+            <div class="${styles.itemDescription}">Press Q to eat one of your clones, restoring 80 health. You will lose the clone and gain no biomass.</div>
+        </div>
     </div>
 </div>
         

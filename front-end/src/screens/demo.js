@@ -81,7 +81,7 @@ export default function humanScreen() {
             size: 150,
             position: Vector.zero(),
             walkSpeed: 20,
-            runSpeed: 1000
+            runSpeed: 60
         },
         map: {
             spriteSheet: mapsSpriteSheet,

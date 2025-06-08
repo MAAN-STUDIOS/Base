@@ -252,7 +252,7 @@ export class FloodPlayer extends Player {
                 } else if (this.evolution === 3) {
                     target.takeDamage?.(50);
                 }
-                this.attackCooldowns.melee = now + 1000;
+                this.attackCooldowns.melee = now + 200;
                 break;
         }
         logger.debug(`Attack ${type} executed on target`);

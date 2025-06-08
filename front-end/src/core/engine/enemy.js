@@ -3,6 +3,7 @@ import SpriteSheet from "@/assets/enemy/enemy.png";
 import { floodEnemy } from "@engine/playerAnimation.js";
 import { humanEnemy } from "@engine/playerAnimation.js";
 import { Rect } from "@utils/rectangle.js";
+import { Vector } from "@utils/vector.js";
 
 const STATES = {
     IDLE: 'IDLE',
@@ -68,6 +69,9 @@ export class Enemy {
         this.frameDuration = 100;
         this.totalTime = 0;
         this.sheetCols = 6;
+
+        this._idleRandomTimer = 0;
+        this._idleRandomInterval = null;
     }
 
     collidesWith(hb) {
@@ -198,6 +202,21 @@ export class Enemy {
     }
 
     updateIdle(dt, currentTarget, distanceToTarget, hasLosToTarget, currentTargetPos) {
+        // Add randomness to idle movement
+        if (!this._idleRandomTimer) this._idleRandomTimer = 0;
+        this._idleRandomTimer += dt;
+        // Every 2-4 seconds, pick a new random waypoint
+        if (this._idleRandomTimer > (this._idleRandomInterval || 2 + Math.random() * 2)) {
+            this._idleRandomInterval = 2 + Math.random() * 2;
+            this._idleRandomTimer = 0;
+            // Pick a random point within 100-250px of homePoint
+            const angle = Math.random() * Math.PI * 2;
+            const radius = 100 + Math.random() * 150;
+            const x = this.homePoint.x + Math.cos(angle) * radius;
+            const y = this.homePoint.y + Math.sin(angle) * radius;
+            this.waypoints = [new Vector(x, y)];
+            this.currentWaypointIndex = 0;
+        }
         if (this.waypoints.length > 0) {
             const targetWaypoint = this.waypoints[this.currentWaypointIndex];
             const direction = targetWaypoint.sub(this.position);
@@ -388,10 +407,11 @@ export class Enemy {
             healthBarHeight
         );
 
-        ctx.strokeStyle = this.getStateColor();
-        ctx.beginPath();
-        ctx.arc(screenX, screenY, this.chaseRadius, 0, Math.PI * 2);
-        ctx.stroke();
+        // Remove the chase radius circle
+        // ctx.strokeStyle = this.getStateColor();
+        // ctx.beginPath();
+        // ctx.arc(screenX, screenY, this.chaseRadius, 0, Math.PI * 2);
+        // ctx.stroke();
     }
 
     getStateColor() {
