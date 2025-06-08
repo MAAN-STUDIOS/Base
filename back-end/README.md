@@ -85,6 +85,9 @@ Make sure you have docker installed
    ```
 4. Go back and start the backend:
    ```sh
+   docker exec -i consmonavt_db \mysql -uappuser -pMyDevelopmentPassword cosmonavt \< db/init.sql
+   docker exec -i consmonavt_db \mysql -uappuser -pMyDevelopmentPassword cosmonavt \< db/data.sql
+   
    cd ..
    npm install
    npm run dev

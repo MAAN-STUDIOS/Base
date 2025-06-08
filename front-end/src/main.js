@@ -14,7 +14,14 @@ import screenLogin from "@screens/login.js";
 import screenCreateAccount from "@screens/createAccount.js";
 import screenJoinGame from "@screens/joinGame.js";
 import screenDashboard from "@screens/dashboard.js";
-import context_screen from '@screens/context_screen';
+import context_screen from '@screens/context_screen.js';
+import context_Flood_screen from '@screens/context_screenFlood.js';
+
+import pistolSound from "@/assets/sfx/pistol.wav";
+import machineGunSound from "@/assets/sfx/machinegun.wav";
+import shotgunSound from "@/assets/sfx/shotgun.wav";
+import flamethrowerSound from "@/assets/sfx/flamethrower.wav";
+import stepsSound from "@/assets/sfx/steps.wav";
 
 // Register all screens
 registerScreen('menu', screenMenu);
@@ -27,6 +34,7 @@ registerScreen('login', screenLogin);
 registerScreen('create-account', screenCreateAccount);
 registerScreen('dashboard', screenDashboard);
 registerScreen('context_screen', context_screen);
+registerScreen('context_Flood', context_Flood_screen);
 
 registerScreen('join-game', screenJoinGame);
 registerScreen('dashboard', screenDashboard);
@@ -47,6 +55,27 @@ function initAudio() {
     // Load sounds first
     audioManager.loadSound("clone", cloneSound);
     audioManager.loadSound("humanDamage", playerDamage);
+
+    audioManager.loadSound("gunPistol", pistolSound, {
+        volume: 0.1,
+        type: "sfx"
+    });
+    audioManager.loadSound("gunMachinegun", machineGunSound, {
+        volume: 0.1,
+        type: "sfx"
+    });
+    audioManager.loadSound("gunShotgun", shotgunSound, {
+        volume: 0.1,
+        type: "sfx"
+    });
+    audioManager.loadSound("gunFlamethrower", flamethrowerSound, {
+        volume: 0.1,
+        type: "sfx"
+    });
+    audioManager.loadSound("humanSteps", stepsSound, {
+        volume: 0.1,
+        type: "sfx"
+    });
  
     audioManager
         .loadSound("menu", terrorMusic, { 

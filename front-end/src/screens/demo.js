@@ -6,6 +6,77 @@ import mapsSpriteSheet from "@assets/map.png";
 import { ShootingSystem } from "@engine/shootingsystem.js";
 import minimapsSpriteSheet from "@assets/minimap.png";
 
+// Star field configuration
+const starField = {
+   stars: [],
+   nebulae: [],
+   init(canvas) {
+       // Generate stars
+       for (let i = 0; i < 200; i++) {
+           this.stars.push({
+               x: Math.random() * canvas.width,
+               y: Math.random() * canvas.height,
+               size: Math.random() * 2 + 0.5,
+               brightness: Math.random(),
+               speed: Math.random() * 0.2 + 0.1
+           });
+       }
+       // Generate nebulae
+       for (let i = 0; i < 5; i++) {
+           this.nebulae.push({
+               x: Math.random() * canvas.width,
+               y: Math.random() * canvas.height,
+               radius: Math.random() * 200 + 100,
+               color: `rgba(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255}, 0.1)`,
+               speed: Math.random() * 0.1 + 0.05
+           });
+       }
+   },
+   update(dt) {
+       this.stars.forEach(star => {
+           star.y += star.speed * dt;
+           if (star.y > window.innerHeight) {
+               star.y = 0;
+               star.x = Math.random() * window.innerWidth;
+           }
+       });
+       this.nebulae.forEach(nebula => {
+           nebula.y += nebula.speed * dt;
+           if (nebula.y > window.innerHeight + nebula.radius) {
+               nebula.y = -nebula.radius;
+               nebula.x = Math.random() * window.innerWidth;
+           }
+       });
+   },
+   draw(ctx) {
+       // Clear with black space background
+       ctx.fillStyle = '#000011';
+       ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
+       // Draw nebulae
+       this.nebulae.forEach(nebula => {
+           const gradient = ctx.createRadialGradient(
+               nebula.x, nebula.y, 0,
+               nebula.x, nebula.y, nebula.radius
+           );
+           gradient.addColorStop(0, nebula.color);
+           gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+           ctx.fillStyle = gradient;
+           ctx.beginPath();
+           ctx.arc(nebula.x, nebula.y, nebula.radius, 0, Math.PI * 2);
+           ctx.fill();
+       });
+
+       // Draw stars
+       this.stars.forEach(star => {
+           ctx.fillStyle = `rgba(255, 255, 255, ${star.brightness})`;
+           ctx.beginPath();
+           ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+           ctx.fill();
+       });
+   }
+};
 
 export default function humanScreen() {
     const game = new Engine({
@@ -26,7 +97,7 @@ export default function humanScreen() {
                 tile_size: 200,
                 chunk_size: 16,
                 n_loaded_chunks: 5,
-                debug: true,
+                debug: false,
                 debug_info: false
             }
         },
@@ -57,6 +128,7 @@ export default function humanScreen() {
         const back = document.getElementById("btn-back-to-play");
 
         game.init(map, minimap);
+        starField.init(map);
 
         game.on("playerDeath", () => {
             game.enemies.length = 0;
@@ -65,8 +137,16 @@ export default function humanScreen() {
         game.on("update", (dt) => {
             if (game.player.isDead) return;
 
+            starField.update(dt);
             ShootingSystem.updateAll(dt);
         });
+
+        const originalMapDraw = game.map.draw;
+        game.map.draw = function(ctx) {
+            starField.draw(ctx);
+            // after draw the map tiles on top of stars
+            originalMapDraw.call(this, ctx);
+        };
 
         game.on("render", (ctx) => {
             ShootingSystem.drawAll(ctx);

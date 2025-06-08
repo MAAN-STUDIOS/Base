@@ -1,41 +1,41 @@
 import { ShootingSystem } from "@engine/shootingsystem.js";
 
 export class MachineGun {
-    /**
-     * @param options
-     * @param [options.speed] - Velocidad del proyectil
-     * @param [options.damage] - Daño por bala
-     * @param [options.range] - Rango del proyectil
-     * @param [options.cooldown]
-     */
-    constructor(options = {}) {
-        this.config = {
-            speed: options.speed || 170,
-            damage: options.damage || 6,
-            range: options.range || 700,
-            projectileType: options.projectileType || "bullet",
-            cooldown: options.cooldown || 2
-        };
-        this.cooldownTimer = this.config.cooldown;
+  /**
+   * @param options
+   * @param [options.speed] - Velocidad del proyectil
+   * @param [options.damage] - Daño por bala
+   * @param [options.range] - Rango del proyectil
+   * @param [options.cooldown]
+   */
+  constructor(options = {}) {
+    this.config = {
+      speed: options.speed || 170,
+      damage: options.damage || 6,
+      range: options.range || 700,
+      projectileType: options.projectileType || "bullet",
+      cooldown: options.cooldown || 4,
+    };
+    this.cooldownTimer = this.config.cooldown;
+  }
+
+  update(dt) {
+    this.cooldownTimer += dt;
+  }
+
+  fire(origin, direction, owner = null) {
+    if (this.cooldownTimer < this.config.cooldown) {
+      console.log("En cooldown");
+      return;
     }
 
-    update(dt) {
-        this.cooldownTimer += dt;
-    }
+    ShootingSystem.fire({
+      origin: origin.clone(),
+      direction: direction.clone(),
+      weaponConfig: this.config,
+      owner,
+    });
 
-    fire(origin, direction, owner = null) {
-        if (this.cooldownTimer < this.config.cooldown){
-            console.log('En cooldown');
-            return;
-        }
-
-        ShootingSystem.fire({
-            origin: origin.clone(),
-            direction: direction.clone(),
-            weaponConfig: this.config,
-            owner
-        });
-
-        this.cooldownTimer = 0;
-    }
+    this.cooldownTimer = 0;
+  }
 }
