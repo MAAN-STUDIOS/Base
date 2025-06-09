@@ -20,7 +20,7 @@ import Barra from "@assets/HUD/Barra_sinfo.png";
 
 import Circulo from "@assets/HUD/Circulo_sinfo.png";
 
-import SpriteSheet from "@/assets/human/final.png";
+import SpriteSheet from "@/assets/human/astronaut.png";
 
 /**
  * Represents a human-controlled player in the game.
@@ -81,9 +81,9 @@ export class HumanPlayer extends Player {
         this.img7 = new Image();
         this.img7.src = SpriteSheet;
 
-        this.img7.onload = () => {
-        console.log("SpriteSheet loaded!");
-        };
+        // this.img7.onload = () => {
+        // console.log("SpriteSheet loaded!");
+        // };
 
         //this.spriteRect = new Rect(0, 0, 308, 307);
         this.spriteRect = new Rect(0, 0, 153, 153);
@@ -95,7 +95,7 @@ export class HumanPlayer extends Player {
         this.repeat = true;
         this.frameDuration = 100;
         this.totalTime = 0;
-        this.sheetCols = 6;
+        this.sheetCols = 12;
 
 
         /**
@@ -186,7 +186,15 @@ export class HumanPlayer extends Player {
     setMovementAnimation() {
         if (Math.abs(this.moveDirection.y) > Math.abs(this.moveDirection.x)) {
             if (this.moveDirection.y > 0) {
-                this.currentDirection = "down";
+                if (this.activeSlot == 0) {
+                    this.currentDirection = "down_pistol";
+                } else if (this.activeSlot == 2) {
+                    this.currentDirection = "down_machinegun";
+                } else if (this.activeSlot == 1) {
+                    this.currentDirection = "down_shotgun";
+                } else if (this.activeSlot == 3) {
+                    this.currentDirection = "down_flamethrower";
+                }
             } else if (this.moveDirection.y < 0) {
                 this.currentDirection = "up";
             } else {
@@ -196,9 +204,9 @@ export class HumanPlayer extends Player {
             if (this.moveDirection.x < 0 && this.moveDirection.y < 0) {
                 if (this.activeSlot == 0) {
                     this.currentDirection = "pistol_diagonal_left_up";
-                } else if (this.activeSlot == 1) {
-                    this.currentDirection = "machinegun_diagonal_left_up";
                 } else if (this.activeSlot == 2) {
+                    this.currentDirection = "machinegun_diagonal_left_up";
+                } else if (this.activeSlot == 1) {
                     this.currentDirection = "shotgun_diagonal_left_up";
                 } else if (this.activeSlot == 3) {
                     this.currentDirection = "flamethrower_diagonal_left_up";
@@ -206,9 +214,9 @@ export class HumanPlayer extends Player {
             } else if (this.moveDirection.x > 0 && this.moveDirection.y < 0) {
                 if (this.activeSlot == 0) {
                     this.currentDirection = "pistol_diagonal_right_up";
-                } else if (this.activeSlot == 1) {
-                    this.currentDirection = "machinegun_diagonal_right_up";
                 } else if (this.activeSlot == 2) {
+                    this.currentDirection = "machinegun_diagonal_right_up";
+                } else if (this.activeSlot == 1) {
                     this.currentDirection = "shotgun_diagonal_right_up";
                 } else if (this.activeSlot == 3) {
                     this.currentDirection = "flamethrower_diagonal_right_up";
@@ -216,9 +224,9 @@ export class HumanPlayer extends Player {
             } else if (this.moveDirection.x < 0 && this.moveDirection.y > 0) {
                 if (this.activeSlot == 0) {
                     this.currentDirection = "pistol_diagonal_left_down";
-                } else if (this.activeSlot == 1) {
-                    this.currentDirection = "machinegun_diagonal_left_down";
                 } else if (this.activeSlot == 2) {
+                    this.currentDirection = "machinegun_diagonal_left_down";
+                } else if (this.activeSlot == 1) {
                     this.currentDirection = "shotgun_diagonal_left_down";
                 } else if (this.activeSlot == 3) {
                     this.currentDirection = "flamethrower_diagonal_left_down";
@@ -226,9 +234,9 @@ export class HumanPlayer extends Player {
             } else if (this.moveDirection.x > 0 && this.moveDirection.y > 0) {
                 if (this.activeSlot == 0) {
                     this.currentDirection = "pistol_diagonal_right_down";
-                } else if (this.activeSlot == 1) {
-                    this.currentDirection = "machinegun_diagonal_right_down";
                 } else if (this.activeSlot == 2) {
+                    this.currentDirection = "machinegun_diagonal_right_down";
+                } else if (this.activeSlot == 1) {
                     this.currentDirection = "shotgun_diagonal_right_down";
                 } else if (this.activeSlot == 3) {
                     this.currentDirection = "flamethrower_diagonal_right_down";
@@ -238,9 +246,9 @@ export class HumanPlayer extends Player {
             if (this.moveDirection.x > 0) {
                 if (this.activeSlot == 0) {
                     this.currentDirection = "shoot_pistol_right";
-                } else if (this.activeSlot == 1) {
-                    this.currentDirection = "shoot_machinegun_right";
                 } else if (this.activeSlot == 2) {
+                    this.currentDirection = "shoot_machinegun_right";
+                } else if (this.activeSlot == 1) {
                     this.currentDirection = "shoot_shotgun_right";
                 } else if (this.activeSlot == 3) {
                     this.currentDirection = "shoot_flamethrower_right";
@@ -250,9 +258,9 @@ export class HumanPlayer extends Player {
             } else if (this.moveDirection.x < 0) {
                 if (this.activeSlot == 0) {
                     this.currentDirection = "shoot_pistol_left";
-                } else if (this.activeSlot == 1) {
-                    this.currentDirection = "shoot_machinegun_left";
                 } else if (this.activeSlot == 2) {
+                    this.currentDirection = "shoot_machinegun_left";
+                } else if (this.activeSlot == 1) {
                     this.currentDirection = "shoot_shotgun_left";
                 } else if (this.activeSlot == 3) {
                     this.currentDirection = "shoot_flamethrower_left";
