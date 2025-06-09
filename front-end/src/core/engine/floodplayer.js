@@ -200,8 +200,8 @@ export class FloodPlayer extends Player {
 
         const clone = new FloodClone({
             position: new Vector(this.real_position.x + 50, this.real_position.y),
-            width: this.width,
-            height: this.height,
+            width: this.width / 3,
+            height: this.height / 3,
             color: this.color,
             evolution: this.evolution,
             _player: this
@@ -314,8 +314,8 @@ export class FloodPlayer extends Player {
             this.spriteRect.height,
             screenCenterX - this.width / 2,
             screenCenterY - this.height / 2,
-            drawWidth,
-            drawHeight
+            drawWidth / 1.3,
+            drawHeight / 1.3
         );
 
         const colors = ["#8b0000", "#b80000", "#ff3030"];
