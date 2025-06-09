@@ -674,7 +674,7 @@ export class Engine {
                 new Flamethrower({ speed: 150 })]
         }
         let obj;
-
+        
         switch (type) {
             case "human":
                 obj = new HumanPlayer(initialPosition, configPlayer);

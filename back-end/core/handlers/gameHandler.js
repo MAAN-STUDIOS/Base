@@ -251,6 +251,26 @@ class GameHandler {
             chunk_data: chunk.data
         };
     }
+    async get_spawn(game_id, player_type) {
+        logger.debug(`Getting spawn for game ${game_id}, player type: ${player_type}`);
+        const game = this.active_games.get(game_id);
+        if (!game) {
+            return { success: false, error: "Game not found" };
+        }
+
+        const spawn = await game.get_spawn(player_type);
+        console.log("Spawn point:", spawn);
+        if (!spawn) {
+            return { success: false, error: "Spawn point not found" };
+        }
+
+        logger.debug(`Spawn point found at (${spawn.x}, ${spawn.y}) for player type: ${player_type}`);
+        return {
+            success: true,
+            x: spawn.x,
+            y: spawn.y,
+        };
+    }
 
     get_dungeon(game_id, dungeon_id) {
         const game = this.active_games.get(game_id);

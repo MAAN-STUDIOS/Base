@@ -1,10 +1,12 @@
 import { Vector } from "@utils/vector.js";
 import { Engine } from "@engine";
 import styles from "@screens/styles/game.module.css";
+import { get_spawn } from "@utils/apimanager.js";
 
 import mapsSpriteSheet from "@assets/map.png";
 import { ShootingSystem } from "@engine/shootingsystem.js";
 import minimapsSpriteSheet from "@assets/minimap.png";
+import logger from "@utils/logger.js";
 
 const starField = {
    stars: [],
@@ -74,123 +76,149 @@ const starField = {
 };
 
 export default function humanScreen() {
-    const game = new Engine({
-        fps: 60,
-        player: {
-            type: "human",
-            size: 150,
-            position: Vector.zero(),
-            walkSpeed: 20,
-            runSpeed: 60
-        },
-        map: {
-            spriteSheet: mapsSpriteSheet,
-            width: window.innerWidth,
-            height: window.innerHeight,
-            config: {
-                tiles_per_row: 4,
-                tile_size: 200,
-                chunk_size: 16,
-                n_loaded_chunks: 5,
-                debug: false,
-                debug_info: false
-            }
-        },
-        miniMap: {
-            spriteSheet: minimapsSpriteSheet,
-            width: 250,
-            height: 125,
-            config: {
-                tiles_per_row: 4,
-                tile_size: 6,
-                chunk_size: 16,
-                n_loaded_chunks: 5,
-                debug: false,
-                debug_info: false
-            }
-        },
-        HUD: {
-            width: 1152,
-            height: 864
-        }
-    });
 
     const setup = async () => {
-        const map = document.getElementById("game");
-        const minimap = document.getElementById("minimap");
-
-        const start = document.getElementById("btn-continue")
-        const back = document.getElementById("btn-back-to-play");
-
-        game.init(map, minimap);
-        starField.init(map);
-
-        game.handleEnemySpawning = function(currentTime, gameMap) {
-            const timeToSpawn = currentTime - this.enemyConfig.lastSpawnTime > this.enemyConfig.spawnInterval;
-            const notReachMaxEnemies = this.enemies.length < this.enemyConfig.maxEnemies;
-    
-            if (timeToSpawn && notReachMaxEnemies) {
-                this.spawnRandomEnemy(gameMap, 'flood');
-                this.enemyConfig.lastSpawnTime = currentTime;
+        try {
+            const token = localStorage.getItem("authToken");
+            const gameId = localStorage.getItem("gameId");
+            
+            if (!token || !gameId) {
+                logger.error("Missing authentication token or game ID");
+                return;
             }
-        };
 
-        game.on("playerDeath", () => {
-            game.enemies.length = 0;
-        });
+            logger.info("Fetching spawn position...");
+            const spawnData = await get_spawn(gameId, "human", token);
+            
+            if (!spawnData) {
+                logger.error("Failed to get spawn position");
+                spawnData = { x: 0, y: 0 };
+            }
 
-        game.on("update", (dt) => {
-            if (game.player.isDead) return;
+            logger.info("Spawn data received:", spawnData);
 
-            starField.update(dt);
-            ShootingSystem.updateAll(dt);
-        });
+            const spawnPosition = new Vector(spawnData.x || 0, spawnData.y || 0);
 
-        const originalMapDraw = game.map.draw;
-        game.map.draw = function(ctx) {
-            starField.draw(ctx);
-            originalMapDraw.call(this, ctx);
-        };
-
-        game.on("render", (ctx) => {
-            ShootingSystem.drawAll(ctx);
-        });
-
-        start?.addEventListener("click", () => {
-            menu.style.display = "none";
-            game.start();
-        });
-
-        back?.addEventListener("click", () => {
-            game.stop();
-            navigate("play");
-        });
-
-        game.start();
-
-        const menu = document.getElementById("menu");
-        document.addEventListener("keydown", (e) => {
-            if (e.key === "Escape") {
-                if (menu.style.display === "block") {
-                    menu.style.display = "none";
-                    game.start();
-                } else {
-                    game.stop();
-                    menu.style.display = "block";
+            const game = new Engine({
+                fps: 60,
+                player: {
+                    type: "human",
+                    size: 150,
+                    position: Vector.zero(),
+                    walkSpeed: 20,
+                    runSpeed: 60
+                },
+                map: {
+                    spriteSheet: mapsSpriteSheet,
+                    width: window.innerWidth,
+                    height: window.innerHeight,
+                    config: {
+                        tiles_per_row: 4,
+                        tile_size: 200,
+                        chunk_size: 16,
+                        n_loaded_chunks: 5,
+                        debug: false,
+                        debug_info: false
+                    }
+                },
+                miniMap: {
+                    spriteSheet: minimapsSpriteSheet,
+                    width: 250,
+                    height: 125,
+                    config: {
+                        tiles_per_row: 2,
+                        tile_size: 6,
+                        chunk_size: 16,
+                        n_loaded_chunks: 5,
+                        debug: false,
+                        debug_info: false
+                    }
+                },
+                HUD: {
+                    width: 1152,
+                    height: 864
                 }
-            }
-            if (e.key === "r" && game.player.isDead) {
-                game.respawnPlayer();
-            }
-        });
+            });
 
-        document.addEventListener("click", (event) => {
-            if (menu.style.display === "block" && !menu.contains(event.target)) {
-                event.preventDefault();
+            const map = document.getElementById("game");
+            const minimap = document.getElementById("minimap");
+
+            const start = document.getElementById("btn-continue")
+            const back = document.getElementById("btn-back-to-play");
+
+            game.init(map, minimap);
+            starField.init(map);
+
+            game.handleEnemySpawning = function(currentTime, gameMap) {
+                const timeToSpawn = currentTime - this.enemyConfig.lastSpawnTime > this.enemyConfig.spawnInterval;
+                const notReachMaxEnemies = this.enemies.length < this.enemyConfig.maxEnemies;
+        
+                if (timeToSpawn && notReachMaxEnemies) {
+                    this.spawnRandomEnemy(gameMap, 'flood');
+                    this.enemyConfig.lastSpawnTime = currentTime;
+                }
+            };
+
+            game.on("playerDeath", () => {
+                game.enemies.length = 0;
+            });
+
+            game.on("update", (dt) => {
+                if (game.player.isDead) return;
+
+                starField.update(dt);
+                ShootingSystem.updateAll(dt);
+            });
+
+            const originalMapDraw = game.map.draw;
+            game.map.draw = function(ctx) {
+                starField.draw(ctx);
+                originalMapDraw.call(this, ctx);
+            };
+
+            game.on("render", (ctx) => {
+                ShootingSystem.drawAll(ctx);
+            });
+
+            start?.addEventListener("click", () => {
                 menu.style.display = "none";
                 game.start();
-            }
-        })
+            });
+
+            back?.addEventListener("click", () => {
+                game.stop();
+                navigate("play");
+            });
+
+            game.start();
+
+            const menu = document.getElementById("menu");
+            document.addEventListener("keydown", (e) => {
+                if (e.key === "Escape") {
+                    if (menu.style.display === "block") {
+                        menu.style.display = "none";
+                        game.start();
+                    } else {
+                        game.stop();
+                        menu.style.display = "block";
+                    }
+                }
+                if (e.key === "r" && game.player.isDead) {
+                    game.respawnPlayer();
+                }
+            });
+
+            document.addEventListener("click", (event) => {
+                if (menu.style.display === "block" && !menu.contains(event.target)) {
+                    event.preventDefault();
+                    menu.style.display = "none";
+                    game.start();
+                }
+            });
+
+        } catch (error) {
+            logger.error("Error setting up game with spawn position:", error);
+        }
     };
 
     return [setup, `
