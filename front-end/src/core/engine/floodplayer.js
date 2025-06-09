@@ -252,7 +252,7 @@ export class FloodPlayer extends Player {
                 } else if (this.evolution === 3) {
                     target.takeDamage?.(50);
                 }
-                this.attackCooldowns.melee = now + 1000;
+                this.attackCooldowns.melee = now + 200;
                 break;
         }
         logger.debug(`Attack ${type} executed on target`);
@@ -344,6 +344,28 @@ export class FloodPlayer extends Player {
         super.update(dt);
         this.setMovementAnimation();
         this.updateFrame(dt * 1000);
+
+        // Auto-restore health if below 30% 
+        if (!this._lastAutoRestore) this._lastAutoRestore = 0;
+        const now = performance.now();
+        if (this.health < 0.4 * this.maxHealth && (now - this._lastAutoRestore > 5000)) {
+            this.health = Math.max(this.health, Math.floor(0.3 * this.maxHealth));
+            this._lastAutoRestore = now;
+            logger.debug('Flood auto-restored to 30% health!');
+        }
+    }
+
+    takeDamage(amount) {
+        if (!this._lastDamageTime) this._lastDamageTime = 0;
+        const now = performance.now();
+        if (now - this._lastDamageTime < 500) return; // 0.5s cooldown
+        this._lastDamageTime = now;
+        this.health -= amount;
+        if (this.health < 0) {
+            this.health = 0;
+            logger.debug("Player died!");
+            this.die();
+        }
     }
 
 }

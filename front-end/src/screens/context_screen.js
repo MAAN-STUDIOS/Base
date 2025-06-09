@@ -23,7 +23,7 @@ export default function () {
         }
 
         document.getElementById("btn-play")?.addEventListener('click', () => {
-            alert('¡La misión comienza! Buena suerte Ronan Rhys... La necesitarás');
+            // alert('¡La misión comienza! Buena suerte Ronan Rhys... La necesitarás'); not sure about it
             navigate("human");
         });
     };

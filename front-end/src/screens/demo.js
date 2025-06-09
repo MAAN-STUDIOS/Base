@@ -76,6 +76,7 @@ const starField = {
 };
 
 export default function humanScreen() {
+
     const setup = async () => {
         try {
             const token = localStorage.getItem("authToken");
@@ -103,21 +104,21 @@ export default function humanScreen() {
                 player: {
                     type: "human",
                     size: 150,
-                    position: spawnPosition,
+                    position: Vector.zero(),
                     walkSpeed: 20,
-                    runSpeed: 1000
+                    runSpeed: 60
                 },
                 map: {
                     spriteSheet: mapsSpriteSheet,
                     width: window.innerWidth,
                     height: window.innerHeight,
                     config: {
-                        tiles_per_row: 2,
+                        tiles_per_row: 4,
                         tile_size: 200,
                         chunk_size: 16,
                         n_loaded_chunks: 5,
                         debug: false,
-                        debug_info: true
+                        debug_info: false
                     }
                 },
                 miniMap: {

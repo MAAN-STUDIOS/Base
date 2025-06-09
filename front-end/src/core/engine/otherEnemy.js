@@ -2,6 +2,8 @@ import SpriteSheet from "@/assets/enemy/enemy.png";
 import { floodEnemy } from "@engine/playerAnimation.js";
 import { humanEnemy } from "@engine/playerAnimation.js";
 import { Rect } from "@utils/rectangle.js";
+
+
 const STATES = {
     IDLE: 'IDLE',
     PURSUE: 'PURSUE',

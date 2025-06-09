@@ -153,6 +153,7 @@ function partialAbilities(state, abilityKeys) {
 
 export default function floodScreen() {
 
+
     const setup = async () => {
         try {
             const token = localStorage.getItem("authToken");
@@ -176,41 +177,42 @@ export default function floodScreen() {
             const spawnPosition = new Vector(spawnData.x || 0, spawnData.y || 0);
 
             const game = new Engine({
-                fps: 60,
-                player: {
-                    type: "flood",
-                    size: 130,
-                    position: spawnPosition,
-                    walkSpeed: 100,
-                    runSpeed: 1000,
-                },
-                map: {
-                    spriteSheet: mapsSpriteSheet,
-                    width: window.innerWidth,
-                    height: window.innerHeight,
-                    config: {
-                        tiles_per_row: 2,
-                        tile_size: 200,
-                        chunk_size: 16,
-                        n_loaded_chunks: 5,
-                        debug: false,
-                        debug_info: true
-                    }
-                },
-                miniMap: {
-                    spriteSheet: minimapsSpriteSheet,
-                    width: 250,
-                    height: 125,
-                    config: {
-                        tiles_per_row: 2,
-                        tile_size: 6,
-                        chunk_size: 16,
-                        n_loaded_chunks: 5,
-                        debug: false,
-                        debug_info: false
-                    }
-                }
-            });
+              fps: 60,
+              player: {
+                  type: "flood",
+                  size: 130,
+                  position: Vector.zero(),
+                  walkSpeed: 21,
+                  runSpeed: 60,
+
+              },
+              map: {
+                  spriteSheet: mapsSpriteSheet,
+                  width: window.innerWidth,
+                  height: window.innerHeight,
+                  config: {
+                      tiles_per_row: 2,
+                      tile_size: 200,
+                      chunk_size: 16,
+                      n_loaded_chunks: 5,
+                      debug: false,
+                      debug_info: true
+                  }
+              },
+              miniMap: {
+                  spriteSheet: minimapsSpriteSheet,
+                  width: 250,
+                  height: 125,
+                  config: {
+                      tiles_per_row: 2,
+                      tile_size: 6,
+                      chunk_size: 16,
+                      n_loaded_chunks: 5,
+                      debug: false,
+                      debug_info: false
+                  }
+              }
+          });
 
             /** @type {FloodClone[]} */
             const clones = [];

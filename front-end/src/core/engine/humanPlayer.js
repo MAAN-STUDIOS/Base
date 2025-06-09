@@ -480,4 +480,17 @@ export class HumanPlayer extends Player {
         this.health = this.maxHealth;
         this.oxygen = this.maxOxygen;
     }
+
+    takeDamage(amount) {
+        if (!this._lastDamageTime) this._lastDamageTime = 0;
+        const now = performance.now();
+        if (now - this._lastDamageTime < 500) return; // 0.5s cooldown
+        this._lastDamageTime = now;
+        this.health -= amount;
+        if (this.health < 0) {
+            this.health = 0;
+            logger.debug("Player died!");
+            this.die();
+        }
+    }
 }
