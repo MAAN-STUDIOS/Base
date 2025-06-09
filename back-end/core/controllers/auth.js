@@ -73,7 +73,7 @@ export class AuthController {
                 }
             });
         } catch (error) {
-            console.error('Registration error:', error);
+            logger.error('Registration error:', error);
             res.status(500).send({ error: 'Internal server error' });
         }
     }
@@ -89,7 +89,7 @@ export class AuthController {
 
         try {
             const user = verifyToken(token);
-            logger.debug("Token Verified");
+            //logger.debug("Token Verified");
             if (!user) {
                 return res.status(401).send({ error: 'Invalid token' });
             }

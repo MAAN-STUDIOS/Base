@@ -181,7 +181,7 @@ export default function floodScreen() {
               player: {
                   type: "flood",
                   size: 130,
-                  position: Vector.zero(),
+                  position: spawnPosition || Vector.zero(),
                   walkSpeed: 21,
                   runSpeed: 60,
 

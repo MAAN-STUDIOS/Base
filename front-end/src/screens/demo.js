@@ -104,7 +104,7 @@ export default function humanScreen() {
                 player: {
                     type: "human",
                     size: 150,
-                    position: Vector.zero(),
+                    position: spawnPosition ||Vector.zero(),
                     walkSpeed: 20,
                     runSpeed: 60
                 },
