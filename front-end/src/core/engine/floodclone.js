@@ -91,13 +91,13 @@ export class FloodClone extends GameObject {
         } else {
             if (dx > 0) {
                 if (this.target) {
-                    this.currentDirection = "rightRun"; 
+                    this.currentDirection = "right"; 
                 } else {
                     this.currentDirection = "right";
                 }
             } else if (dx < 0) {
                 if (this.target) {
-                    this.currentDirection = "leftRun";   
+                    this.currentDirection = "left";   
                 } else {
                     this.currentDirection = "left";
                 }
