@@ -197,6 +197,9 @@ export class Engine {
      * @param {HTMLCanvasElement} miniMapPtr
      */
     init(mapPtr, miniMapPtr) {
+        this._world.map.obj.init();
+        this._world.miniMap.obj.init();
+
         this._world.map.canvas = mapPtr;
         this._world.miniMap.canvas = miniMapPtr;
 
