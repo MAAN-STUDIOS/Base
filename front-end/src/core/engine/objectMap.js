@@ -99,20 +99,11 @@ export class ObjectMap {
         this.local = true; // TODO: remove when server side generation is ready
 
         logger.debug(`Map created ${this}`);
-
     }
 
     init() {
         const initialChunk = this.#resolveChunk(this.real_position);
         this.#loadChunks(initialChunk);
-
-        const loadedChunks = Array.from(this.chunks_loaded.keys())
-            .filter(key => this.chunks_loaded.get(key) !== null)
-            .map(key => {
-                const [x, y] = key.split(',').map(Number);
-                return new Vector(x, y);
-            });
-        this.#attachHitboxes(loadedChunks);
     }
 
     /**
@@ -148,15 +139,6 @@ export class ObjectMap {
         if (!this.current_chunk.equals(playerChunk)) {
             logger.info(`Moving from chunk ${this.current_chunk} to ${playerChunk}`);
             this.#loadChunks(playerChunk);
-
-            const loadedChunks = Array.from(this.chunks_loaded.keys())
-                .filter(key => this.chunks_loaded.get(key) !== null)
-                .map(key => {
-                    const [x, y] = key.split(',').map(Number);
-                    return new Vector(x, y);
-                });
-
-            this.#attachHitboxes(loadedChunks);
         }
 
         this.timeSinceLastCheck = (this.timeSinceLastCheck || 0) + dt;
@@ -330,7 +312,18 @@ export class ObjectMap {
                 this.chunks_loaded.set(chunkKey, null);
 
                 get_map_chunk(x, y, false)
-                    .then(data => this.#mountChunk(data, chunkKey))
+                    .then(data => {
+                        this.#mountChunk(data, chunkKey);
+
+                        const loadedChunks = Array.from(this.chunks_loaded.keys())
+                            .filter(key => this.chunks_loaded.get(key) !== null)
+                            .map(key => {
+                                const [x, y] = key.split(',').map(Number);
+                                return new Vector(x, y);
+                            });
+
+                        this.#attachHitboxes(loadedChunks);
+                    })
                     .catch(err => this.#errorMountingChunk(err, chunkKey));
             }
         }
