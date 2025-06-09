@@ -73,7 +73,7 @@ export class ObjectMap {
         this.hitboxes = [];
 
         /** @type {number[]} Array of tiles index (tiles id) that the player cannot pass through*/
-        this.solidTilesID = options.solidTilesID || [1,2,3,4,5,6];
+        this.solidTilesID = options.solidTilesID || [1, 2, 3, 4, 5, 6];
 
         /** @type {number} Milliseconds between boundary checks */
         this.boundaryCheckCooldown = 1000;
@@ -100,18 +100,19 @@ export class ObjectMap {
 
         logger.debug(`Map created ${this}`);
 
+    }
 
+    init() {
         const initialChunk = this.#resolveChunk(this.real_position);
         this.#loadChunks(initialChunk);
-        setTimeout(() => {
-            const loadedChunks = Array.from(this.chunks_loaded.keys())
-                .filter(key => this.chunks_loaded.get(key) !== null)
-                .map(key => {
-                    const [x, y] = key.split(',').map(Number);
-                    return new Vector(x, y);
-                });
-            this.#attachHitboxes(loadedChunks);
-        }, 100);
+
+        const loadedChunks = Array.from(this.chunks_loaded.keys())
+            .filter(key => this.chunks_loaded.get(key) !== null)
+            .map(key => {
+                const [x, y] = key.split(',').map(Number);
+                return new Vector(x, y);
+            });
+        this.#attachHitboxes(loadedChunks);
     }
 
     /**
