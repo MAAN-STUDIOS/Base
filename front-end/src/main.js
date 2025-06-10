@@ -12,7 +12,8 @@ import screenJoinGame from "@screens/joinGame.js";
 import screenDashboard from "@screens/dashboard.js";
 import context_screen from '@screens/context_screen.js';
 import context_Flood_screen from '@screens/context_screenFlood.js';
-
+import screenFloodWin from '@screens/winScreenFlood.js';
+import screenHumanWin from '@screens/winScreenHuman.js';
 
 import audioManager from "@utils/audiomanager.js";
 import cloneSound from "@/assets/sfx/clone.wav";
@@ -36,9 +37,10 @@ registerScreen('create-account', screenCreateAccount);
 registerScreen('dashboard', screenDashboard);
 registerScreen('context_screen', context_screen);
 registerScreen('context_flood', context_Flood_screen);
-
 registerScreen('join-game', screenJoinGame);
 registerScreen('dashboard', screenDashboard);
+registerScreen('floodWin', screenFloodWin);
+registerScreen('humanWin', screenHumanWin);
 
 document.addEventListener("click", function unlockAudio() {
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
