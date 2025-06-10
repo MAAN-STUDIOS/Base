@@ -108,9 +108,22 @@
     text-align: left;
     color: #e0e0e0;
     margin-bottom: 15px;
+    margin-top: 30px;
     padding: 10px 0 10px 20px;
     animation: fadeInUp 1s ease-out;
     border-left: 3px solid #39FF14; 
+}
+
+.story-text-human {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    text-align: left;
+    color: #e0e0e0;
+    margin-bottom: 15px;
+    margin-top: 30px;
+    padding: 10px 0 10px 20px;
+    animation: fadeInUp 1s ease-out;
+    border-left: 3px solid #14c0ff; 
 }
 
 .section-title {
