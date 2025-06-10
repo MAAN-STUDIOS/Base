@@ -2,12 +2,9 @@
 
 .main {
     width: 100%;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    overflow: hidden;
+    height: 100dvh;
+    overflow-x: hidden;
+    overflow-y: scroll;
     background: transparent;
 }
 

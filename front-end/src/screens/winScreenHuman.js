@@ -1,5 +1,5 @@
 import { navigate } from "@utils/router.js";
-import styles from "./styles/context_screenFlood.module.css";
+import styles from "./styles/context_screenWin.module.css";
 import humanWinBg from "@/assets/WinScreen/humanEpicWin.png";
 
 export default function () {
