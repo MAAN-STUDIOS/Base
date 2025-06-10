@@ -93,8 +93,8 @@ export default function () {
     const humanBtn = document.getElementById("human-btn");
     if (humanBtn) humanBtn.addEventListener("click", () => handleJoinGame(PLAYER_TYPE.human));
 
-    const tutorialBtn = document.getElementById("tutorial-btn");
-    if (tutorialBtn) tutorialBtn.addEventListener("click", () => navigate("tutorial"));
+    // const tutorialBtn = document.getElementById("tutorial-btn");
+    // if (tutorialBtn) tutorialBtn.addEventListener("click", () => navigate("tutorial"));
 
     const backBtn = document.getElementById("back-btn");
     if (backBtn) backBtn.addEventListener("click", () => navigate("menu"));
@@ -108,7 +108,6 @@ export default function () {
       
       <button id="human-btn" class="${styles.humanBtn}">Play as Human -> </button>
       <button id="flood-btn" class="${styles.floodBtn}"> <- Play as Flood</button>
-      <button id="tutorial-btn" class="${styles.menuButton}">📚 Tutorial</button>
       <button id="back-btn">← Back to Menu</button>
     </section>
   `];
