@@ -249,7 +249,7 @@ export default function () {
                     name: formData.get("name"),
                     description: formData.get("description"),
                     seed: formData.get("seed") || Math.floor(Math.random() * 1000000),
-                    max_players: formData.get("max_players") || 8
+                    max_players: formData.get("max_players") || 2
                 };
 
                 try {

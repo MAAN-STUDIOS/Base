@@ -36,7 +36,12 @@ export class GameController {
 
             const { name, description, seed, max_players } = req.body;
 
-
+            if (max_players > 2) {
+                return res.status(400).json({
+                    success: false,
+                    error: 'Max players must be less than 2'
+                });
+            }
             if (!name || name.trim().length === 0) {
                 return res.status(400).json({
                     success: false,
