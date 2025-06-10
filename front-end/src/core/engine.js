@@ -161,7 +161,7 @@ export class Engine {
 
         this.enemyConfig = {
             spawnRadius: 500,
-            maxEnemies: 10,
+            maxEnemies: 50,
             spawnInterval: 3000,
             lastSpawnTime: 0,
             enemySettings: {
