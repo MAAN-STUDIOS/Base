@@ -2,9 +2,12 @@
 
 .main {
     width: 100%;
-    height: 100dvh;
-    overflow-x: hidden;
-    overflow-y: scroll;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
     background: transparent;
 }
 
@@ -310,5 +313,16 @@
     
     .container {
         padding: 20px 15px;
+    }
+}
+
+@media (max-width: 768px) {
+    .main {
+        min-height: 100dvh;
+        padding-top: 30px;
+        padding-bottom: 30px;
+    }
+    .container {
+        padding: 20px 10px;
     }
 }
