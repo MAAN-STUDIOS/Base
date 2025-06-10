@@ -184,6 +184,7 @@ export default function floodScreen() {
                   position: spawnPosition || Vector.zero(),
                   walkSpeed: 21,
                   runSpeed: 60,
+                  spawnPoint: spawnPosition || Vector.zero(),
 
               },
               map: {

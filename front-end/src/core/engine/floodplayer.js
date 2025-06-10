@@ -31,6 +31,7 @@ export class FloodPlayer extends Player {
      * @param {Image|HTMLImageElement} [options.spriteImage=null] - Player sprite image
      * @param {number|null} [options.walkSpeed=12] - Walk speed.
      * @param {number|null} [options.runSpeed=walkSpeed times 10] - Run speed.
+     * @param {Vector} [options.spawnPoint=Vector.zero()] - Spawn point for the player.
      */
     constructor(options = {}) {
         super({
