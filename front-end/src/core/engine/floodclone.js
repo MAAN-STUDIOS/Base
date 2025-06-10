@@ -294,10 +294,6 @@ export class FloodClone extends GameObject {
             // ctx.fillStyle = this.color || 'lightblue';
             // ctx.fillRect(screenX, screenY, this.width, this.height);
 
-            ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
-            ctx.beginPath();
-            ctx.arc(screenX + this.width / 2, screenY + this.height / 2, this.visionRadius, 0, 2 * Math.PI);
-            ctx.stroke();
 
             const healthBarWidth = this.width;
             const healthBarHeight = 5;
@@ -319,11 +315,6 @@ export class FloodClone extends GameObject {
                 ctx.fillStyle = "blue";
                 ctx.fillRect(screenX, screenY - 15, healthBarWidth * (1 - attackCooldownPercentage), 2);
             }
-
-            ctx.strokeStyle = "rgba(255, 0, 0, 0.2)";
-            ctx.beginPath();
-            ctx.arc(screenX + this.width / 2, screenY + this.height / 2, this.attackRange, 0, 2 * Math.PI);
-            ctx.stroke();
         }
     }
 
