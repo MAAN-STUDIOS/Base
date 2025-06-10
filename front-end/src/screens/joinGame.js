@@ -375,14 +375,14 @@ export default function () {
                         </div>
 
                         <div class="${styles.formGroup}">
-                            <label for="max_players">Max Players (2-20)</label>
+                            <label for="max_players">Max Players (1-2)</label>
                             <input 
                                 type="number" 
                                 id="max_players" 
                                 name="max_players"
-                                min="2"
-                                max="20"
-                                value="8"
+                                min="1"
+                                max="2"
+                                value="2"
                             />
                         </div>
 
