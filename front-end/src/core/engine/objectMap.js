@@ -3,6 +3,7 @@ import { GameObject } from "@engine/gameobject.js";
 import { get_map_chunk } from "@utils/apimanager.js";
 import { Hitbox } from "@utils/hitbox.js";
 import logger from "@utils/logger.js";
+import eventBus from "@utils/eventbus.js";
 
 
 /**
@@ -47,6 +48,14 @@ export class ObjectMap {
         this.spriteSheet.onload = () => logger.info("Map spritesheet loaded");
         this.spriteSheet.onerror = () => logger.error("Failed to load map spritesheet");
 
+        // ENEMIES AND BOSS SPAWN SETUPS
+        this.spawnBossTiles = 6;
+        this.spawnedBossTiles = new Set();
+        this.spawnOpEnemyTiles = 12;
+        this.spawnMiniBossTiles = 13;
+        // Container spawns
+        this.spawnContainerTiles = 9;
+
         /**
          * @type {Map<string, number[]|null>}
          * Map of loaded chunks. Keys are string coordinates "x,y" (subject to change),
@@ -73,7 +82,7 @@ export class ObjectMap {
         this.hitboxes = [];
 
         /** @type {number[]} Array of tiles index (tiles id) that the player cannot pass through*/
-        this.solidTilesID = options.solidTilesID || [1, 2, 3, 4, 5, 6];
+        this.solidTilesID = options.solidTilesID || [1, 2, 3, 4];
 
         /** @type {number} Milliseconds between boundary checks */
         this.boundaryCheckCooldown = 1000;
@@ -345,7 +354,6 @@ export class ObjectMap {
 
             if (!chunkData) continue;
 
-
             const chunkWorld = this.#chunkToWorld(chunkPos);
 
             for (let tileY = 0; tileY < this.chunk_size; tileY++) {
@@ -353,10 +361,28 @@ export class ObjectMap {
                     const tileIndex = tileY * this.chunk_size + tileX;
                     const tileId = chunkData[tileIndex];
 
-                    if (!this.solidTilesID.includes(tileId)) continue;
-
                     const tileWorldX = chunkWorld.x + tileX * this.tile_size;
                     const tileWorldY = chunkWorld.y + tileY * this.tile_size;
+
+                    // CHECK FOR SPECIAL TILE SPAWNS FIRST (for ALL tiles)
+                    if (tileId === this.spawnBossTiles) {
+                        this.#handleBossSpawn(tileWorldX, tileWorldY, chunkPos, tileX, tileY);
+                    }
+
+                    if (tileId === this.spawnOpEnemyTiles) {
+                        this.#handleOpEnemySpawn(tileWorldX, tileWorldY, chunkPos, tileX, tileY);
+                    }
+
+                    if (tileId === this.spawnMiniBossTiles) {
+                        this.#handleMiniBossSpawn(tileWorldX, tileWorldY, chunkPos, tileX, tileY);
+                    }
+
+                    if (tileId === this.spawnContainerTiles) {
+                        this.#handleContainerSpawn(tileWorldX, tileWorldY, chunkPos, tileX, tileY);
+                    }
+
+                    // NOW check for solid tiles and create hitboxes (AFTER spawn checks)
+                    if (!this.solidTilesID.includes(tileId)) continue;
 
                     // NOTE: If scale change, apply scale to hbs to match visual size.
                     const tileWrapper = {
@@ -380,6 +406,105 @@ export class ObjectMap {
 
         // logger.debug(`Created ${this.hitboxes.length} collision hitboxes`);
     }
+    #handleBossSpawn(worldX, worldY, chunkPos, tileX, tileY) {
+
+        const tileKey = `${chunkPos.x}_${chunkPos.y}_${tileX}_${tileY}`;
+
+
+        if (this.spawnedBossTiles.has(tileKey)) {
+            return;
+        }
+
+
+        this.spawnedBossTiles.add(tileKey);
+
+
+        const spawnX = worldX + this.tile_size / 2;
+        const spawnY = worldY + this.tile_size / 2;
+
+
+        eventBus.emit("spawnBoss", {
+            type: "boss",
+            x: spawnX,
+            y: spawnY,
+            tilePosition: { x: tileX, y: tileY },
+            chunkPosition: chunkPos,
+            tileKey: tileKey
+        });
+
+        logger.info(`Boss spawn triggered at world position (${spawnX}, ${spawnY}) from tile ID 6`);
+    }
+    #handleOpEnemySpawn(worldX, worldY, chunkPos, tileX, tileY) {
+        const tileKey = `${chunkPos.x}_${chunkPos.y}_${tileX}_${tileY}`;
+
+        if (this.spawnedBossTiles.has(tileKey)) return;
+        this.spawnedBossTiles.add(tileKey);
+
+        const spawnX = worldX + this.tile_size / 2;
+        const spawnY = worldY + this.tile_size / 2;
+
+        eventBus.emit("spawnBoss", {
+            type: "elite",
+            x: spawnX,
+            y: spawnY,
+            tilePosition: { x: tileX, y: tileY },
+            chunkPosition: chunkPos,
+            tileKey: tileKey
+        });
+
+        logger.info(`Elite enemy spawned at (${spawnX}, ${spawnY}) from tile ID 12`);
+    }
+
+    #handleMiniBossSpawn(worldX, worldY, chunkPos, tileX, tileY) {
+        const tileKey = `${chunkPos.x}_${chunkPos.y}_${tileX}_${tileY}`;
+
+        if (this.spawnedBossTiles.has(tileKey)) return;
+        this.spawnedBossTiles.add(tileKey);
+
+        const spawnX = worldX + this.tile_size / 2;
+        const spawnY = worldY + this.tile_size / 2;
+
+        eventBus.emit("spawnBoss", {
+            type: "miniboss",
+            x: spawnX,
+            y: spawnY,
+            tilePosition: { x: tileX, y: tileY },
+            chunkPosition: chunkPos,
+            tileKey: tileKey
+        });
+
+        logger.info(`Mini-boss spawned at (${spawnX}, ${spawnY}) from tile ID 13`);
+    }
+
+    #handleContainerSpawn(worldX, worldY, chunkPos, tileX, tileY) {
+        const tileKey = `${chunkPos.x}_${chunkPos.y}_${tileX}_${tileY}`;
+
+        if (this.spawnedBossTiles.has(tileKey)) return;
+        this.spawnedBossTiles.add(tileKey);
+
+        const spawnX = worldX + this.tile_size / 2;
+        const spawnY = worldY + this.tile_size / 2;
+
+        eventBus.emit("spawnContainer", {
+            type: "loot",
+            x: spawnX,
+            y: spawnY,
+            tilePosition: { x: tileX, y: tileY },
+            chunkPosition: chunkPos,
+            tileKey: tileKey
+        });
+
+        logger.info(`Container spawned at (${spawnX}, ${spawnY}) from tile ID 9`);
+    }
+    resetBossSpawns() {
+        this.spawnedBossTiles.clear();
+        logger.info("Boss spawn locations reset");
+    }
+    hasBossSpawnedAt(chunkPos, tileX, tileY) {
+        const tileKey = `${chunkPos.x}_${chunkPos.y}_${tileX}_${tileY}`;
+        return this.spawnedBossTiles.has(tileKey);
+    }
+
 
     /**
      * Creates a fallback chunk pattern for when loading fails

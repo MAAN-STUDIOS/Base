@@ -28,6 +28,7 @@ export class Player extends GameObject {
             onDestroyImage: options.onDestroyImage
         });
 
+        this.spawnPoint = options.spawnPoint || Vector.zero();
         /** @type {Vector} */
         this.direction = options.direction || Vector.zero();
 

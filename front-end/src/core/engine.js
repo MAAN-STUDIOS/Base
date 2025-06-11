@@ -14,7 +14,8 @@ import { Flamethrower } from "@engine/flamethrower.js";
 import { Enemy } from "@engine/enemy.js";
 import socket, { emitEvent, subscribeToEvent } from "@utils/networkmanager.js";
 import { OtherPlayer } from "@engine/otherPlayer.js";
-import {OtherEnemy} from "@engine/otherEnemy.js";
+import { OtherEnemy } from "@engine/otherEnemy.js";
+import eventBus from "@utils/eventbus.js";
 
 
 /**
@@ -82,6 +83,7 @@ export class Engine {
         );
         this._player.walkSpeed = options.player.walkSpeed || 70;
         this._player.runSpeed = options.player.runSpeed || this._player.walkSpeed + 30;
+        this.spawnPoint = options.player.spawnPoint || Vector.zero();
 
         this._player.obj = this.#initPlayer(this._player.position, (options.player.type || "human"));
         this._player.functionalities = {};
@@ -105,7 +107,7 @@ export class Engine {
             n_loaded_chunks: options.map.config.n_loaded_chunks || 5,
             debug: options.map.config.debug || false,
             debug_info: options.map.config.debug_info || false,
-            solidTilesID: [1,2,3,4]
+            solidTilesID: [1, 2, 3, 4]
         };
 
         const configMiniMap = {
@@ -159,7 +161,7 @@ export class Engine {
 
         this.enemyConfig = {
             spawnRadius: 500,
-            maxEnemies: 10,
+            maxEnemies: 50,
             spawnInterval: 3000,
             lastSpawnTime: 0,
             enemySettings: {
@@ -175,6 +177,9 @@ export class Engine {
             }
         };
 
+        this.containers = [];
+
+
         this.socket_events = {
             PLAYER_MOVE: "PlayerMove",
             PLAYER_JOIN: "PlayerJoin",
@@ -187,6 +192,47 @@ export class Engine {
         this.others = new Map();
         this.otherEnemies = new Map();
         this.enemyIdCounter = 0;
+        eventBus.on("spawnBoss", (data) => {
+            const bossConfigs = {
+                boss: {
+                    damage: 49,
+                    speed: 5,
+                    chaseRadius: 800,
+                    health: 2000,
+                    size: 200
+                },
+                miniboss: {
+                    damage: 45,
+                    speed: 12,
+                    chaseRadius: 800,
+                    health: 1200,
+                    size: 120
+                },
+                elite: {
+                    damage: 35,
+                    speed: 15,
+                    chaseRadius: 600,
+                    health: 800,
+                    size: 100
+                }
+            };
+
+            const config = bossConfigs[data.type] || bossConfigs.boss;
+
+            this.spawnCustomEnemy(
+                this._world.map.obj,
+                data.type,
+                data.x,
+                data.y,
+                config.damage,
+                config.speed,
+                config.chaseRadius,
+                config.health,
+                config.size
+            );
+
+            logger.info(`${data.type} spawned at (${data.x}, ${data.y}) from tile trigger`);
+        });
 
         logger.info("Engine created.");
     }
@@ -382,7 +428,7 @@ export class Engine {
     }
 
     respawnPlayer() {
-        this.player.reSpawn(Vector.zero());
+        this.player.reSpawn(this.spawnPoint.clone());
         this._gameState.isGameOver = false;
         this._gameState.deathScreenShown = false;
     }
@@ -456,7 +502,13 @@ export class Engine {
             tileGrid: gameMap,
             obstacles: gameMap.hitboxes || [],
             ...this.enemyConfig.enemySettings,
-            type: type
+            type: type,
+            health: Math.random() * 100 + 100,
+            speed: Math.random() * 21 + 4,
+            chaseRadius: Math.random() * 900 + 200,
+            damage: Math.random() * 10 + 5,
+
+
         });
 
         enemy.id = enemyId;
@@ -475,6 +527,50 @@ export class Engine {
             position: spawnPosition,
             totalEnemies: this.enemies.length
         });
+    }
+    spawnCustomEnemy(gameMap, type = 'flood', spawnX, spawnY, damage, speed, chaseRadius, health, size) {
+        const enemyId = `${socket.id}-${this.enemyIdCounter++}`;
+        const spawnPosition = new Vector(spawnX, spawnY);
+
+        const waypoints = this.generateRandomWaypoints(spawnPosition, 3, 80);
+        const homePoint = new Vector(spawnPosition.x, spawnPosition.y);
+
+        const enemy = new Enemy({
+           
+            position: spawnPosition,
+            waypoints: waypoints,
+            homePoint: homePoint,
+            tileGrid: gameMap,
+            obstacles: gameMap.hitboxes || [],
+            ...this.enemyConfig.enemySettings,
+            type: type,
+            height: size || 60,
+            width: size || 60,
+            damage: damage || Math.random() * 40 + 10,
+            health: health || Math.random() * 1000 + 2000,
+            speed: speed || Math.random() * 6 + 4,
+            chaseRadius: chaseRadius || Math.random() * 900 + 200,
+        });
+
+        enemy.id = enemyId;
+        this.enemies.push(enemy);
+
+        emitEvent(this.socket_events.ENEMY_JOIN, {
+            id: enemyId,
+            state: enemy.state,
+            type: enemy.enemyType,
+            x: enemy.position.x,
+            y: enemy.position.y,
+        });
+
+        logger.debug("Random enemy spawned", {
+            id: enemyId,
+            position: spawnPosition,
+            totalEnemies: this.enemies.length
+        });
+    }
+    async spawnContainers(spawnX, spawnY, type, info) {
+
     }
 
     /**
@@ -645,7 +741,7 @@ export class Engine {
             if (enemy.state === 'ATTACK') {
                 isAttack = true;
                 break;
-            } 
+            }
         }
         if (isAttack) {
             // Blinking effect for red border
@@ -670,6 +766,7 @@ export class Engine {
             runSpeed: this._player.runSpeed,
             width: this._player.size,
             height: this._player.size,
+            spawnPoint: this.spawnPoint.clone(),
             attackSlots: [
                 new Pistol({ speed: 130 }),
                 new Shotgun({ projectileCount: 2, spread: 15 }),
@@ -677,7 +774,7 @@ export class Engine {
                 new Flamethrower({ speed: 150 })]
         }
         let obj;
-        
+
         switch (type) {
             case "human":
                 obj = new HumanPlayer(initialPosition, configPlayer);
