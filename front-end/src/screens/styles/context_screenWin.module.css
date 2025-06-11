@@ -1,0 +1,55 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+
+.main {
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    background: transparent;
+}
+
+
+.container {
+    z-index: 2;
+    margin: 0 auto;
+    padding: 0 40px 20px;
+    text-align: center;
+    max-width: 1000px;
+}
+
+.story-text {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    text-align: left;
+    color: #e0e0e0;
+    margin-bottom: 15px;
+    margin-top: 30px;
+    padding: 10px 0 10px 20px;
+    animation: fadeInUp 1s ease-out;
+    border-left: 3px solid #39FF14; 
+}
+
+.story-text-human {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    text-align: left;
+    color: #e0e0e0;
+    margin-bottom: 15px;
+    margin-top: 30px;
+    padding: 10px 0 10px 20px;
+    animation: fadeInUp 1s ease-out;
+    border-left: 3px solid #14c0ff; 
+}
+
+.start-button {
+    border: none;
+}
+
+.start-button:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 40px #39FF14;
+    background: linear-gradient(45deg, #39FF14, #39FF14); 
+}

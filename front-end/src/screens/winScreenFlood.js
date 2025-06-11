@@ -1,5 +1,5 @@
 import { navigate } from "@utils/router.js";
-import styles from "./styles/context_screenFlood.module.css";
+import styles from "./styles/context_screenWin.module.css";
 import floodWinBg from "@/assets/WinScreen/floodWin3.png";
 
 export default function () {
