@@ -196,7 +196,8 @@ export class FloodPlayer extends Player {
 
     createClone() {
         const now = performance.now();
-        if (now - this.lastCloneTime < this.cloneCooldown || this.biomass < 25) return;
+        const MAX_CLONES = 20;
+        if (now - this.lastCloneTime < this.cloneCooldown || this.biomass < 25 || (this.clones && this.clones.length >= MAX_CLONES)) return;
         this.lastCloneTime = now;
         this.biomass -= 25;
 
@@ -215,7 +216,7 @@ export class FloodPlayer extends Player {
         this.clones.push(clone);
 
         eventBus.emit("clone", clone);
-        logger.debug(`Clone created. Remaining biomass: ${this.biomass}`);
+        logger.debug(`Clone created. Remaining biomass: ${this.biomass}. Active clones: ${this.clones.length}/${MAX_CLONES}`);
         return clone;
     }
 
@@ -337,7 +338,7 @@ export class FloodPlayer extends Player {
 
         this.biomass = 0;
         this.evolution = 1;
-        // this.biomass = 150; 
+        // this.biomass = 500; 
         this.clones.forEach(clone => clone.die());
         this.clones = [];
 
