@@ -1,38 +1,41 @@
 DROP SCHEMA IF EXISTS cosmonavt;
-CREATE DATABASE IF NOT EXISTS cosmonavt;
+CREATE SCHEMA IF NOT EXISTS cosmonavt;
 USE cosmonavt;
 
 
-CREATE TABLE cosmonavt_user (
+CREATE TABLE cosmonavt.cosmonavt_user (
     id            INT PRIMARY KEY                NOT NULL AUTO_INCREMENT,
     name          VARCHAR(255)                   NOT NULL,
-    creation_date TIMESTAMP                      NOT NULL DEFAULT NOW(),
-    last_login    TIMESTAMP                      NOT NULL DEFAULT NOW(),
+    creation_date TIMESTAMP                      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_login    TIMESTAMP                      NOT NULL DEFAULT CURRENT_TIMESTAMP,
     email         VARCHAR(255)                   NOT NULL,
     password      VARCHAR(512)                   NOT NULL,
     access_level  ENUM ('none', 'read', 'write') NOT NULL
 ) CHARACTER SET utf8mb4
   ENGINE = InnoDB;
 
-CREATE TABLE player (
+
+CREATE TABLE cosmonavt.player (
     id                  INT PRIMARY KEY    NOT NULL AUTO_INCREMENT,
     user_id             INT                NOT NULL,
     played_time_seconds INT      DEFAULT 0 NOT NULL,
     kills               SMALLINT DEFAULT 0 NOT NULL,
     deaths              SMALLINT DEFAULT 0 NOT NULL,
     description         TEXT               NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES cosmonavt_user (id) ON DELETE CASCADE
+    CONSTRAINT FOREIGN KEY (user_id) REFERENCES cosmonavt.cosmonavt_user (id) ON DELETE CASCADE
 ) CHARACTER SET utf8mb4
   ENGINE = InnoDB;
 
-CREATE TABLE admin (
+
+CREATE TABLE cosmonavt.admin (
     id      INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
     user_id INT             NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES cosmonavt_user (id) ON DELETE CASCADE
+    CONSTRAINT FOREIGN KEY (user_id) REFERENCES cosmonavt.cosmonavt_user (id) ON DELETE CASCADE
 ) CHARACTER SET utf8mb4
   ENGINE = InnoDB;
 
-CREATE TABLE config (
+
+CREATE TABLE cosmonavt.config (
     id             INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
     player_id      INT             NOT NULL,
     general_volume SMALLINT DEFAULT 100,
@@ -40,23 +43,24 @@ CREATE TABLE config (
     last_update    TIMESTAMP,
     fps            SMALLINT DEFAULT 60,
     effects_volume SMALLINT DEFAULT 100,
-    FOREIGN KEY (player_id) REFERENCES player (id) ON DELETE CASCADE
+    CONSTRAINT FOREIGN KEY (player_id) REFERENCES cosmonavt.player (id) ON DELETE CASCADE
 ) CHARACTER SET utf8mb4
   ENGINE = InnoDB;
 
-CREATE TABLE game (
+
+CREATE TABLE cosmonavt.game (
     id          INT          NOT NULL PRIMARY KEY AUTO_INCREMENT,
     name        VARCHAR(255) NOT NULL,
     description TEXT,
     status      VARCHAR(12) DEFAULT 'starting', -- TODO: Move to enum, starting, running, ...
-    start_time  TIMESTAMP   DEFAULT NOW(),
+    start_time  TIMESTAMP   DEFAULT CURRENT_TIMESTAMP,
     end_time    TIMESTAMP   DEFAULT NULL,
     seed        VARCHAR(64) DEFAULT NULL
 ) CHARACTER SET utf8mb4
   ENGINE = InnoDB;
 
 
-CREATE TABLE player_game (
+CREATE TABLE cosmonavt.player_game (
     id              INT      NOT NULL PRIMARY KEY AUTO_INCREMENT,
     player_id       INT      NOT NULL,
     game_id         INT      NOT NULL,
@@ -65,41 +69,44 @@ CREATE TABLE player_game (
     last_position_x SMALLINT NOT NULL,
     last_position_y SMALLINT NOT NULL,
     fragments SMALLINT NOT NULL DEFAULT 0,
-    FOREIGN KEY (player_id) REFERENCES player (id),
-    FOREIGN KEY (game_id) REFERENCES game (id)
+    CONSTRAINT FOREIGN KEY (player_id) REFERENCES cosmonavt.player (id),
+    CONSTRAINT FOREIGN KEY (game_id) REFERENCES cosmonavt.game (id)
 ) CHARACTER SET utf8mb4
   ENGINE = InnoDB;
 
 CREATE INDEX xy_player_game ON player_game (last_position_x, last_position_y);
 
 
-CREATE TABLE death (
+CREATE TABLE cosmonavt.death (
     id             INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
     player_game_id INT             NOT NULL,
-    time           TIMESTAMP DEFAULT NOW(),
+    time           TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     cause          VARCHAR(255)    NOT NULL,
-    FOREIGN KEY (player_game_id) REFERENCES player_game (id)
+    CONSTRAINT FOREIGN KEY (player_game_id) REFERENCES cosmonavt.player_game (id)
 ) CHARACTER SET utf8mb4
   ENGINE = InnoDB;
 
-CREATE TABLE flood_game (
+
+CREATE TABLE cosmonavt.flood_game (
     id             INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
     player_game_id INT             NOT NULL,
     biomass        INT DEFAULT 0,
     infected       INT DEFAULT 0,
-    FOREIGN KEY (player_game_id) REFERENCES player_game (id)
+    CONSTRAINT FOREIGN KEY (player_game_id) REFERENCES cosmonavt.player_game (id)
 ) CHARACTER SET utf8mb4
   ENGINE = InnoDB;
 
-CREATE TABLE flood_clones (
+
+CREATE TABLE cosmonavt.flood_clones (
     id       INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
     flood_id INT             NOT NULL,
     health   SMALLINT        NOT NULL DEFAULT 100,
-    FOREIGN KEY (flood_id) REFERENCES flood_game (id)
+    CONSTRAINT FOREIGN KEY (flood_id) REFERENCES cosmonavt.flood_game (id)
 ) CHARACTER SET utf8mb4
   ENGINE = InnoDB;
 
-CREATE TABLE item (
+
+CREATE TABLE cosmonavt.item (
     id          INT          NOT NULL PRIMARY KEY AUTO_INCREMENT,
     sprite_id   SMALLINT     NOT NULL,
     type        ENUM ('')    NOT NULL, -- TODO: update based on game necessities
@@ -108,82 +115,91 @@ CREATE TABLE item (
 ) CHARACTER SET utf8mb4
   ENGINE = InnoDB;
 
-CREATE TABLE loot (
+
+CREATE TABLE cosmonavt.loot (
     id      INT       NOT NULL PRIMARY KEY AUTO_INCREMENT,
     item_id INT       NOT NULL,
     type    ENUM ('') NOT NULL, -- TODO: update based on game necessities
-    FOREIGN KEY (item_id) REFERENCES item (id)
+    CONSTRAINT FOREIGN KEY (item_id) REFERENCES cosmonavt.item (id)
 ) CHARACTER SET utf8mb4
   ENGINE = InnoDB;
 
-CREATE TABLE weapon (
+
+CREATE TABLE cosmonavt.weapon (
     id       INT      NOT NULL PRIMARY KEY AUTO_INCREMENT,
     loot_id  INT      NOT NULL,
     damage   SMALLINT NOT NULL,
     cooldown SMALLINT NOT NULL,
-    FOREIGN KEY (loot_id) REFERENCES loot (id)
+    CONSTRAINT FOREIGN KEY (loot_id) REFERENCES cosmonavt.loot (id)
 ) CHARACTER SET utf8mb4
   ENGINE = InnoDB;
 
-CREATE TABLE human_game (
+
+CREATE TABLE cosmonavt.human_game (
     id                   INT      NOT NULL PRIMARY KEY AUTO_INCREMENT,
     oxygen               SMALLINT NOT NULL,
     weapon_1             INT      NOT NULL,
     weapon_2             INT      NOT NULL,
     generators_activated SMALLINT NOT NULL,
-    FOREIGN KEY (weapon_1) REFERENCES weapon (id),
-    FOREIGN KEY (weapon_2) REFERENCES weapon (id)
+    CONSTRAINT FOREIGN KEY (weapon_1) REFERENCES cosmonavt.weapon (id),
+    CONSTRAINT FOREIGN KEY (weapon_2) REFERENCES cosmonavt.weapon (id)
 ) CHARACTER SET utf8mb4
   ENGINE = InnoDB;
 
-CREATE TABLE fragment (
+
+CREATE TABLE cosmonavt.fragment (
     id      INT          NOT NULL PRIMARY KEY AUTO_INCREMENT,
     player_game_id INT NOT NULL,
-    found_time TIMESTAMP DEFAULT NOW(),
-    FOREIGN KEY (player_game_id) REFERENCES player_game (id)
+    found_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT FOREIGN KEY (player_game_id) REFERENCES cosmonavt.player_game (id)
 ) CHARACTER SET utf8mb4
   ENGINE = InnoDB;
 
-CREATE TABLE game_loot (
+
+CREATE TABLE cosmonavt.game_loot (
     id         INT       NOT NULL PRIMARY KEY AUTO_INCREMENT,
     loot_id    INT       NOT NULL,
     game_id    INT       NOT NULL,
     type       ENUM ('') NOT NULL, -- TODO: update based on game necessities
     found_time TIMESTAMP,
-    FOREIGN KEY (loot_id) REFERENCES loot (id),
-    FOREIGN KEY (game_id) REFERENCES game (id)
+    CONSTRAINT FOREIGN KEY (loot_id) REFERENCES cosmonavt.loot (id),
+    CONSTRAINT FOREIGN KEY (game_id) REFERENCES cosmonavt.game (id)
 ) CHARACTER SET utf8mb4
   ENGINE = InnoDB;
 
 
-CREATE TABLE dungeon (
+CREATE TABLE cosmonavt.dungeon (
     id   INT          NOT NULL PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(255) NOT NULL
 ) CHARACTER SET utf8mb4
   ENGINE = InnoDB;
 
-CREATE TABLE chunk (
+
+CREATE TABLE cosmonavt.chunk (
     id         INT      NOT NULL PRIMARY KEY AUTO_INCREMENT,
     dungeon_id INT      NOT NULL,
     data       TEXT     NOT NULL,
     chunk_x    SMALLINT NOT NULL,
     chunk_y    SMALLINT NOT NULL,
-    FOREIGN KEY (dungeon_id) REFERENCES dungeon (id)
+    CONSTRAINT FOREIGN KEY (dungeon_id) REFERENCES cosmonavt.dungeon (id)
 ) CHARACTER SET utf8mb4
   ENGINE = InnoDB;
 
 CREATE INDEX xy_chunk ON chunk (chunk_x, chunk_y);
 
-CREATE TABLE game_dungeon (
+
+CREATE TABLE cosmonavt.game_dungeon (
     id         INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
     game_id    INT NOT NULL,
     dungeon_id INT NOT NULL,
     offset_x   INT NOT NULL,
     offset_y   INT NOT NULL,
-    FOREIGN KEY (game_id) REFERENCES game (id),
-    FOREIGN KEY (dungeon_id) REFERENCES dungeon (id)
+    CONSTRAINT FOREIGN KEY (game_id) REFERENCES cosmonavt.game (id),
+    CONSTRAINT FOREIGN KEY (dungeon_id) REFERENCES cosmonavt.dungeon (id)
 ) CHARACTER SET utf8mb4
   ENGINE = InnoDB;
+
+
 
 CREATE VIEW view_admin AS
     SELECT a.id            AS id,
@@ -193,8 +209,8 @@ CREATE VIEW view_admin AS
            u.password      AS password,
            u.access_level  AS access_level,
            u.last_login    AS last_login
-    FROM admin a
-             INNER JOIN cosmonavt_user u ON a.user_id = u.id;
+    FROM cosmonavt.admin a
+             INNER JOIN cosmonavt.cosmonavt_user u ON a.user_id = u.id;
 
 
 CREATE VIEW view_player AS
@@ -207,8 +223,9 @@ CREATE VIEW view_player AS
            p.deaths              AS deaths,
            u.password            AS password,
            u.last_login          AS last_login
-    FROM player p
-             INNER JOIN cosmonavt_user u ON p.user_id = u.id;
+    FROM cosmonavt.player p
+             INNER JOIN cosmonavt.cosmonavt_user u ON p.user_id = u.id;
+
 
 CREATE VIEW view_config AS
     SELECT c.id             AS id,
@@ -219,9 +236,10 @@ CREATE VIEW view_config AS
            c.effects_volume AS effects_volume,
            c.fps            AS fps,
            c.last_update    AS last_update
-    FROM config c
-             INNER JOIN player p ON c.player_id = p.id
-             INNER JOIN cosmonavt_user u ON p.user_id = u.id;
+    FROM cosmonavt.config c
+             INNER JOIN cosmonavt.player p ON c.player_id = p.id
+             INNER JOIN cosmonavt.cosmonavt_user u ON p.user_id = u.id;
+
 
 CREATE VIEW view_game AS
     SELECT g.name        AS name,
@@ -229,7 +247,8 @@ CREATE VIEW view_game AS
            g.start_time  AS start_time,
            g.end_time    AS end_time,
            g.status      AS status
-    FROM game g;
+    FROM cosmonavt.game g;
+
 
 CREATE VIEW view_human_view_game AS
     SELECT hg.id                   AS id,
@@ -242,9 +261,9 @@ CREATE VIEW view_human_view_game AS
            hg.weapon_1             AS weapo_1,
            hg.weapon_2             AS weapo_2,
            hg.generators_activated AS generators_activated
-    FROM human_game hg
-             INNER JOIN player_game pg ON hg.id = pg.game_id
-             INNER JOIN death d ON pg.id = d.player_game_id
+    FROM cosmonavt.human_game hg
+             INNER JOIN cosmonavt.player_game pg ON hg.id = pg.game_id
+             INNER JOIN cosmonavt.death d ON pg.id = d.player_game_id
     GROUP BY pg.id;
 
 
@@ -257,10 +276,11 @@ CREATE VIEW view_flood_view_game AS
            pg.last_position_x AS last_position_x,
            pg.last_position_y AS last_position_y,
            hg.infected        AS gameinfected
-    FROM flood_game hg
-             INNER JOIN player_game pg ON hg.id = pg.game_id
-             INNER JOIN death d ON pg.id = d.player_game_id
+    FROM cosmonavt.flood_game hg
+             INNER JOIN cosmonavt.player_game pg ON hg.id = pg.game_id
+             INNER JOIN cosmonavt.death d ON pg.id = d.player_game_id
     GROUP BY pg.id;
+
 
 CREATE VIEW view_chunk AS
     SELECT g.id                    AS game_id,
@@ -270,50 +290,55 @@ CREATE VIEW view_chunk AS
            c.chunk_x + gd.offset_x AS chunk_x,
            c.chunk_y + gd.offset_y AS chunk_y,
            c.data                  AS data
-    FROM game g
-             INNER JOIN game_dungeon gd ON g.id = gd.game_id
-             INNER JOIN dungeon d ON gd.dungeon_id = d.id
-             INNER JOIN chunk c ON c.dungeon_id = d.id;
+    FROM cosmonavt.game g
+             INNER JOIN cosmonavt.game_dungeon gd ON g.id = gd.game_id
+             INNER JOIN cosmonavt.dungeon d ON gd.dungeon_id = d.id
+             INNER JOIN cosmonavt.chunk c ON c.dungeon_id = d.id;
+
 
 CREATE VIEW view_stats AS
-    SELECT (SELECT SUM(kills) FROM player)                          AS total_kills,
-           (SELECT SUM(deaths) FROM player)                         AS total_deaths,
-           (SELECT COUNT(*) FROM game)                              AS total_games,
-           (SELECT COUNT(*) FROM fragment)                          AS total_fragments,
-           (SELECT COUNT(*) FROM game WHERE status LIKE 'wonFlood') AS won_by_flood,
-           (SELECT COUNT(*) FROM game WHERE status LIKE 'wonHuman') AS won_by_human,
+    SELECT (SELECT SUM(kills) FROM cosmonavt.player)                          AS total_kills,
+           (SELECT SUM(deaths) FROM cosmonavt.player)                         AS total_deaths,
+           (SELECT COUNT(*) FROM cosmonavt.game)                              AS total_games,
+           (SELECT COUNT(*) FROM cosmonavt.fragment)                          AS total_fragments,
+           (SELECT COUNT(*) FROM cosmonavt.game WHERE status LIKE 'wonFlood') AS won_by_flood,
+           (SELECT COUNT(*) FROM cosmonavt.game WHERE status LIKE 'wonHuman') AS won_by_human,
            (SELECT AVG(dt)
             FROM (SELECT TIMESTAMPDIFF(SECOND, LAG(d.time) OVER (PARTITION BY pg.id ORDER BY d.time), d.time) AS dt
-                  FROM death d
-                           INNER JOIN player_game pg ON d.player_game_id = pg.id) AS time_diffs
+                  FROM cosmonavt.death d
+                           INNER JOIN cosmonavt.player_game pg ON d.player_game_id = pg.id) AS time_diffs
             WHERE dt IS NOT NULL)                                   AS mean_time_alive,
            (SELECT MAX(fecha)
             FROM (SELECT MAX(start_time) AS fecha
-                  FROM game
+                  FROM cosmonavt.game
                   UNION
                   SELECT MAX(last_login)
-                  FROM cosmonavt_user
+                  FROM cosmonavt.cosmonavt_user
                   UNION
                   SELECT MAX(last_update)
-                  FROM config) AS fechas)                           AS last_update;
+                  FROM cosmonavt.config) AS fechas)                           AS last_update;
 
 
 CREATE VIEW view_item AS
     SELECT *
-    FROM item;
+    FROM cosmonavt.item;
+
 
 CREATE VIEW view_loot AS
     SELECT *
-    FROM loot;
+    FROM cosmonavt.loot;
+
 
 CREATE VIEW view_fragment AS
     SELECT *
-    FROM fragment;
+    FROM cosmonavt.fragment;
+
 
 CREATE VIEW view_weapon AS
     SELECT *
-    FROM weapon;
+    FROM cosmonavt.weapon;
+
 
 CREATE VIEW view_game_loot AS
     SELECT *
-    FROM game_loot;
+    FROM cosmonavt.game_loot;

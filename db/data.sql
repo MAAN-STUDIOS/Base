@@ -1,5 +1,6 @@
 USE cosmonavt;
 
+
 INSERT
 INTO dungeon (name)
 VALUES ("station-599"),
