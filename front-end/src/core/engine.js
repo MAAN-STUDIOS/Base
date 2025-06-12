@@ -507,8 +507,7 @@ export class Engine {
             speed: Math.random() * 21 + 4,
             chaseRadius: Math.random() * 900 + 200,
             damage: Math.random() * 10 + 5,
-
-
+            game: this
         });
 
         enemy.id = enemyId;

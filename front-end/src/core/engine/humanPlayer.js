@@ -45,6 +45,20 @@ export class HumanPlayer extends Player {
         this.maxOxygen = 100;
         this.oxygen = this.maxOxygen;
 
+        // Sistema de niveles
+        this.level = 1;
+        this.kills = 0;
+        this.killsNeededForNextLevel = 5; // Kills necesarias para subir de nivel
+        this.maxLevel = 4;
+
+        // Armas desbloqueadas por nivel
+        this.unlockedWeapons = {
+            1: true,  // Pistola (nivel 1)
+            2: false, // Protogun (nivel 2)
+            3: false, // Machine Gun (nivel 3)
+            4: false  // Flamethrower (nivel 4)
+        };
+
         // TODO: Tasas de uso REVISAR
         this.oxygenUse = 10;
         this.oxygenReload = 0.3;
@@ -410,24 +424,31 @@ export class HumanPlayer extends Player {
         const canvasWidth = ctx.canvas.width;
         const canvasHeight = ctx.canvas.height;
 
-                        //(image, dx, dy, dWidth, dHeight)
-                        
-        // Escopeta (shotgun)
-        ctx.drawImage(this.imga, 37, canvasHeight - 100, 85, 85);
-        // Ametralladora (machine gun)
-        ctx.drawImage(this.img2, 140, canvasHeight - 115, 95, 95);
-        // Pistola (pistol)
-        ctx.drawImage(this.img3, 262, canvasHeight - 105, 82, 82);
+        // Dibujar armas con indicador de desbloqueo
+        ctx.globalAlpha = this.unlockedWeapons[1] ? 1 : 0.5;
+        ctx.drawImage(this.img3, 262, canvasHeight - 105, 82, 82); // Pistola
 
-        // Grenade
-        ctx.drawImage(this.img4, canvasWidth - 110, canvasHeight - 110, 90, 90);
+        ctx.globalAlpha = this.unlockedWeapons[2] ? 1 : 0.5;
+        ctx.drawImage(this.imga, 37, canvasHeight - 100, 85, 85); // Protogun
 
+        ctx.globalAlpha = this.unlockedWeapons[3] ? 1 : 0.5;
+        ctx.drawImage(this.img2, 140, canvasHeight - 115, 95, 95); // Machine Gun
+
+        ctx.globalAlpha = this.unlockedWeapons[4] ? 1 : 0.5;
+        ctx.drawImage(this.img4, canvasWidth - 110, canvasHeight - 110, 90, 90); // Flamethrower
+
+        ctx.globalAlpha = 1;
+
+        // Mostrar información de nivel y kills
         ctx.font = "16px monospace";
         ctx.fillStyle = "white";
-        ctx.fillText(`${this.isRunning ? "Running" : "Walking"}`, screenX, screenY);
+        ctx.fillText(`Nivel: ${this.level}`, 10, 70);
+        ctx.fillText(`Kills: ${this.kills}/${this.killsNeededForNextLevel}`, 10, 90);
 
         const weapon = this.attackSlots[this.activeSlot];
-        ctx.fillText(`Weapon: ${weapon.constructor.name}`, screenX, screenY + 15);
+        if (weapon) {
+            ctx.fillText(`Arma: ${weapon.constructor.name}`, screenX, screenY + 15);
+        }
     }
 
     init(canvas) {
@@ -456,8 +477,19 @@ export class HumanPlayer extends Player {
         const weapon = this.attackSlots[this.activeSlot];
         if (!weapon || typeof weapon.fire !== "function") return;
 
+        // Verificar si el arma está desbloqueada
+        if (!this.unlockedWeapons[this.activeSlot + 1]) {
+            console.log("Arma no desbloqueada");
+            return;
+        }
+
         const direction = this.mouseDirection.clone();
         weapon.fire(this.real_position.clone(), direction, this);
+
+        // Daño extra para el flamethrower (nivel 4)
+        if (this.activeSlot === 3) {
+            weapon.damage *= 1.5; // 50% más de daño
+        }
 
         const soundMap = [
             "gunPistol",
@@ -469,17 +501,12 @@ export class HumanPlayer extends Player {
         const soundToPlay = soundMap[this.activeSlot];
         if (soundToPlay) {
             if (weapon.cooldownTimer == 0) {
-                console.log(`Playing sound: ${soundToPlay}`);
                 try {
-                  audioManager.play(soundToPlay);
-                  //console.log(`Sound played: ${soundToPlay}`);
+                    audioManager.play(soundToPlay);
                 } catch (e) {
-                  console.error(`Error trying to play sound ${soundToPlay}:`, e);
+                    console.error(`Error trying to play sound ${soundToPlay}:`, e);
                 }
-              } else {
-                console.log("RARO");
-                return;
-              }
+            }
         }
     }
 
@@ -487,6 +514,22 @@ export class HumanPlayer extends Player {
         super.die();
         this.health = this.maxHealth;
         this.oxygen = this.maxOxygen;
+        
+        // Reiniciar sistema de niveles
+        this.level = 1;
+        this.kills = 0;
+        this.killsNeededForNextLevel = 5;
+        
+        // Reiniciar armas desbloqueadas
+        this.unlockedWeapons = {
+            1: true,  // Pistola (nivel 1)
+            2: false, // Protogun (nivel 2)
+            3: false, // Machine Gun (nivel 3)
+            4: false  // Flamethrower (nivel 4)
+        };
+        
+        // Volver a la primera arma
+        this.activeSlot = 0;
     }
 
     takeDamage(amount) {
@@ -499,6 +542,24 @@ export class HumanPlayer extends Player {
             this.health = 0;
             logger.debug("Player died!");
             this.die();
+        }
+    }
+
+    addKill() {
+        this.kills++;
+        if (this.kills >= this.killsNeededForNextLevel && this.level < this.maxLevel) {
+            this.levelUp();
+        }
+    }
+
+    // Método para subir de nivel
+    levelUp() {
+        if (this.level < this.maxLevel) {
+            this.level++;
+            this.unlockedWeapons[this.level] = true;
+            this.kills = 0;
+            this.killsNeededForNextLevel = Math.floor(this.killsNeededForNextLevel * 1.25); 
+            console.log(`¡Nivel ${this.level} desbloqueado!`);
         }
     }
 }
