@@ -642,6 +642,10 @@ export class Engine {
                 //logger.debug("Enemy defeated", { remainingEnemies: this.enemies.length - 1 });
                 this.player.infectHuman?.(enemy.damage);
 
+                if (this.player.constructor.name === 'HumanPlayer') {
+                    this.player.addKill();
+                }
+
                 if (enemy.category === "boss") {
                     logger.info("Boss defeated!");
                     this.reportBossDeath();
