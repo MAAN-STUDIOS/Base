@@ -22,7 +22,7 @@ CREATE TABLE cosmonavt.player (
     kills               SMALLINT DEFAULT 0 NOT NULL,
     deaths              SMALLINT DEFAULT 0 NOT NULL,
     description         TEXT               NOT NULL,
-    CONSTRAINT FOREIGN KEY (user_id) REFERENCES cosmonavt.cosmonavt_user (id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES cosmonavt.cosmonavt_user (id) ON DELETE CASCADE
 ) CHARACTER SET utf8mb4
   ENGINE = InnoDB;
 
@@ -30,7 +30,7 @@ CREATE TABLE cosmonavt.player (
 CREATE TABLE cosmonavt.admin (
     id      INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
     user_id INT             NOT NULL,
-    CONSTRAINT FOREIGN KEY (user_id) REFERENCES cosmonavt.cosmonavt_user (id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES cosmonavt.cosmonavt_user (id) ON DELETE CASCADE
 ) CHARACTER SET utf8mb4
   ENGINE = InnoDB;
 
@@ -43,7 +43,7 @@ CREATE TABLE cosmonavt.config (
     last_update    TIMESTAMP,
     fps            SMALLINT DEFAULT 60,
     effects_volume SMALLINT DEFAULT 100,
-    CONSTRAINT FOREIGN KEY (player_id) REFERENCES cosmonavt.player (id) ON DELETE CASCADE
+    FOREIGN KEY (player_id) REFERENCES cosmonavt.player (id) ON DELETE CASCADE
 ) CHARACTER SET utf8mb4
   ENGINE = InnoDB;
 
@@ -69,8 +69,8 @@ CREATE TABLE cosmonavt.player_game (
     last_position_x SMALLINT NOT NULL,
     last_position_y SMALLINT NOT NULL,
     fragments SMALLINT NOT NULL DEFAULT 0,
-    CONSTRAINT FOREIGN KEY (player_id) REFERENCES cosmonavt.player (id),
-    CONSTRAINT FOREIGN KEY (game_id) REFERENCES cosmonavt.game (id)
+    FOREIGN KEY (player_id) REFERENCES cosmonavt.player (id),
+    FOREIGN KEY (game_id) REFERENCES cosmonavt.game (id)
 ) CHARACTER SET utf8mb4
   ENGINE = InnoDB;
 
@@ -82,7 +82,7 @@ CREATE TABLE cosmonavt.death (
     player_game_id INT             NOT NULL,
     time           TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     cause          VARCHAR(255)    NOT NULL,
-    CONSTRAINT FOREIGN KEY (player_game_id) REFERENCES cosmonavt.player_game (id)
+    FOREIGN KEY (player_game_id) REFERENCES cosmonavt.player_game (id)
 ) CHARACTER SET utf8mb4
   ENGINE = InnoDB;
 
@@ -92,7 +92,7 @@ CREATE TABLE cosmonavt.flood_game (
     player_game_id INT             NOT NULL,
     biomass        INT DEFAULT 0,
     infected       INT DEFAULT 0,
-    CONSTRAINT FOREIGN KEY (player_game_id) REFERENCES cosmonavt.player_game (id)
+    FOREIGN KEY (player_game_id) REFERENCES cosmonavt.player_game (id)
 ) CHARACTER SET utf8mb4
   ENGINE = InnoDB;
 
@@ -101,7 +101,7 @@ CREATE TABLE cosmonavt.flood_clones (
     id       INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
     flood_id INT             NOT NULL,
     health   SMALLINT        NOT NULL DEFAULT 100,
-    CONSTRAINT FOREIGN KEY (flood_id) REFERENCES cosmonavt.flood_game (id)
+    FOREIGN KEY (flood_id) REFERENCES cosmonavt.flood_game (id)
 ) CHARACTER SET utf8mb4
   ENGINE = InnoDB;
 
@@ -120,7 +120,7 @@ CREATE TABLE cosmonavt.loot (
     id      INT       NOT NULL PRIMARY KEY AUTO_INCREMENT,
     item_id INT       NOT NULL,
     type    ENUM ('') NOT NULL, -- TODO: update based on game necessities
-    CONSTRAINT FOREIGN KEY (item_id) REFERENCES cosmonavt.item (id)
+    FOREIGN KEY (item_id) REFERENCES cosmonavt.item (id)
 ) CHARACTER SET utf8mb4
   ENGINE = InnoDB;
 
@@ -130,7 +130,7 @@ CREATE TABLE cosmonavt.weapon (
     loot_id  INT      NOT NULL,
     damage   SMALLINT NOT NULL,
     cooldown SMALLINT NOT NULL,
-    CONSTRAINT FOREIGN KEY (loot_id) REFERENCES cosmonavt.loot (id)
+    FOREIGN KEY (loot_id) REFERENCES cosmonavt.loot (id)
 ) CHARACTER SET utf8mb4
   ENGINE = InnoDB;
 
@@ -141,8 +141,8 @@ CREATE TABLE cosmonavt.human_game (
     weapon_1             INT      NOT NULL,
     weapon_2             INT      NOT NULL,
     generators_activated SMALLINT NOT NULL,
-    CONSTRAINT FOREIGN KEY (weapon_1) REFERENCES cosmonavt.weapon (id),
-    CONSTRAINT FOREIGN KEY (weapon_2) REFERENCES cosmonavt.weapon (id)
+    FOREIGN KEY (weapon_1) REFERENCES cosmonavt.weapon (id),
+    FOREIGN KEY (weapon_2) REFERENCES cosmonavt.weapon (id)
 ) CHARACTER SET utf8mb4
   ENGINE = InnoDB;
 
@@ -151,7 +151,7 @@ CREATE TABLE cosmonavt.fragment (
     id      INT          NOT NULL PRIMARY KEY AUTO_INCREMENT,
     player_game_id INT NOT NULL,
     found_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT FOREIGN KEY (player_game_id) REFERENCES cosmonavt.player_game (id)
+    FOREIGN KEY (player_game_id) REFERENCES cosmonavt.player_game (id)
 ) CHARACTER SET utf8mb4
   ENGINE = InnoDB;
 
@@ -162,8 +162,8 @@ CREATE TABLE cosmonavt.game_loot (
     game_id    INT       NOT NULL,
     type       ENUM ('') NOT NULL, -- TODO: update based on game necessities
     found_time TIMESTAMP,
-    CONSTRAINT FOREIGN KEY (loot_id) REFERENCES cosmonavt.loot (id),
-    CONSTRAINT FOREIGN KEY (game_id) REFERENCES cosmonavt.game (id)
+    FOREIGN KEY (loot_id) REFERENCES cosmonavt.loot (id),
+    FOREIGN KEY (game_id) REFERENCES cosmonavt.game (id)
 ) CHARACTER SET utf8mb4
   ENGINE = InnoDB;
 
@@ -181,7 +181,7 @@ CREATE TABLE cosmonavt.chunk (
     data       TEXT     NOT NULL,
     chunk_x    SMALLINT NOT NULL,
     chunk_y    SMALLINT NOT NULL,
-    CONSTRAINT FOREIGN KEY (dungeon_id) REFERENCES cosmonavt.dungeon (id)
+    FOREIGN KEY (dungeon_id) REFERENCES cosmonavt.dungeon (id)
 ) CHARACTER SET utf8mb4
   ENGINE = InnoDB;
 
@@ -194,8 +194,8 @@ CREATE TABLE cosmonavt.game_dungeon (
     dungeon_id INT NOT NULL,
     offset_x   INT NOT NULL,
     offset_y   INT NOT NULL,
-    CONSTRAINT FOREIGN KEY (game_id) REFERENCES cosmonavt.game (id),
-    CONSTRAINT FOREIGN KEY (dungeon_id) REFERENCES cosmonavt.dungeon (id)
+    FOREIGN KEY (game_id) REFERENCES cosmonavt.game (id),
+    FOREIGN KEY (dungeon_id) REFERENCES cosmonavt.dungeon (id)
 ) CHARACTER SET utf8mb4
   ENGINE = InnoDB;
 
