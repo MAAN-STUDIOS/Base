@@ -1,6 +1,7 @@
 import { navigate } from "@utils/router.js";
 import styles from "@screens/styles/dashboard.module.css";
 import * as d3 from 'd3';
+import { redirectIfNotLoggedIn } from "@utils/redirects.js";
 
 
 /**
@@ -18,6 +19,8 @@ import * as d3 from 'd3';
  * @returns {[function,string]}
  */
 export default function () {
+    redirectIfNotLoggedIn();
+
     const getDim = (viewBox) => {
         const viewBoxComponents = viewBox.split(" ").map(Number);
         return [viewBoxComponents[2], viewBoxComponents[3]]

@@ -1,13 +1,12 @@
 import { navigate } from "@utils/router.js";
 import styles from "./styles/main.module.css";
-import { authenticate, verifyToken } from "@utils/apimanager.js";
+import { authenticate } from "@utils/apimanager.js";
 import logger from "@utils/logger.js";
+import { redirectIfLoggedIn } from "@utils/redirects.js";
 
 
 export default function () {
-  verifyToken(localStorage.getItem("authToken")).then(valid => {
-    if (valid) navigate("menu");
-  });
+  redirectIfLoggedIn();
 
   const listener = () => {
     const loginForm = document.getElementById("login-form");

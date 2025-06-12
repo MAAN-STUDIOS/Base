@@ -171,10 +171,12 @@ export class Game {
                 })
             };
 
-            const status = sockets.joinRoom(socket_id, this.game_id);
+            const status = sockets.joinGame(player.id, socket_id, this.game_id);
 
             if (!status.success) {
                 logger.error(`Failed to join player ${player.id} with socker_id: ${player.socket_id} to a room: ${status.reason}`);
+            } else {
+                logger.debug(`Successfully joined player ${player.id} to game ${this.game_id}`);
             }
 
             this.players.set(player_id, player);
@@ -359,7 +361,7 @@ export class Game {
                 } catch (error) {
                     logger.error(`Error in event callback for ${event_type}:`, error);
                 }
-            } 
+            }
         }
     }
 
@@ -384,6 +386,12 @@ export class Game {
         }
 
         try {
+            /**
+             * @NOTE: Its necessary to remove travelling \r or \n
+             * cause of the way they were insert in db,
+             *
+             * @WARING: Don't remove 10, radix is not the default always!!
+             */
             return {
                 data: chunk_data[0].data.split(",").map(t => parseInt(t.toString().replace(/\\n|\\r/g, ""), 10))
             };

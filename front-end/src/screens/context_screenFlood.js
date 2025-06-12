@@ -2,8 +2,11 @@ import { navigate } from "@utils/router.js";
 import styles from "./styles/context_screenFlood.module.css";
 
 import astronauta from "@assets/Flood/astronauta_sinfondo.png";
+import { redirectIfNotLoggedIn } from "@utils/redirects.js";
 
 export default function () {
+    redirectIfNotLoggedIn();
+
     const listener = () => {
         const starsContainer = document.getElementById('stars');
         const numStars = 150;

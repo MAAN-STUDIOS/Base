@@ -4,6 +4,7 @@ import { Vector } from "@utils/vector.js";
 
 export class Projectile extends GameObject {
   constructor({
+      id,
     position,
     direction,
     speed,
@@ -21,6 +22,7 @@ export class Projectile extends GameObject {
     this.type = type;
     this.alive = true;
     this.owner = owner;
+    this.id = id;
 
     this.hitbox = new Hitbox(this);
   }
@@ -40,11 +42,23 @@ export class Projectile extends GameObject {
     }
   }
 
-  draw(ctx) {
-    const screenX =
-      this.position.x - this.owner.real_position.x + ctx.canvas.width / 2;
-    const screenY =
-      this.position.y - this.owner.real_position.y + ctx.canvas.height / 2;
+  draw(ctx, p) {
+    let screenX;
+    let screenY;
+
+    const isNotLocalShoot = !this.owner.amazing;
+    if (isNotLocalShoot) {
+      screenX =
+          this.position.x - this.owner.real_position.x - (p.x - this.owner.real_position.x) + ctx.canvas.width / 2;
+      screenY =
+          this.position.y - this.owner.real_position.y - (p.y - this.owner.real_position.y) + ctx.canvas.height / 2;
+    } else {
+      screenX =
+          this.position.x - this.owner.real_position.x + ctx.canvas.width / 2;
+      screenY =
+          this.position.y - this.owner.real_position.y + ctx.canvas.height / 2;
+
+    }
 
     if (this.type === "flame") {
       const radius = 8 + Math.random() * 4;
@@ -59,17 +73,17 @@ export class Projectile extends GameObject {
     } else {
       if (!this.alive || !this.owner) return;
 
-      const screenCenter = new Vector(
-        ctx.canvas.width / 2,
-        ctx.canvas.height / 2
-      );
-      const cameraOffset = new Vector(
-        this.position.x - this.owner.real_position.x,
-        this.position.y - this.owner.real_position.y
-      );
+      // const screenCenter = new Vector(
+      //   ctx.canvas.width / 2,
+      //   ctx.canvas.height / 2
+      // );
+      // const cameraOffset = new Vector(
+      //   this.position.x - this.owner.real_position.x,
+      //   this.position.y - this.owner.real_position.y
+      // );
 
-      const drawX = screenCenter.x + cameraOffset.x - this.width / 2;
-      const drawY = screenCenter.y + cameraOffset.y - this.height / 2;
+      const drawX = screenX - this.width / 2;
+      const drawY = screenY - this.height / 2;
 
       ctx.fillStyle = this.color;
       ctx.fillRect(drawX, drawY, this.width, this.height);
@@ -78,9 +92,11 @@ export class Projectile extends GameObject {
 
   /**
    *
-   * @param {Enemy} target
+   * @param {Enemy|Player} target
    */
   onImpact(target) {
+   if (this.owner === target) return;
+
     target.takeDamage?.(this.damage);
     this.alive = false;
   }

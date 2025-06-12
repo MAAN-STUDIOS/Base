@@ -434,6 +434,7 @@ export class HumanPlayer extends Player {
         const coord_x = Math.floor(this.real_position.x).toLocaleString('en-US', { maximumFractionDigits: 0 });
         const coord_y = Math.floor(this.real_position.y).toLocaleString('en-US', { maximumFractionDigits: 0 });
 
+
         ctx.save();
         ctx.globalAlpha = 0.7;
         ctx.fillStyle = "#111";

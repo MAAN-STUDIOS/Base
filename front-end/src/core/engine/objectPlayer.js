@@ -50,6 +50,8 @@ export class Player extends GameObject {
         this.isDead = false;
         this.spriteImage = options.spriteImage;
 
+        this.amazing = true;
+
         this.color = options.color || "#ffffff";
 
         /**

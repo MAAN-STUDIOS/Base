@@ -1,4 +1,5 @@
 import get_logger from "../utils/logger.js";
+import { io } from "./index.js";
 
 
 const logger = get_logger('SOCKET-PLAYER', {
@@ -20,21 +21,6 @@ const ENEMY_LEAVES = "EnemyLeaves";
 const connectedPlayers = new Map();
 const enemies = new Map();
 export default (io, socket) => {
-    // Feature: preparing for multi game handling
-    //
-    // socket.on("JoinGame", (gameID) => {
-    //     socket.join(gameID);
-    //     logger.debug(`${socket.id} joined game ${gameID}`);
-    // });
-    //
-    // socket.on("MovePlayer", ({ gameID, data }) => {
-    //     logger.debug({ socket: socket.id, data });
-    //     io.to(gameID).emit("MovePlayer", {
-    //         data
-    //     });
-    //     socket.broadcast.emit("MovePlayer", data);
-    // });
-
     /**
      * Handler for MovePlayer/MoveNPC events.
      * Broadcasts movement data to all other connected clients (Preliminar simplify handler).
@@ -52,6 +38,7 @@ export default (io, socket) => {
     function handleMove(data) {
         logger.debug({ socket: socket.id, data });
         socket.broadcast.emit(PLAYER_MOVE, data);
+        // io.to(3).emit(PLAYER_MOVE, data);
     }
 
     /**

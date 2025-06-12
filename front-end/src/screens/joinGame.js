@@ -1,6 +1,6 @@
 import { navigate } from "@utils/router.js";
 import styles from "@screens/styles/main.module.css";
-import { create_game, game_info, active_games, verifyToken } from "../core/utils/apimanager.js";
+import { create_game, game_info, active_games, verifyToken } from "@utils/apimanager.js";
 import copy from "@assets/copy.svg";
 
 
@@ -115,8 +115,9 @@ export default function () {
             localStorage.setItem('userEmail', null);
             localStorage.setItem('username', null);
             localStorage.setItem('userID', null);
+            localStorage.setItem('socketID', null);
             navigate("menu");
-            alert("Successfully loged out");
+            alert("Successfully logged out");
         })
     };
 
@@ -212,7 +213,7 @@ export default function () {
                     } else if (data.current_players >= data.max_players) {
                         showError("Game is full");
                         return;
-                    } else if (data.status == "ended") {
+                    } else if (data.status === "ended") {
                         showError("Game has already ended");
                         return;
                     }

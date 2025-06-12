@@ -14,7 +14,9 @@ import { Flamethrower } from "@engine/flamethrower.js";
 import { Enemy } from "@engine/enemy.js";
 import socket, { emitEvent, subscribeToEvent } from "@utils/networkmanager.js";
 import { OtherPlayer } from "@engine/otherPlayer.js";
-import { OtherEnemy } from "@engine/otherEnemy.js";
+import { OtherEnemy, STATES } from "@engine/otherEnemy.js";
+import { OtherClone } from "@engine/otherClone.js";
+import * as constants from "node:constants";
 import eventBus from "@utils/eventbus.js";
 import { reportBossDeath } from "@utils/apimanager";
 
@@ -54,7 +56,9 @@ export class Engine {
          *     position: Vector,
          *     obj: Player,
          *     walkSpeed,
-         *     runSpeed
+         *     runSpeed,
+         *     type,
+         *     id
          * }}
          */
         this._player = {};
@@ -84,9 +88,12 @@ export class Engine {
         );
         this._player.walkSpeed = options.player.walkSpeed || 70;
         this._player.runSpeed = options.player.runSpeed || this._player.walkSpeed + 30;
+        this._player.type = (options.player.type || "human");
         this.spawnPoint = options.player.spawnPoint || Vector.zero();
 
-        this._player.obj = this.#initPlayer(this._player.position, (options.player.type || "human"));
+        this._player.id = localStorage.getItem("userID");
+
+        this._player.obj = this.#initPlayer(this._player.position);
         this._player.functionalities = {};
 
         this._world.map.width = options.map.width || window.innerWidth;
@@ -180,18 +187,7 @@ export class Engine {
 
         this.containers = [];
 
-
-        this.socket_events = {
-            PLAYER_MOVE: "PlayerMove",
-            PLAYER_JOIN: "PlayerJoin",
-            PLAYER_LEAVE: "PlayerLeave",
-            ENEMY_MOVES: "EnemyMoves",
-            ENEMY_JOIN: "EnemyJoin",
-            ENEMY_LEAVES: "EnemyLeaves"
-        };
-
         this.others = new Map();
-        this.otherEnemies = new Map();
         this.enemyIdCounter = 0;
         eventBus.on("spawnBoss", (data) => {
             const bossConfigs = {
@@ -333,80 +329,243 @@ export class Engine {
     }
 
     initSockets() {
-        subscribeToEvent(this.socket_events.PLAYER_JOIN, (data) => {
-            this.others.set(data.id, new OtherPlayer(new Vector(data.x, data.y), this.getColor()));
-        });
-
-        subscribeToEvent(this.socket_events.PLAYER_LEAVE, (data) => {
-            this.others.delete(data.id);
-        });
-
-        subscribeToEvent(this.socket_events.PLAYER_MOVE, (data) => {
-            if (this.others.has(data.id)) {
-                this.others.get(data.id).target.x = data.x;
-                this.others.get(data.id).target.y = data.y;
-            }
-        });
-
         socket.on("connect", () => {
-            const data = {
-                id: socket.id,
-                x: this.player.real_position.x,
-                y: this.player.real_position.y
-            };
-
-            emitEvent(this.socket_events.PLAYER_JOIN, data);
+            socket.emit('join', {
+                id: this._player.id,
+                x: this._player.obj.real_position.x,
+                y: this._player.obj.real_position.y,
+                type: this._player.type,
+                kind: "player",
+                enemies: this.enemies,
+            });
         });
 
+        socket.on("update", (data) => {
+            if (!data || data.id === this._player.id || !this.others.has(data.id)) return;
 
-        subscribeToEvent(this.socket_events.ENEMY_JOIN, (data) => {
-            if (data.id.startsWith(socket.id)) return;
-            this.otherEnemies.set(data.id, new OtherEnemy(
-                new Vector(data.x, data.y),
-                data.state,
-                data.type
-            ));
-        });
+            const other = this.others.get(data.id);
 
-        subscribeToEvent(this.socket_events.ENEMY_LEAVES, (data) => {
-            this.otherEnemies.delete(data.id);
-        });
+            if (!other || !other.player || !other.player.target || !other.player.moveDirection) {
+                logger.warn("Null or undefined detected in 'other' or its properties.");
+                return;
+            }
 
-        subscribeToEvent(this.socket_events.ENEMY_MOVES, (data) => {
-            if (this.otherEnemies.has(data.id)) {
-                const enemy = this.otherEnemies.get(data.id);
-                enemy.target.x = data.x;
-                enemy.target.y = data.y;
-                enemy.state = data.state;
+            other.player.target.update(data.x, data.y);
+            other.player.health = data.health;
+            other.player.moveDirection.update(data.mx, data.my);
+
+            if (data.enemies && Array.isArray(data.enemies)) {
+                for (const enemyData of data.enemies) {
+                    if (!enemyData) {
+                        logger.warn("Null or undefined detected in 'enemyData'.");
+                        continue;
+                    }
+
+                    if (other.enemies.has(enemyData.id)) {
+                        const enemy = other.enemies.get(enemyData.id);
+                        if (!enemy || !enemy.target) {
+                            logger.warn("Null or undefined detected in 'enemy' or its properties.");
+                            continue;
+                        }
+                        enemy.target.update(enemyData.x, enemyData.y);
+                        enemy.state = enemyData.state;
+                        enemy.health = enemyData.health;
+                    } else {
+                        other.enemies.set(
+                            enemyData.id,
+                            new OtherEnemy(
+                                new Vector(enemyData.x, enemyData.y),
+                                enemyData.state,
+                                enemyData.type
+                            )
+                        );
+                    }
+                }
+            }
+
+            if (data.clones && Array.isArray(data.clones)) {
+                for (const cloneData of data.clones) {
+                    if (other.clones.has(cloneData.id)) {
+                        const clone = other.clones.get(cloneData.id);
+
+                        clone.target.update(cloneData.x, cloneData.y);
+                        clone.health = cloneData.health;
+                        clone.currentDirection = cloneData.d;
+                    } else {
+                        other.clones.set(
+                            cloneData.id,
+                            new OtherClone(
+                                new Vector(cloneData.x, cloneData.y),
+                                other.player
+                            )
+                        );
+                    }
+                }
             }
         });
-    }
 
-    updateOtherEnemies(dt) {
-        this.otherEnemies.forEach(enemy => enemy.update(dt));
-    }
+        socket.on('join', (data) => {
+            if (!data || String(data.id) === String(this._player.id)) return;
 
-    drawOtherEnemies(ctx) {
-        this.otherEnemies.forEach(enemy => {
-            enemy.draw(ctx, this.player.real_position, this.map.camaraWidth, this.map.camaraHeight);
+            if (!this.others.has(data.id)) {
+                this.others.set(data.id, {
+                    player: null,
+                    enemies: new Map(),
+                    clones: new Map()
+                });
+            }
+
+            const other = this.others.get(data.id);
+            switch (data.kind) {
+                case "player":
+                    other.player = new OtherPlayer(new Vector(data.x, data.y), data.type, data.id);
+                    other.player.onDamage = (health) => {
+                        // socket.emit("damage", {
+                        //     id: other.player.id,
+                        //     health: health
+                        // });
+                    }
+                    break;
+                case "enemy":
+                    other.enemies.set(
+                        data.eid,
+                        new OtherEnemy(new Vector(data.x, data.y), STATES.IDLE, data.type)
+                    )
+                    break;
+                case "projectile":
+                    ShootingSystem.fire({
+                        call: false,
+                        origin: new Vector(data.x, data.y),
+                        direction: new Vector(data.mx, data.my),
+                        weaponConfig: {
+                            speed: data.speed,
+                            damage: data.damage,
+                            range: data.range,
+                            projectileType: data.projType
+                        },
+                        owner: other.player,
+                    });
+                    break;
+                case "clone":
+                    other.clones.set(
+                        data.cid,
+                        new OtherClone(new Vector(data.x, data.y), other.player)
+                    )
+                    break;
+                default:
+                    break;
+            }
         });
+
+        socket.on('gameEntities', (data) => {
+            if (!data || !Array.isArray(data)) return;
+
+            this.others.clear();
+
+            for (const entity of data) {
+                if (!entity.id) continue;
+
+                if (!this.others.has(entity.id)) {
+                    this.others.set(entity.id, {
+                        player: null,
+                        enemies: new Map(),
+                        clones: new Map()
+                    });
+                }
+
+                const other = this.others.get(entity.id);
+
+                if (entity.kind === "player") {
+                    other.player = new OtherPlayer(new Vector(entity.x, entity.y), entity.type);
+                } else if (entity.kind === "enemy") {
+                    other.enemies.set(
+                        entity.eid,
+                        new OtherEnemy(new Vector(entity.x, entity.y), STATES.IDLE, entity.type)
+                    );
+                }
+            }
+        });
+
+        ShootingSystem.onFire = (projectile) => {
+            socket.emit('join', {
+                id: this._player.id,
+                pid: projectile.id,
+                x: projectile.position.x,
+                y: projectile.position.y,
+                mx: projectile.direction.x,
+                my: projectile.direction.y,
+                speed: projectile.speed,
+                damage: projectile.damage,
+                range: projectile.range,
+                projType: projectile.type,
+                kind: "projectile"
+            });
+        }
+
+        // socket.on("damage", (data) => {
+        //     this._player.obj.health = data.health;
+        // });
     }
 
     updateSockets(dt) {
-        emitEvent(this.socket_events.PLAYER_MOVE, {
-            id: socket.id,
-            x: this.player.real_position.x,
-            y: this.player.real_position.y
+        socket.emit("update", {
+            id: this._player.id,
+            x: this._player.obj.real_position.x,
+            y: this._player.obj.real_position.y,
+            mx: this._player.obj.moveDirection.x,
+            my: this._player.obj.moveDirection.y,
+            health: this._player.obj.health,
+            enemies: this.enemies.map(enemy => ({
+                id: enemy.id,
+                x: enemy.position.x,
+                y: enemy.position.y,
+                type: enemy.enemyType,
+                state: enemy.state,
+                health: enemy.health
+            })),
+            clones: this._player.obj.clones?.map(clone => ({
+                id: clone.id,
+                x: clone.real_position.x,
+                y: clone.real_position.y,
+                health: clone.health,
+                d: clone.currentDirection
+            }))
         });
 
-        this.others.forEach(player => player.update(dt));
+        for (let [_, other] of this.others.entries()) {
+            other.player?.update(dt);
+            other.enemies?.forEach(enemy => enemy.update(dt));
+            other.clones?.forEach((clone) => clone.update(dt));
+        }
+    }
+
+    joinEnemy(enemy) {
+        socket.emit("join", {
+            id: this._player.id,
+            eid: enemy.id,
+            x: enemy.position.x,
+            y: enemy.position.y,
+            type: enemy.enemyType,
+            kind: 'enemy'
+        });
+    }
+
+    joinClone(clone) {
+        socket.emit("join", {
+            id: this._player.id,
+            cid: clone.id,
+            x: clone.position.x,
+            y: clone.position.y,
+            kind: 'clone'
+        })
     }
 
     drawOthers(ctx) {
-        this.others.forEach(player => {
-            player.draw(ctx, this.player.real_position, this.map.camaraWidth, this.map.camaraHeight);
-        });
-        this.drawOtherEnemies(ctx);
+        for (let [_, other] of this.others.entries()) {
+            other.player?.draw(ctx, this.player.real_position, this.map.camaraWidth, this.map.camaraHeight);
+            other.enemies?.forEach(enemy => enemy?.draw(ctx, this.player.real_position, this.map.camaraWidth, this.map.camaraHeight));
+            other.clones?.forEach((clone) => clone?.draw(ctx, this.player.real_position));
+        }
     }
 
     handlePlayerDeath(dt, currentTime) {
@@ -487,6 +646,7 @@ export class Engine {
     /**
      * Spawns a random enemy around the player
      * @param {ObjectMap} gameMap - The game map
+     * @param type
      */
     spawnRandomEnemy(gameMap, type = 'flood') {
         const enemyId = `${socket.id}-${this.enemyIdCounter++}`;
@@ -517,14 +677,7 @@ export class Engine {
 
         enemy.id = enemyId;
         this.enemies.push(enemy);
-
-        emitEvent(this.socket_events.ENEMY_JOIN, {
-            id: enemyId,
-            state: enemy.state,
-            type: enemy.enemyType,
-            x: enemy.position.x,
-            y: enemy.position.y,
-        });
+        this.joinEnemy(enemy);
 
         logger.debug("Random enemy spawned", {
             id: enemyId,
@@ -685,8 +838,6 @@ export class Engine {
             this._gameState.timeToRespawn = this._gameState.respawnTime - currentTime;
         }
 
-        this.updateSockets(dt);
-
         for (let update of this.onUpdates) {
             update?.(dt, currentTime);
         }
@@ -697,6 +848,8 @@ export class Engine {
 
         this._world.map.obj.update(prevPosition.clone(), dt);
         this._world.miniMap.obj.update(prevPosition.scale(this._world.sizeRatio), dt);
+
+        this.updateSockets(dt, currentTime);
     }
 
     #render() {
@@ -805,7 +958,7 @@ export class Engine {
         }
     }
 
-    #initPlayer(initialPosition, type) {
+    #initPlayer(initialPosition) {
         const configPlayer = {
             walkSpeed: this._player.walkSpeed,
             runSpeed: this._player.runSpeed,
@@ -820,7 +973,7 @@ export class Engine {
         }
         let obj;
 
-        switch (type) {
+        switch (this._player.type) {
             case "human":
                 obj = new HumanPlayer(initialPosition, configPlayer);
                 logger.debug("Human player Created");
@@ -833,6 +986,9 @@ export class Engine {
                     walkSpeed: this._player.walkSpeed,
                     runSpeed: this._player.runSpeed,
                 });
+                obj.onClone = (clone) => {
+                    this.joinClone(clone);
+                }
                 logger.debug("Flood player Created");
                 break;
             default:
@@ -901,6 +1057,19 @@ export class Engine {
                 playerHitbox.y = player.real_position.y - this._player.size / 2;
             }
         }
+
+        for (const pt of ShootingSystem.projectiles) {
+            if (playerHitbox.collidesWith(pt?.hitbox)) {
+                pt.onImpact(this.player);
+            }
+            if (this._player.obj.clones) {
+                for (const clone of this._player.obj.clones) {
+                    if (clone.hitbox.collidesWith(pt?.hitbox)) {
+                        pt.onImpact(clone);
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -944,7 +1113,19 @@ export class Engine {
             if (enemyHitbox.collidesWith(pt?.hitbox)) {
                 pt.onImpact(enemy);
             }
+
+            for (const other of this.others.values()) {
+                if (!other.clones) continue;
+
+                for (const clone of other.clones.values()) {
+                    if (clone.hitbox.collidesWith(pt?.hitbox)) {
+                        pt.alive = false;
+                        break;
+                    }
+                }
+            }
         }
+
     }
 
     /**

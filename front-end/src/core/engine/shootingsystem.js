@@ -3,11 +3,14 @@ import { Projectile } from "@engine/projectile.js";
 class ShootingSystemObj {
   constructor() {
     this.projectiles = [];
+    this.ids = 0;
+    this.onFire = () => {};
   }
 
-  fire({ origin, direction, weaponConfig, owner }) {
+  fire({ origin, direction, weaponConfig, owner, call = true }) {
     const proj = new Projectile({
-      position: origin.clone(), //del jugador
+      id: ++this.ids,
+      position: origin.clone(),
       direction: direction.clone(),
       speed: weaponConfig.speed || 700,
       damage: weaponConfig.damage || 10,
@@ -17,6 +20,7 @@ class ShootingSystemObj {
     });
 
     this.projectiles.push(proj);
+    if (call) this.onFire?.(proj);
   }
 
   updateAll(delta) {
@@ -27,9 +31,9 @@ class ShootingSystemObj {
     }
   }
 
-  drawAll(ctx) {
+  drawAll(ctx, pl) {
     for (const p of this.projectiles) {
-      p.draw(ctx);
+      p.draw(ctx, pl);
     }
   }
 }

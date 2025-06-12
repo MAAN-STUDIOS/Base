@@ -113,7 +113,6 @@ function authenticateToken(req, res, next) {
  */
 function verifyToken(token) {
     try {
-        logger.debug("Verifying token");
         return jwt.verify(token, JWT_SECRET);
     } catch (error) {
         logger.error(`Token verification failed: ${error.message}`);

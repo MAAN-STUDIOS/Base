@@ -1,6 +1,7 @@
 import { navigate } from "@utils/router.js";
 import styles from "./styles/startgame.module.css";
 import { join_game } from "@utils/apimanager.js";
+import { redirectIfNotLoggedIn } from "@utils/redirects.js";
 
 
 export default function () {
@@ -10,6 +11,8 @@ export default function () {
   };
 
   const listener = () => {
+    redirectIfNotLoggedIn();
+
     const errorMessage = document.getElementById("error-message");
     
     const showError = (message) => {
@@ -52,7 +55,7 @@ export default function () {
         return;
       }
       
-      const socketId = localStorage.getItem("socketId");
+      const socketId = localStorage.getItem("socketID");
       if (!socketId) {
         showError("Socket connection not established");
         return;

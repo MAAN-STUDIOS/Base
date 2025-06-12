@@ -13,7 +13,7 @@ const socket = io(socket_backend, {
 
 socket.on("connect", () => {
     logger.warn("Blututh dewaiz connected soccesfully: " + socket.id);
-    localStorage.setItem("socketId", socket.id);
+    localStorage.setItem("socketID", socket.id);
 });
 
 socket.on("disconnect", () => {

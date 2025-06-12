@@ -29,7 +29,15 @@ async function atDBConnection(pool, query, initializer, logger) {
     }
 }
 
+function atNoRespondSendGuard(res, logger) {
+    if (res.headersSent) return;
+
+    logger?.error("Mo respond sent")
+    res.status(500).send({ error: 'Internal server error (No respond sent)' });
+}
+
 export default {
     atObjectNullSafe,
-    atDBConnection
+    atDBConnection,
+    atNoRespondSendGuard,
 };

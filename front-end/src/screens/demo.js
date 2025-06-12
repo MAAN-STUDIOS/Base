@@ -6,6 +6,7 @@ import { get_spawn } from "@utils/apimanager.js";
 import mapsSpriteSheet from "@assets/map.png";
 import { ShootingSystem } from "@engine/shootingsystem.js";
 import minimapsSpriteSheet from "@assets/minimap.png";
+import { redirectIfNotLoggedIn } from "@utils/redirects.js";
 import logger from "@utils/logger.js";
 
 const starField = {
@@ -76,20 +77,21 @@ const starField = {
 };
 
 export default function humanScreen() {
+    redirectIfNotLoggedIn();
 
     const setup = async () => {
         try {
             const token = localStorage.getItem("authToken");
             const gameId = localStorage.getItem("gameId");
-            
+
             if (!token || !gameId) {
                 logger.error("Missing authentication token or game ID");
                 return;
             }
 
             logger.info("Fetching spawn position...");
-            const spawnData = await get_spawn(gameId, "human", token);
-            
+            let spawnData = await get_spawn(gameId, "human", token);
+
             if (!spawnData) {
                 logger.error("Failed to get spawn position");
                 spawnData = { x: 0, y: 0 };
@@ -152,7 +154,7 @@ export default function humanScreen() {
             game.handleEnemySpawning = function(currentTime, gameMap) {
                 const timeToSpawn = currentTime - this.enemyConfig.lastSpawnTime > this.enemyConfig.spawnInterval;
                 const notReachMaxEnemies = this.enemies.length < this.enemyConfig.maxEnemies;
-        
+
                 if (timeToSpawn && notReachMaxEnemies) {
                     this.spawnRandomEnemy(gameMap, 'flood');
                     this.enemyConfig.lastSpawnTime = currentTime;
@@ -176,19 +178,19 @@ export default function humanScreen() {
                 originalMapDraw.call(this, ctx);
             };
 
-            game.on("render", (ctx) => {
-                ShootingSystem.drawAll(ctx);
-            });
+        game.on("render", (ctx) => {
+            ShootingSystem.drawAll(ctx, game.player.real_position.clone());
+        });
 
             start?.addEventListener("click", () => {
                 menu.style.display = "none";
                 game.start();
             });
 
-            back?.addEventListener("click", () => {
-                game.stop();
-                navigate("play");
-            });
+        back?.addEventListener("click", () => {
+            game.stop();
+            navigate("join-game");
+        });
 
             game.start();
 
@@ -234,7 +236,7 @@ export default function humanScreen() {
             </div>
             <div class="${styles.miniMenu}">
                 <button id="btn-continue">Continue</button>
-                <button id="btn-back-to-play">Back to menu</button>
+                <button id="btn-back-to-play">Back to Choose Side</button>
             </div>
             <div class="${styles.controls}">
                 <div class="${styles.controlsTitle}">CONTROLS</div>
