@@ -22,6 +22,8 @@ import Circulo from "@assets/HUD/Circulo_sinfo.png";
 
 import SpriteSheet from "@/assets/human/astronaut.png";
 
+import Lanzallamas from "@/assets/Armas/Lanzallamas.png";
+
 /**
  * Represents a human-controlled player in the game.
  * Handles keyboard input for player movement with WASD/arrow keys and running with Shift.
@@ -94,6 +96,9 @@ export class HumanPlayer extends Player {
 
         this.img7 = new Image();
         this.img7.src = SpriteSheet;
+
+        this.img8 = new Image();
+        this.img8.src = Lanzallamas;
 
         // this.img7.onload = () => {
         // console.log("SpriteSheet loaded!");
@@ -459,7 +464,7 @@ export class HumanPlayer extends Player {
         ctx.drawImage(this.img2, 140, canvasHeight - 115, 95, 95); // Machine Gun
 
         ctx.globalAlpha = this.unlockedWeapons[4] ? 1 : 0.5;
-        ctx.drawImage(this.img4, canvasWidth - 110, canvasHeight - 110, 90, 90); // Flamethrower
+        ctx.drawImage(this.img8, canvasWidth - 130, canvasHeight - 115, 97, 97); // Flamethrower
 
         ctx.globalAlpha = 1;
 

@@ -49,7 +49,7 @@ export default function () {
         <div class="${styles.objectiveSection}">
             <h2 class="${styles.sectionTitle}">Main Objective</h2>
             <div class="${styles.objectiveText}">
-                FIND ALL THE FRAGMENTS OF THE CURE SCATTERED AROUND THE SHIP<br>
+                FIND ALL THE FRAGMENTS OF THE CURE SCATERRED AMONG THE BRAVE COSMONAUTS IN EACH ROOM, REMEMBER YOU NEED 3 FRAGMENTS TO WIN<br>
                 DESTROY ALL INTELLIGENT LIFE FORMS<br>
                 GAIN CONTROL OF THE PROMETHEUS SHIP
             </div>
@@ -104,7 +104,7 @@ export default function () {
                 <div style="color: #ffaa00; font-size: 2rem;">🍖</div>
             </div>
             <div class="${styles.itemName}">Consume Clone</div>
-            <div class="${styles.itemDescription}">Press Q to eat one of your clones, restoring 100 health. You will lose the clone and gain no biomass.</div>
+            <div class="${styles.itemDescription}">Press Q to eat one of your clones, restoring 100 health. You will lose the clone and gain no biomass but what does it matter!.</div>
         </div>
     </div>
 </div>
