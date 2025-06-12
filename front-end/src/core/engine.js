@@ -104,17 +104,17 @@ export class Engine {
             tiles_per_row: options.map.config.tiles_per_row || 4,
             tile_size: options.map.config.tile_size || 200,
             chunk_size: options.map.config.chunk_size || 16,
-            n_loaded_chunks: options.map.config.n_loaded_chunks || 3,
+            n_loaded_chunks: options.map.config.n_loaded_chunks || 2,
             debug: options.map.config.debug || false,
             debug_info: options.map.config.debug_info || false,
-            solidTilesID: [1, 2, 3, 4]
+            solidTilesID: [1, 2]
         };
 
         const configMiniMap = {
             tiles_per_row: options.miniMap.config.tiles_per_row || 1,
             tile_size: options.miniMap.config.tile_size || 6,
             chunk_size: options.miniMap.config.chunk_size || 16,
-            n_loaded_chunks: options.miniMap.config.n_loaded_chunks || 5,
+            n_loaded_chunks: options.miniMap.config.n_loaded_chunks || 2,
             debug: options.miniMap.config.debug || false,
             debug_info: options.miniMap.config.debug_info || false
         };
@@ -161,7 +161,7 @@ export class Engine {
 
         this.enemyConfig = {
             spawnRadius: 500,
-            maxEnemies: 20,
+            maxEnemies: 15,
             spawnInterval: 3000,
             lastSpawnTime: 0,
             enemySettings: {
@@ -195,25 +195,28 @@ export class Engine {
         eventBus.on("spawnBoss", (data) => {
             const bossConfigs = {
                 boss: {
-                    damage: 49,
-                    speed: 5,
+                    category: "boss",
+                    damage: 80,
+                    speed: 15,
                     chaseRadius: 800,
-                    health: 2000,
-                    size: 200
+                    health: 2300,
+                    size: 150
                 },
                 miniboss: {
-                    damage: 45,
+                    category: "miniboss",
+                    damage: 60,
                     speed: 12,
                     chaseRadius: 800,
-                    health: 1200,
+                    health: 500,
                     size: 120
                 },
-                elite: {
-                    damage: 35,
-                    speed: 15,
-                    chaseRadius: 600,
-                    health: 800,
-                    size: 100
+                category: {
+                    EnemyCategory: "elite",
+                    damage: 50,
+                    speed: 33,
+                    chaseRadius: 1200,
+                    health: 250,
+                    size: 75
                 }
             };
 
@@ -228,7 +231,8 @@ export class Engine {
                 config.speed,
                 config.chaseRadius,
                 config.health,
-                config.size
+                config.size,
+                config.category
             );
 
             logger.info(`${data.type} spawned at (${data.x}, ${data.y}) from tile trigger`);
@@ -507,7 +511,6 @@ export class Engine {
             speed: Math.random() * 21 + 4,
             chaseRadius: Math.random() * 900 + 200,
             damage: Math.random() * 10 + 5,
-            game: this
         });
 
         enemy.id = enemyId;
@@ -527,7 +530,7 @@ export class Engine {
             totalEnemies: this.enemies.length
         });
     }
-    spawnCustomEnemy(gameMap, type = 'flood', spawnX, spawnY, damage, speed, chaseRadius, health, size) {
+    spawnCustomEnemy(gameMap, type = 'flood', spawnX, spawnY, damage, speed, chaseRadius, health, size, category) {
         const enemyId = `${socket.id}-${this.enemyIdCounter++}`;
         const spawnPosition = new Vector(spawnX, spawnY);
 
@@ -535,7 +538,7 @@ export class Engine {
         const homePoint = new Vector(spawnPosition.x, spawnPosition.y);
 
         const enemy = new Enemy({
-           
+
             position: spawnPosition,
             waypoints: waypoints,
             homePoint: homePoint,
@@ -545,6 +548,7 @@ export class Engine {
             type: type,
             height: size || 60,
             width: size || 60,
+            category: category || "normal",
             damage: damage || Math.random() * 40 + 10,
             health: health || Math.random() * 1000 + 2000,
             speed: speed || Math.random() * 6 + 4,
@@ -602,9 +606,13 @@ export class Engine {
 
                 if (enemy.health <= 0) {
                     logger.debug("Enemy defeated", { remainingEnemies: this.enemies.length - 1 });
+                    this.player.infectHuman?.(enemy.damage);
+                    if (enemy.category = "boss") {
+                        eventBus.emit("bossDefeated", { token: localStorage.getItem("authToken")});
+                    }
                     this.enemies.splice(i, 1);
 
-                    this.player.infectHuman?.();
+
                     logger.debug(`Player gained biomass! Total: ${this.player.biomass}`);
                 } else {
                     emitEvent(this.socket_events.ENEMY_MOVES, {

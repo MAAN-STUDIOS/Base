@@ -320,7 +320,15 @@ export class FloodClone extends GameObject {
 
 
     takeDamage(amount) {
+        if (!this._lastDamageTime) {
+            this._lastDamageTime = 0;
+        }
+        const now = performance.now();
+        if (now - this._lastDamageTime < 500) {
+            return; 
+        }
         this.health -= amount;
+
         if (this.health <= 0) {
             this.health = 0;
             this.die();

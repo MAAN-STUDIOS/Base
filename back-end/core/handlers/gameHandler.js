@@ -12,7 +12,7 @@ class GameHandler {
          * @type {Map<number, Game>}
          */
         this.active_games = new Map(); // game_id -> Game instance
-        this.player_to_game = new Map(); // socket_id -> game_id
+        this.player_to_game = new Map(); // player_id -> game_id
         this.game_id_counter = 1;
 
         setInterval(() => {
@@ -128,17 +128,20 @@ class GameHandler {
             if (!game) {
                 return { success: false, error: "Game not found" };
             }
-            if (this.player_to_game.has(socket_id)) {
-                const current_game_id = this.player_to_game.get(socket_id);
+            
+            const { player_id } = player_data;
+            
+            if (this.player_to_game.has(player_id)) {
+                const current_game_id = this.player_to_game.get(player_id);
                 if (current_game_id !== game_id) {
-                    await this.leave_game(socket_id);
+                    await this.leave_game(player_id);
                 }
             }
 
             const result = await game.add_player(socket_id, player_data);
 
             if (result.success) {
-                this.player_to_game.set(socket_id, game_id);
+                this.player_to_game.set(player_id, game_id);
                 logger.info(`Player ${player_data.username} joined game ${game_id}`);
 
                 return {
@@ -154,17 +157,129 @@ class GameHandler {
             return { success: false, error: error.message };
         }
     }
-
-    async leave_game(socket_id) {
+    
+    async report_boss_defeat(game_id, player_id){
         try {
-            const game_id = this.player_to_game.get(socket_id);
+            const game = this.active_games.get(game_id);
+            if (!game) {
+                return { success: false, error: "Game not found" };
+            }
+
+            if (!this.player_to_game.has(player_id)) {
+                return { success: false, error: "Player not in any game" };
+            }
+
+            const player = game.players.get(player_id);
+            if (!player) {
+                return { success: false, error: "Player not found in game" };
+            }
+
+            const result = await game.report_boss_defeat(player_id);
+
+            if (result && result.success !== undefined) {
+                return result;
+            } else {
+                return { success: true, message: "Boss defeat reported successfully" };
+            }
+        } catch (error) {
+            logger.error(`Failed to report boss defeat in game ${game_id}:`, error);
+            return { success: false, error: error.message };
+        }
+        
+    }
+    async get_dungeon_cords(dungeon_id, game_id) {
+        //console.log(`Getting dungeon coords for dungeon ${dungeon_id} in game ${game_id}`);
+        const player_id = this.player_to_game.get(game_id);
+        try { 
+            if (!game_id) {
+                return { success: false, error: "Player not in any game" };
+            }
+
+            const game = this.active_games.get(game_id);
+            if (!game) {
+                return { success: false, error: "Game not found" };
+            }
+            
+            const dungeon = await game.get_dungeon_cords(dungeon_id);
+            //console.log(`Dungeon coords for dungeon ${dungeon_id} in game ${game_id}:`, dungeon);
+            if (!dungeon) {
+                return { success: false, error: "Dungeon not found" };
+            }
+
+            return {
+                success: true,
+                coords: dungeon
+            };
+        } catch (error) {
+            logger.error(`Failed to get dungeon coords for player ${player_id} in game ${game_id}:`, error);
+            return { success: false, error: error.message };
+        }
+
+    } 
+    async report_player_death(game_id, player_id) {
+        try {
+            const game = this.active_games.get(game_id);
+            if (!game) {
+                return { success: false, error: "Game not found" };
+            }
+            if (!this.player_to_game.has(player_id)) {
+                return { success: false, error: "Player not in any game" };
+            }
+            const player = game.players.get(player_id);
+            if (!player) {
+                return { success: false, error: "Player not found in game" };
+            }
+            const result = await game.report_player_death(player_id);
+            if (result && result.success !== undefined) {
+                return result; 
+            } else {
+                return { success: true, message: "Player death reported successfully" };
+            }
+        } catch (error) {
+            logger.error(`Failed to report player death in game ${game_id}:`, error);
+            return { success: false, error: error.message };
+        }
+    }
+    async report_player_kill(game_id, player_id, target_player_id) {
+        try {
+            const game = this.active_games.get(game_id);
+            if (!game) {
+                return { success: false, error: "Game not found" };
+            }
+            if (!this.player_to_game.has(player_id)) {
+
+                return { success: false, error: "Player not in any game" };
+            }
+            const player = game.players.get(player_id);
+            if (!player) {
+                return { success: false, error: "Player not found in game" };
+            }
+            const target_player = game.players.get(target_player_id);
+            if (!target_player) {
+                return { success: false, error: "Target player not found in game" };
+            }
+            const result = await game.report_player_kill(player_id, target_player_id);
+            if (result && result.success !== undefined) {
+                return result;
+            } else {
+                return { success: true, message: "Player kill reported successfully" };
+            }
+        } catch (error) {
+            logger.error(`Failed to report player kill in game ${game_id}:`, error);
+            return { success: false, error: error.message };
+        }
+    }   
+
+    async leave_game(player_id) {
+        try {
+            const game_id = this.player_to_game.get(player_id);
             if (!game_id) {
                 return { success: false, error: "Player not in any game" };
             }
 
             const game = this.active_games.get(game_id);
             if (game) {
-                game.remove_player(socket_id);
+                game.remove_player(player_id);
 
                 // Check if game should be ended (no players left)
                 if (game.players.size === 0) {
@@ -172,7 +287,7 @@ class GameHandler {
                 }
             }
 
-            this.player_to_game.delete(socket_id);
+            this.player_to_game.delete(player_id);
             logger.info(`Player left game ${game_id}`);
 
             return { success: true };
@@ -251,6 +366,7 @@ class GameHandler {
             chunk_data: chunk.data
         };
     }
+    
     async get_spawn(game_id, player_type) {
         logger.debug(`Getting spawn for game ${game_id}, player type: ${player_type}`);
         const game = this.active_games.get(game_id);
@@ -289,52 +405,6 @@ class GameHandler {
         };
     }
 
-    async player_enter_dungeon(socket_id, dungeon_id) {
-        try {
-            const game_id = this.player_to_game.get(socket_id);
-            if (!game_id) {
-                return { success: false, error: "Player not in any game" };
-            }
-
-            const game = this.active_games.get(game_id);
-            if (!game) {
-                return { success: false, error: "Game not found" };
-            }
-
-            const success = game.player_enter_dungeon(socket_id, dungeon_id);
-            return {
-                success,
-                message: success ? `Entered dungeon ${dungeon_id}` : "Failed to enter dungeon"
-            };
-        } catch (error) {
-            logger.error("Failed to handle dungeon entry:", error);
-            return { success: false, error: error.message };
-        }
-    }
-
-    async player_exit_dungeon(socket_id) {
-        try {
-            const game_id = this.player_to_game.get(socket_id);
-            if (!game_id) {
-                return { success: false, error: "Player not in any game" };
-            }
-
-            const game = this.active_games.get(game_id);
-            if (!game) {
-                return { success: false, error: "Game not found" };
-            }
-
-            const success = game.player_exit_dungeon(socket_id);
-            return {
-                success,
-                message: success ? "Returned to overworld" : "Failed to exit dungeon"
-            };
-        } catch (error) {
-            logger.error("Failed to handle dungeon exit:", error);
-            return { success: false, error: error.message };
-        }
-    }
-
     async end_game(game_id, reason = "manually_ended") {
         try {
             const game = this.active_games.get(game_id);
@@ -344,9 +414,9 @@ class GameHandler {
 
             await game.end_game(reason);
 
-            for (const [socket_id, tracked_game_id] of this.player_to_game) {
+            for (const [player_id, tracked_game_id] of this.player_to_game) {
                 if (tracked_game_id === game_id) {
-                    this.player_to_game.delete(socket_id);
+                    this.player_to_game.delete(player_id);
                 }
             }
 
@@ -360,19 +430,19 @@ class GameHandler {
         }
     }
 
-    get_player_game(socket_id) {
-        const game_id = this.player_to_game.get(socket_id);
+    get_player_game(player_id) {
+        const game_id = this.player_to_game.get(player_id);
         if (!game_id) {
             return { success: false, error: "Player not in any game" };
         }
 
         const game = this.active_games.get(game_id);
         if (!game) {
-            this.player_to_game.delete(socket_id);
+            this.player_to_game.delete(player_id);
             return { success: false, error: "Game not found" };
         }
 
-        const player = game.players.get(socket_id);
+        const player = game.players.get(player_id);
         return {
             success: true,
             game_id,
@@ -406,9 +476,9 @@ class GameHandler {
         game.on('game_ended', (data) => {
             logger.info(`Game ${data.game_id} ended: ${data.reason}`);
 
-            for (const [socket_id, game_id] of this.player_to_game) {
+            for (const [player_id, game_id] of this.player_to_game) {
                 if (game_id === data.game_id) {
-                    this.player_to_game.delete(socket_id);
+                    this.player_to_game.delete(player_id);
                 }
             }
 
@@ -440,9 +510,9 @@ class GameHandler {
                 this.active_games.delete(game_id);
 
                 // Clean up any orphaned player references
-                for (const [socket_id, tracked_game_id] of this.player_to_game) {
+                for (const [player_id, tracked_game_id] of this.player_to_game) {
                     if (tracked_game_id === game_id) {
-                        this.player_to_game.delete(socket_id);
+                        this.player_to_game.delete(player_id);
                     }
                 }
             }

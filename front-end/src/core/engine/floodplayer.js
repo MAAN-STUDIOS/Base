@@ -106,8 +106,8 @@ export class FloodPlayer extends Player {
         logger.debug("FloodPlayer controls setup");
     }
 
-    infectHuman(human) {
-        this.biomass += 20;
+    infectHuman(amount) {
+        this.biomass += amount * 3;
         logger.debug(`Infected human! Biomass: ${this.biomass}`);
     }
 

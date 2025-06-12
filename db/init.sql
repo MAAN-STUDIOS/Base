@@ -64,6 +64,7 @@ CREATE TABLE player_game (
     kills           SMALLINT NOT NULL,
     last_position_x SMALLINT NOT NULL,
     last_position_y SMALLINT NOT NULL,
+    fragments SMALLINT NOT NULL DEFAULT 0,
     FOREIGN KEY (player_id) REFERENCES player (id),
     FOREIGN KEY (game_id) REFERENCES game (id)
 ) CHARACTER SET utf8mb4
@@ -137,9 +138,9 @@ CREATE TABLE human_game (
 
 CREATE TABLE fragment (
     id      INT          NOT NULL PRIMARY KEY AUTO_INCREMENT,
-    loot_id INT          NOT NULL,
-    data    VARCHAR(255) NOT NULL,
-    FOREIGN KEY (loot_id) REFERENCES loot (id)
+    player_game_id INT NOT NULL,
+    found_time TIMESTAMP DEFAULT NOW(),
+    FOREIGN KEY (player_game_id) REFERENCES player_game (id)
 ) CHARACTER SET utf8mb4
   ENGINE = InnoDB;
 
@@ -264,6 +265,7 @@ CREATE VIEW view_flood_view_game AS
 CREATE VIEW view_chunk AS
     SELECT g.id                    AS game_id,
            gd.id                   AS dungeon_id,
+           d.id                   AS dungeon_real_id,
            c.id                    AS chunk_id,
            c.chunk_x + gd.offset_x AS chunk_x,
            c.chunk_y + gd.offset_y AS chunk_y,

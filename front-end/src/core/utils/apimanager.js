@@ -418,6 +418,9 @@ async function get_spawn(game_id, player_type, jwt) {
     }
     return await response.json();
 }
+async function reportBossDeath(jwt) {
+    const response = await fetch(`${api_url}/game/${game_id}/reportBossDeath`)
+}
 
 
 

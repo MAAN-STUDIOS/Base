@@ -1,6 +1,7 @@
 import db from "../../config/db.js";
 import get_logger from "../utils/logger.js";
 import { io, sockets } from '../sockets/index.js';
+import e from "express";
 
 const logger = get_logger("GameEngine");
 
@@ -16,7 +17,7 @@ export class Game {
         this.last_update = Date.now();
 
         /**
-         * socketID
+         * player_id
          * @type {Map<string, {}>}
          */
         this.players = new Map();
@@ -115,17 +116,28 @@ export class Game {
     }
 
     async add_player(socket_id, player_data) {
+        const { player_type, username, player_id } = player_data;
+        const existing_player = this.players.get(player_id);
+        if (existing_player) {
+            existing_player.socket_id = socket_id;
+            logger.info(`Player ${username} rejoined game ${this.game_id}`);
+            const status = sockets.joinRoom(socket_id, this.game_id);
+            if (!status.success) {
+                logger.error(`Failed to rejoin player ${existing_player.id} with socket_id: ${socket_id} to a room: ${status.reason}`);
+                return { success: false, reason: status.reason };
+            }
+            return { success: true, player: existing_player };
+        }
         if (this.players.size >= this.max_players) {
             return { success: false, reason: "Game is full" };
         }
 
-        const { player_type, username, player_id } = player_data;
 
         try {
             const player_result = await db.query(
                 "INSERT INTO player_game (player_id, game_id, health, kills, last_position_x, last_position_y) VALUES (?, ?, ?, ?, ?, ?)",
                 [player_id, this.game_id, 100, 0, 0, 0]
-            ); // TODO: make them spawn in different places
+            );
 
             const player = {
                 id: player_id,
@@ -138,17 +150,24 @@ export class Game {
                 max_health: 100,
                 is_alive: true,
                 current_map: "overworld",
+                fragments_collected: 0,
 
                 ...(player_type === "human" && {
                     oxygen: 100,
-                    weapons: [1, 2], // TODO: later
-                    generators_activated: 0
+                    weapons: [1, 2],
+                    generators_activated: 0,
+                    dungeon_1_found: true,
+                    dungeon_2_found: false,
+                    dungeon_3_found: false
                 }),
 
                 ...(player_type === "flood" && {
                     biomass: 0,
                     evolution: 1,
-                    infected: 0
+                    infected: 0,
+                    dungeon_1_found: false,
+                    dungeon_2_found: true,
+                    dungeon_3_found: false
                 })
             };
 
@@ -158,7 +177,7 @@ export class Game {
                 logger.error(`Failed to join player ${player.id} with socker_id: ${player.socket_id} to a room: ${status.reason}`);
             }
 
-            this.players.set(socket_id, player);
+            this.players.set(player_id, player);
             logger.info(`Player ${username} (${player_type}) joined game ${this.game_id}`);
 
             return { success: true, player };
@@ -167,25 +186,135 @@ export class Game {
             return { success: false, reason: err };
         }
     }
+    async report_player_death(player_id) {
+        const player = this.players.get(player_id);
 
-    remove_player(socket_id) {
-        const player = this.players.get(socket_id);
+        if (!player) {
+            return error(`Player with ID ${player_id} not found in game ${this.game_id}`);
+        }
+        try {
+            await db.query(
+                "UPDATE player_game SET health = ?, last_position_x = ?, last_position_y = ? WHERE id = ?",
+                [100, 0, 0, player.player_game_id]
+            );
+            player.health = 100;
+            player.position = { x: 0, y: 0 };
+            player.is_alive = false;
+            this.stats.total_deaths += 1;
+
+            this.#emit_event("player_died", { player, game_id: this.game_id });
+            logger.info(`Player ${player.username} died in game ${this.game_id}`);
+
+            return { success: true };
+        } catch (err) {
+            logger.error(`Error while reporting death for player ${player_id} in game ${this.game_id}:`, err);
+            return { success: false, reason: err.message };
+        }
+    }
+    async report_player_kill(killer_id) {
+        const killer = this.players.get(killer_id);
+        if (!killer ) {
+            return error(`Player with ID ${killer_id} not found in game ${this.game_id}`);
+        }
+        try {
+            await db.query(
+                "UPDATE player_game SET kills = kills + 1 WHERE id = ?",
+                [killer.player_game_id]
+            );
+            killer.kills += 1;
+            this.stats.total_kills += 1;
+
+            this.#emit_event("player_killed", { killer, game_id: this.game_id });
+            logger.info(`Player ${killer.username} murdered someone in game ${this.game_id}`);
+            return { success: true };
+        } catch (err) {
+            logger.error(`Error while reporting kill for player ${killer_id} in game ${this.game_id}:`, err);
+            return { success: false, reason: err.message };
+        }
+    }
+    async report_player_infected(player_id) {
+        const player = this.players.get(player_id);
+
+        if (!player) {
+            return error(`Player with ID ${player_id} not found in game ${this.game_id}`);
+        }
+        try {
+            await db.query(
+                "UPDATE player_game SET infected = infected + 1 WHERE id = ?",
+                [player.player_game_id]
+            );
+            player.infected += 1;
+
+            this.#emit_event("player_infected", { player, game_id: this.game_id });
+            logger.info(`Player ${player.username} infected in game ${this.game_id}`);
+
+            return { success: true };
+        } catch (err) {
+            logger.error(`Error while reporting infection for player ${player_id} in game ${this.game_id}:`, err);
+            return { success: false, reason: err.message };
+        }
+    }
+    async report_boss_defeat(player_id) {
+        const player = this.players.get(player_id);
+        if (!player) {
+            return error(`Player with ID ${player_id} not found in game ${this.game_id}`);
+        }
+        try {
+            await db.query(
+                "UPDATE player_game SET fragments = fragments + 1 WHERE id = ?",
+                [player.player_game_id]
+            );
+            await db.query(
+                "INSERT INTO fragment (player_game_id) VALUES (?)",
+                [player.player_game_id]
+            );
+            player.fragments_collected += 1;
+            if (player.fragments_collected >= 3) {
+                this.end_game(`${player.player_type} won`);
+            }
+
+            this.#emit_event("boss_defeated", { player, game_id: this.game_id });
+            logger.info(`Player ${player.player_game_id} defeated a boss in game ${this.game_id}`);
+            if (!player.dungeon_3_found) {
+                player.dungeon_3_found = true;
+                const coords = await this.get_dungeon_cords(3);
+                return { success: true, coords }
+            }
+            if (!player.dungeon_1_found){
+                player.dungeon_1_found = true;
+                const coords = await this.get_dungeon_cords(1);
+                return { success: true, coords }
+            }
+            if (!player.dungeon_2_found) {
+                player.dungeon_2_found = true;
+                const coords = await this.get_dungeon_cords(2);
+                return { success: true, coords }
+            }
+        } catch (err) {
+            logger.error(`Error while reporting boss defeat for player ${player_id} in game ${this.game_id}:`, err);
+            return { success: false, reason: err.message };
+        }
+
+    }
+
+    remove_player(player_id) {
+        const player = this.players.get(player_id);
         if (player) {
-            this.players.delete(socket_id);
+            this.players.delete(player_id);
 
-            io.sockets.get(socket_id).leave(this.game_id);
+            io.sockets.get(player.socket_id).leave(this.game_id);
             logger.info(`Player ${player.username} left game ${this.game_id}`);
         }
     }
 
     async end_game(reason) {
         if (this.state === "ended") return;
-
         this.state = "ended";
+        this.reason = reason || "ended";
 
         await db.query(
             "UPDATE game SET status = ?, end_time = now() WHERE id = ?",
-            [this.state, this.game_id]
+            [this.reason, this.game_id]
         );
 
         for (const [_, player] of this.players) {
@@ -230,7 +359,7 @@ export class Game {
                 } catch (error) {
                     logger.error(`Error in event callback for ${event_type}:`, error);
                 }
-            }
+            } 
         }
     }
 
@@ -247,7 +376,7 @@ export class Game {
             );
 
             if (!chunk_data || chunk_data.length === 0) {
-                return {empty: true};
+                return { empty: true };
             }
         } catch (err) {
             logger.error(`Error while getting chunk: ${err}`);
@@ -255,12 +384,6 @@ export class Game {
         }
 
         try {
-            /**
-             * @NOTE: Its necessary to remove travelling \r or \n
-             * cause of the way they were insert in db,
-             *
-             * @WARING: Don't remove 10, radix is not the default always!!
-             */
             return {
                 data: chunk_data[0].data.split(",").map(t => parseInt(t.toString().replace(/\\n|\\r/g, ""), 10))
             };
@@ -270,8 +393,30 @@ export class Game {
 
         return null;
 
-    } 
-    async get_spawn(player_type){
+    }
+    async get_dungeon_cords(dungeon_id) {
+        try {
+            logger.info(`Getting dungeon cords for dungeon ${dungeon_id} in game ${this.game_id}`);
+            const dungeon_data = await db.query(
+                `SELECT chunk_x, chunk_y
+                 FROM view_chunk WHERE game_id = ? AND dungeon_real_id = ? LIMIT 1`,
+                [this.game_id, dungeon_id]
+            );
+
+            if (dungeon_data && dungeon_data.length > 0) {
+                return {
+                    x: dungeon_data[0].chunk_x,
+                    y: dungeon_data[0].chunk_y
+                };
+            }
+            logger.warn(`No dungeon data found for dungeon ${dungeon_id} in game ${this.game_id}`);
+            return null;
+        } catch (err) {
+            logger.error(`Error while getting dungeon cords for dungeon ${dungeon_id}:`, err);
+            return null;
+        }
+    }
+    async get_spawn(player_type) {
         try {
             let spawn_data;
             if (player_type === "human") {
@@ -287,7 +432,6 @@ export class Game {
                     [this.game_id]
                 );
             }
-            //console.log(spawn_data);
             if (spawn_data && spawn_data.length > 0) {
                 return {
                     x: spawn_data[0].offset_x * 3200 + 1600,
@@ -316,29 +460,5 @@ export class Game {
             overworld_size: 7,
             dungeon_count: 3
         };
-    }
-
-    player_enter_dungeon(socket_id, dungeon_id) {
-        const player = this.players.get(socket_id);
-        if (player) {
-            player.current_map = `dungeon_${dungeon_id}`;
-            player.position = { x: 0, y: 0 };
-
-            logger.info(`Player ${player.username} entered dungeon ${dungeon_id}`);
-            return true;
-        }
-        return false;
-    }
-
-    player_exit_dungeon(socket_id) {
-        const player = this.players.get(socket_id);
-        if (player && player.current_map.startsWith("dungeon_")) {
-            player.current_map = "overworld";
-            player.position = { x: 0, y: 0 };
-
-            logger.info(`Player ${player.username} returned to overworld`);
-            return true;
-        }
-        return false;
     }
 }

@@ -171,6 +171,130 @@ export class GameController {
             });
         }
     }
+    
+    static async report_boss_defeat(req, res){
+        //logger.info('report_boss_defeat called');
+        try {
+            const game_id = parseInt(req.params.id);
+            const user = authenticateUser(req, res);
+            if (!user) return;
+
+            if (isNaN(game_id) ) {
+                return res.status(400).json({
+                    success: false,
+                    error: 'Invalid game ID'
+                });
+            }
+
+            const result = await gameHandler.report_boss_defeat(game_id, user.id);
+
+            if (result.success) {
+                logger.info(`User ${user.username} reported defeat of boss in game ${game_id}`);
+                res.status(200).json(result);
+            } else {
+                res.status(400).json(result);
+            }
+        } catch (error) {
+            logger.error('Failed to report boss defeat:', error);
+            res.status(500).json({
+                success: false,
+                error: 'Failed to report boss defeat'
+            });
+        }
+    }
+    static async get_dungeon_coordinates(req, res) {
+        try {
+
+            const user = authenticateUser(req, res);
+            if (!user) return;
+            const game_id = parseInt(req.params.id);
+            if (isNaN(game_id)) {
+                return res.status(400).json({
+                    success: false,
+                    error: 'Invalid game ID'
+                });
+            }
+
+            const dungeon_id = parseInt(req.params.dungeon_id);
+            if (isNaN(dungeon_id)) {
+                return res.status(400).json({
+                    success: false,
+                    error: 'Invalid dungeon ID'
+                });
+            }
+
+            const result = await gameHandler.get_dungeon_cords(dungeon_id , game_id);
+
+            if (result.success) {
+                res.status(200).json(result);
+            } else {
+                res.status(404).json(result);
+            }
+        } catch (error) {
+            logger.error('Failed to get dungeon coordinates:', error);
+            res.status(500).json({
+                success: false,
+                error: 'Failed to retrieve dungeon coordinates'
+            });
+        }
+    }
+
+    static async reportPlayerDeath(req, res) {
+        try {
+            const user = authenticateUser(req, res);
+            if (!user) return;
+
+            const game_id = parseInt(req.params.id);
+            if (isNaN(game_id)) {
+                return res.status(400).json({
+                    success: false,
+                    error: 'Invalid game ID'
+                });
+            }
+
+            const result = await gameHandler.report_player_death(game_id, user.id);
+
+            if (result.success) {
+                logger.info(`User ${user.username} reported their death in game ${game_id}`);
+                res.status(200).json(result);
+            } else {
+                res.status(400).json(result);
+            }
+        } catch (error) {
+            logger.error('Failed to report player death:', error);
+            res.status(500).json({
+                success: false,
+                error: 'Failed to report player death'
+            });
+        }
+    }
+    static async reportPlayerKill(req, res) {
+        try {
+            const user = authenticateUser(req, res);
+            if (!user) return;
+            const game_id = parseInt(req.params.id);
+            if (isNaN(game_id)) {
+                return res.status(400).json({
+                    success: false,
+                    error: 'Invalid game ID'
+                });
+            }
+            const result = await gameHandler.report_player_kill(game_id, user.id);
+            if (result.success) {
+                logger.info(`User ${user.username} reported a player kill in game ${game_id}`);
+                res.status(200).json(result);
+            } else {
+                res.status(400).json(result);
+            }
+        } catch (error) {
+            logger.error('Failed to report player kill:', error);
+            res.status(500).json({
+                success: false, 
+                error: 'Failed to report player kill'
+            });
+        }
+    }
+            
 
 
     static async leaveGame(req, res) {
@@ -179,16 +303,7 @@ export class GameController {
             const user = authenticateUser(req, res);
             if (!user) return;
 
-            const { socket_id } = req.body;
-
-            if (!socket_id) {
-                return res.status(400).json({
-                    success: false,
-                    error: 'Socket ID is required'
-                });
-            }
-
-            const result = await gameHandler.leave_game(socket_id);
+            const result = await gameHandler.leave_game(user.id);
 
             if (result.success) {
                 logger.info(`User ${user.username} left their game`);
@@ -398,16 +513,7 @@ export class GameController {
             const user = authenticateUser(req, res);
             if (!user) return;
 
-            const { socket_id } = req.query;
-
-            if (!socket_id) {
-                return res.status(400).json({
-                    success: false,
-                    error: 'Socket ID is required'
-                });
-            }
-
-            const result = gameHandler.get_player_game(socket_id);
+            const result = gameHandler.get_player_game(user.id);
 
             if (result.success) {
                 res.status(200).json(result);
