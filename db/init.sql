@@ -109,7 +109,7 @@ CREATE TABLE cosmonavt.flood_clones (
 CREATE TABLE cosmonavt.item (
     id          INT          NOT NULL PRIMARY KEY AUTO_INCREMENT,
     sprite_id   SMALLINT     NOT NULL,
-    type        ENUM ('')    NOT NULL, -- TODO: update based on game necessities
+    type        ENUM ('main')    NOT NULL, -- TODO: update based on game necessities
     name        VARCHAR(255) NOT NULL,
     description TEXT         NOT NULL
 ) CHARACTER SET utf8mb4
@@ -119,7 +119,7 @@ CREATE TABLE cosmonavt.item (
 CREATE TABLE cosmonavt.loot (
     id      INT       NOT NULL PRIMARY KEY AUTO_INCREMENT,
     item_id INT       NOT NULL,
-    type    ENUM ('') NOT NULL, -- TODO: update based on game necessities
+    type    ENUM ('main') NOT NULL, -- TODO: update based on game necessities
     CONSTRAINT FOREIGN KEY (item_id) REFERENCES cosmonavt.item (id)
 ) CHARACTER SET utf8mb4
   ENGINE = InnoDB;

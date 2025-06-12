@@ -23,6 +23,8 @@ import Circulo from "@assets/HUD/Circulo_sinfo.png";
 import SpriteSheet from "@/assets/human/astronaut.png";
 
 import Lanzallamas from "@/assets/Armas/Lanzallamas.png";
+import eventBus from "@utils/eventbus.js";
+
 
 /**
  * Represents a human-controlled player in the game.
@@ -136,6 +138,17 @@ export class HumanPlayer extends Player {
         };
 
         this.#setupControls();
+        eventBus.on('waypoint:add', (data) => {
+            const { x, y, name } = data;
+            this.addWaypoint(x, y, name);
+        });
+        this.waypoints = [];
+
+        this.waypointsContainer = document.createElement('div');
+        this.waypointsContainer.style.display = 'flex';
+        this.waypointsContainer.style.flexDirection = 'column';
+        this.waypointsContainer.style.gap = '3px';
+        this.waypointsContainer.style.marginTop = '5px';
         logger.debug("HumanPlayer initialized");
     }
 
@@ -453,7 +466,6 @@ export class HumanPlayer extends Player {
         const canvasWidth = ctx.canvas.width;
         const canvasHeight = ctx.canvas.height;
 
-        // Dibujar armas con indicador de desbloqueo
         ctx.globalAlpha = this.unlockedWeapons[1] ? 1 : 0.5;
         ctx.drawImage(this.img3, 262, canvasHeight - 105, 82, 82); // Pistola
 
@@ -468,7 +480,6 @@ export class HumanPlayer extends Player {
 
         ctx.globalAlpha = 1;
 
-        // Mostrar información de nivel y kills
         ctx.font = "16px monospace";
         ctx.fillStyle = "white";
         ctx.fillText(`Level: ${this.level}`, 10, 70);
@@ -589,5 +600,50 @@ export class HumanPlayer extends Player {
             this.killsNeededForNextLevel = Math.floor(this.killsNeededForNextLevel * 1.25);
             console.log(`¡Nivel ${this.level} desbloqueado!`);
         }
+    }
+
+    addWaypoint(x, y, name = null) {
+        const waypoint = {
+            x: x,
+            y: y,
+            name: name || `Waypoint ${this.waypoints.length + 1}`,
+            id: Date.now()
+        };
+        this.waypoints.push(waypoint);
+        this.updateWaypointDisplay();
+        return waypoint.id;
+    }
+
+    removeWaypoint(id) {
+        this.waypoints = this.waypoints.filter(waypoint => waypoint.id !== id);
+        this.updateWaypointDisplay();
+    }
+
+    clearWaypoints() {
+        this.waypoints = [];
+        this.updateWaypointDisplay();
+    }
+
+    updateWaypointDisplay() {
+        this.waypointsContainer.innerHTML = '';
+
+        this.waypoints.forEach(waypoint => {
+            const waypointElement = document.createElement('div');
+            waypointElement.style.color = '#ff9900';
+            waypointElement.style.fontSize = '9px';
+            waypointElement.style.textShadow = '1px 1px 2px black';
+            waypointElement.style.cursor = 'pointer';
+
+            const coord_x = Math.floor(waypoint.real_position.x).toLocaleString('en-US', { maximumFractionDigits: 0 });
+            const coord_y = Math.floor(waypoint.real_position.y).toLocaleString('en-US', { maximumFractionDigits: 0 });
+
+            waypointElement.textContent = `${waypoint.name}: X: ${coord_x}  Y: ${coord_y}`;
+
+            waypointElement.addEventListener('click', () => {
+                this.removeWaypoint(waypoint.id);
+            });
+
+            this.waypointsContainer.appendChild(waypointElement);
+        });
     }
 }
