@@ -292,13 +292,17 @@ export default class FloodHUD {
     updateWaypointDisplay() {
         this.waypointsContainer.innerHTML = '';
         
-        this.waypoints.forEach((waypoint, index) => {
+        this.waypoints.forEach(waypoint => {
             const waypointElement = document.createElement('div');
             waypointElement.style.color = '#ff9900';
             waypointElement.style.fontSize = '9px';
             waypointElement.style.textShadow = '1px 1px 2px black';
             waypointElement.style.cursor = 'pointer';
-            waypointElement.textContent = `${waypoint.name}: X: ${Math.floor(waypoint.x)}, Y: ${Math.floor(waypoint.y)}`;
+
+            const coord_x = Math.floor(waypoint.real_position.x).toLocaleString('en-US', { maximumFractionDigits: 0 });
+            const coord_y = Math.floor(waypoint.real_position.y).toLocaleString('en-US', { maximumFractionDigits: 0 });
+
+            waypointElement.textContent = `${waypoint.name}: X: ${coord_x}  Y: ${coord_y}`;
             
             waypointElement.addEventListener('click', () => {
                 this.removeWaypoint(waypoint.id);
@@ -329,7 +333,11 @@ export default class FloodHUD {
         
         this.levelValue.textContent = player.evolution;
 
-        this.coordinatesText.textContent = `X: ${Math.floor(player.real_position.x)}, Y: ${Math.floor(player.real_position.y)}`;
+
+        const coord_x = Math.floor(player.real_position.x).toLocaleString('en-US', { maximumFractionDigits: 0 });
+        const coord_y = Math.floor(player.real_position.y).toLocaleString('en-US', { maximumFractionDigits: 0 });
+
+        this.coordinatesText.textContent = `X: ${coord_x}  Y: ${coord_y}`;
         
         const cloneCosts = [25, 50];
         const now = performance.now();

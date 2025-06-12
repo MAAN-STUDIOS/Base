@@ -23,6 +23,8 @@ import Circulo from "@assets/HUD/Circulo_sinfo.png";
 import SpriteSheet from "@/assets/human/astronaut.png";
 
 import Lanzallamas from "@/assets/Armas/Lanzallamas.png";
+import eventBus from "@utils/eventbus.js";
+
 
 /**
  * Represents a human-controlled player in the game.
@@ -136,6 +138,17 @@ export class HumanPlayer extends Player {
         };
 
         this.#setupControls();
+        eventBus.on('waypoint:add', (data) => {
+            const { x, y, name } = data;
+            this.addWaypoint(x, y, name);
+        });
+        this.waypoints = [];
+
+        this.waypointsContainer = document.createElement('div');
+        this.waypointsContainer.style.display = 'flex';
+        this.waypointsContainer.style.flexDirection = 'column';
+        this.waypointsContainer.style.gap = '3px';
+        this.waypointsContainer.style.marginTop = '5px';
         logger.debug("HumanPlayer initialized");
     }
 
@@ -187,21 +200,21 @@ export class HumanPlayer extends Player {
         this.totalTime = 0;
         this.frameDuration = duration * 1000;
     }
-    
+
     updateFrame(deltaTime) {
         this.totalTime += deltaTime;
-    
+
         if (this.totalTime > this.frameDuration) {
             const restartFrame = this.repeat ? this.minFrame : this.frame;
             this.frame = this.frame < this.maxFrame ? this.frame + 1 : restartFrame;
-    
+
             this.spriteRect.x = this.frame % this.sheetCols;
             this.spriteRect.y = Math.floor(this.frame / this.sheetCols);
-    
+
             this.totalTime = 0;
         }
     }
-    
+
     setMovementAnimation() {
         if (Math.abs(this.moveDirection.y) > Math.abs(this.moveDirection.x)) {
             if (this.moveDirection.y > 0) {
@@ -290,14 +303,14 @@ export class HumanPlayer extends Player {
                 this.currentDirection = "idle";
             }
         }
-    
+
         if (this.currentDirection !== this.previousDirection) {
             const anim = playerMovement[this.currentDirection];
             this.setAnimation(...anim.frames, anim.repeat, anim.duration);
         }
-    
+
         this.previousDirection = this.currentDirection;
-    }     
+    }
 
     /**
      * Updates the player's state and position based on current key inputs.
@@ -381,9 +394,9 @@ export class HumanPlayer extends Player {
             screenCenterY - this.height / 2,
             this.width,
             this.height
-        );   
-    } 
-    
+        );
+    }
+
 
     drawHealth(ctx) {
         const healthPercentage = this.health / this.maxHealth;
@@ -412,24 +425,22 @@ export class HumanPlayer extends Player {
     drawHUD(ctx) {
         ctx.fillStyle = "white";
 
-        //Imagen HUD
-        //ctx.drawImage(this.img, 0, 0, 2304, 1728, 0, 0, ctx.canvas.width, ctx.canvas.height);
-
-        //Barra 
         ctx.drawImage(this.img5, 0, ctx.canvas.height - 135, 463, 135);
-        //Circulo
         ctx.drawImage(this.img6, ctx.canvas.width - 134, ctx.canvas.height - 111, 134, 111);
 
-        // Coordenadas 
-        const coordX = ctx.canvas.width - 210;
-        const coordY = 150;
+        const coord_x_slot = ctx.canvas.width - 210;
+        const coord_y_slot = 150;
+
+        const coord_x = Math.floor(this.real_position.x).toLocaleString('en-US', { maximumFractionDigits: 0 });
+        const coord_y = Math.floor(this.real_position.y).toLocaleString('en-US', { maximumFractionDigits: 0 });
+
         ctx.save();
         ctx.globalAlpha = 0.7;
         ctx.fillStyle = "#111";
         ctx.strokeStyle = "rgba(255,255,255,0.3)";
         ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.roundRect(coordX, coordY, 180, 36, 8);
+        ctx.roundRect(coord_x_slot, coord_y_slot, 180, 36, 8);
         ctx.fill();
         ctx.stroke();
         ctx.globalAlpha = 1;
@@ -438,8 +449,10 @@ export class HumanPlayer extends Player {
         ctx.textAlign = "right";
         ctx.shadowColor = "black";
         ctx.shadowBlur = 4;
-        ctx.fillText(`X: ${Math.floor(this.real_position.x)}, Y: ${Math.floor(this.real_position.y)}`,
-            coordX + 170, coordY + 24);
+        ctx.fillText(
+            `X: ${coord_x}  Y: ${coord_y}`,
+            coord_x_slot + 170, coord_y_slot + 24
+        );
         ctx.textAlign = "left";
         ctx.shadowBlur = 0;
         ctx.restore();
@@ -453,7 +466,6 @@ export class HumanPlayer extends Player {
         const canvasWidth = ctx.canvas.width;
         const canvasHeight = ctx.canvas.height;
 
-        // Dibujar armas con indicador de desbloqueo
         ctx.globalAlpha = this.unlockedWeapons[1] ? 1 : 0.5;
         ctx.drawImage(this.img3, 262, canvasHeight - 105, 82, 82); // Pistola
 
@@ -468,7 +480,6 @@ export class HumanPlayer extends Player {
 
         ctx.globalAlpha = 1;
 
-        // Mostrar información de nivel y kills
         ctx.font = "16px monospace";
         ctx.fillStyle = "white";
         ctx.fillText(`Level: ${this.level}`, 10, 70);
@@ -525,7 +536,7 @@ export class HumanPlayer extends Player {
             "gunMachinegun",
             "gunFlamethrower"
         ];
-    
+
         const soundToPlay = soundMap[this.activeSlot];
         if (soundToPlay) {
             if (weapon.cooldownTimer == 0) {
@@ -542,12 +553,12 @@ export class HumanPlayer extends Player {
         super.die();
         this.health = this.maxHealth;
         this.oxygen = this.maxOxygen;
-        
+
         // Reiniciar sistema de niveles
         this.level = 1;
         this.kills = 0;
         this.killsNeededForNextLevel = 5;
-        
+
         // Reiniciar armas desbloqueadas
         this.unlockedWeapons = {
             1: true,  // Pistola (nivel 1)
@@ -555,7 +566,7 @@ export class HumanPlayer extends Player {
             3: false, // Machine Gun (nivel 3)
             4: false  // Flamethrower (nivel 4)
         };
-        
+
         // Volver a la primera arma
         this.activeSlot = 0;
     }
@@ -586,8 +597,53 @@ export class HumanPlayer extends Player {
             this.level++;
             this.unlockedWeapons[this.level] = true;
             this.kills = 0;
-            this.killsNeededForNextLevel = Math.floor(this.killsNeededForNextLevel * 1.25); 
+            this.killsNeededForNextLevel = Math.floor(this.killsNeededForNextLevel * 1.25);
             console.log(`¡Nivel ${this.level} desbloqueado!`);
         }
+    }
+
+    addWaypoint(x, y, name = null) {
+        const waypoint = {
+            x: x,
+            y: y,
+            name: name || `Waypoint ${this.waypoints.length + 1}`,
+            id: Date.now()
+        };
+        this.waypoints.push(waypoint);
+        this.updateWaypointDisplay();
+        return waypoint.id;
+    }
+
+    removeWaypoint(id) {
+        this.waypoints = this.waypoints.filter(waypoint => waypoint.id !== id);
+        this.updateWaypointDisplay();
+    }
+
+    clearWaypoints() {
+        this.waypoints = [];
+        this.updateWaypointDisplay();
+    }
+
+    updateWaypointDisplay() {
+        this.waypointsContainer.innerHTML = '';
+
+        this.waypoints.forEach(waypoint => {
+            const waypointElement = document.createElement('div');
+            waypointElement.style.color = '#ff9900';
+            waypointElement.style.fontSize = '9px';
+            waypointElement.style.textShadow = '1px 1px 2px black';
+            waypointElement.style.cursor = 'pointer';
+
+            const coord_x = Math.floor(waypoint.real_position.x).toLocaleString('en-US', { maximumFractionDigits: 0 });
+            const coord_y = Math.floor(waypoint.real_position.y).toLocaleString('en-US', { maximumFractionDigits: 0 });
+
+            waypointElement.textContent = `${waypoint.name}: X: ${coord_x}  Y: ${coord_y}`;
+
+            waypointElement.addEventListener('click', () => {
+                this.removeWaypoint(waypoint.id);
+            });
+
+            this.waypointsContainer.appendChild(waypointElement);
+        });
     }
 }
