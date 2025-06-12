@@ -59,14 +59,21 @@ export default function initSockets(server) {
 
 function joinRoom(socket_id, id) {
     try {
-        io.sockets.get(socket_id).join(id);
+        const socket = io.sockets.sockets.get(socket_id);
+        if (!socket) {
+            return {
+                success: false,
+                reason: "Socket not found"
+            };
+        }
+        socket.join(id);
         return {
             success: true
         };
     } catch (err) {
         return {
             success: false,
-            reason: err.message ?? "Probably socket id not found."
+            reason: err.message ?? "Failed to join room"
         };
     }
 }

@@ -82,7 +82,7 @@ export class ObjectMap {
         this.hitboxes = [];
 
         /** @type {number[]} Array of tiles index (tiles id) that the player cannot pass through*/
-        this.solidTilesID = options.solidTilesID || [1, 2, 3, 4];
+        this.solidTilesID = options.solidTilesID || [1, 2];
 
         /** @type {number} Milliseconds between boundary checks */
         this.boundaryCheckCooldown = 1000;
@@ -346,9 +346,24 @@ export class ObjectMap {
      * @param {Array<Vector>} chunks - Array of chunk coordinates to process
      */
     #attachHitboxes(chunks) {
-        this.hitboxes = []; // NOTE: If performance critical improve.
 
-        for (let chunkPos of chunks) {
+        if (!this.processedChunks) {
+            this.processedChunks = new Set();
+            this.hitboxes = [];
+        }
+
+
+        const newChunks = chunks.filter(chunkPos => {
+            const chunkKey = `${chunkPos.x},${chunkPos.y}`;
+            if (this.processedChunks.has(chunkKey)) {
+                return false;
+            }
+            this.processedChunks.add(chunkKey);
+            return true;
+        });
+
+
+        for (let chunkPos of newChunks) {
             const chunkKey = this.#genChunKey(chunkPos.x, chunkPos.y);
             const chunkData = this.chunks_loaded.get(chunkKey);
 
@@ -356,56 +371,82 @@ export class ObjectMap {
 
             const chunkWorld = this.#chunkToWorld(chunkPos);
 
-            for (let tileY = 0; tileY < this.chunk_size; tileY++) {
-                for (let tileX = 0; tileX < this.chunk_size; tileX++) {
-                    const tileIndex = tileY * this.chunk_size + tileX;
-                    const tileId = chunkData[tileIndex];
+            this.#processTilesBatched(chunkData, chunkPos, chunkWorld);
+        }
+    }
+    #processTilesBatched(chunkData, chunkPos, chunkWorld, batchSize = 32) {
+        let tileIndex = 0;
 
-                    const tileWorldX = chunkWorld.x + tileX * this.tile_size;
-                    const tileWorldY = chunkWorld.y + tileY * this.tile_size;
+        const processBatch = () => {
+            const endIndex = Math.min(tileIndex + batchSize, this.chunk_size * this.chunk_size);
 
-                    // CHECK FOR SPECIAL TILE SPAWNS FIRST (for ALL tiles)
-                    if (tileId === this.spawnBossTiles) {
-                        this.#handleBossSpawn(tileWorldX, tileWorldY, chunkPos, tileX, tileY);
-                    }
+            for (let i = tileIndex; i < endIndex; i++) {
+                const tileX = i % this.chunk_size;
+                const tileY = Math.floor(i / this.chunk_size);
+                const tileId = chunkData[i];
 
-                    if (tileId === this.spawnOpEnemyTiles) {
-                        this.#handleOpEnemySpawn(tileWorldX, tileWorldY, chunkPos, tileX, tileY);
-                    }
+                const tileWorldX = chunkWorld.x + tileX * this.tile_size;
+                const tileWorldY = chunkWorld.y + tileY * this.tile_size;
 
-                    if (tileId === this.spawnMiniBossTiles) {
-                        this.#handleMiniBossSpawn(tileWorldX, tileWorldY, chunkPos, tileX, tileY);
-                    }
 
-                    if (tileId === this.spawnContainerTiles) {
-                        this.#handleContainerSpawn(tileWorldX, tileWorldY, chunkPos, tileX, tileY);
-                    }
+                this.#handleSpecialTileSpawns(tileId, tileWorldX, tileWorldY, chunkPos, tileX, tileY);
 
-                    // NOW check for solid tiles and create hitboxes (AFTER spawn checks)
-                    if (!this.solidTilesID.includes(tileId)) continue;
 
-                    // NOTE: If scale change, apply scale to hbs to match visual size.
-                    const tileWrapper = {
-                        position: new Vector(tileWorldX, tileWorldY),
-                        width: this.tile_size,
-                        height: this.tile_size
-                    };
-
-                    const hb = new Hitbox(tileWrapper, {
-                        isPhysical: true
-                    });
-
-                    // NOTE: Debugging info
-                    hb.tileId = tileId;
-                    hb.chunkCoords = chunkPos;
-
-                    this.hitboxes.push(hb);
+                if (this.solidTilesID.includes(tileId)) {
+                    this.#createTileHitbox(tileWorldX, tileWorldY, chunkPos, tileId);
                 }
             }
-        }
 
-        // logger.debug(`Created ${this.hitboxes.length} collision hitboxes`);
+            tileIndex = endIndex;
+
+            if (tileIndex < this.chunk_size * this.chunk_size) {
+                requestAnimationFrame(processBatch);
+            }
+        };
+
+        processBatch();
     }
+    #handleSpecialTileSpawns(tileId, worldX, worldY, chunkPos, tileX, tileY) {
+
+        const tileKey = `${chunkPos.x}_${chunkPos.y}_${tileX}_${tileY}`;
+
+
+        if (this.spawnedBossTiles.has(tileKey)) {
+            return;
+        }
+        switch (tileId) {
+            case this.spawnBossTiles:
+                this.#handleBossSpawn(worldX, worldY, chunkPos, tileX, tileY);
+                break;
+            case this.spawnOpEnemyTiles:
+                this.#handleOpEnemySpawn(worldX, worldY, chunkPos, tileX, tileY);
+                break;
+            case this.spawnMiniBossTiles:
+                this.#handleMiniBossSpawn(worldX, worldY, chunkPos, tileX, tileY);
+                break;
+            case this.spawnContainerTiles:
+                this.#handleContainerSpawn(worldX, worldY, chunkPos, tileX, tileY);
+                break;
+        }
+    }
+
+    #createTileHitbox(tileWorldX, tileWorldY, chunkPos, tileId) {
+        const tileWrapper = {
+            position: new Vector(tileWorldX, tileWorldY),
+            width: this.tile_size,
+            height: this.tile_size
+        };
+
+        const hb = new Hitbox(tileWrapper, {
+            isPhysical: true
+        });
+
+        hb.tileId = tileId;
+        hb.chunkCoords = chunkPos;
+
+        this.hitboxes.push(hb);
+    }
+
     #handleBossSpawn(worldX, worldY, chunkPos, tileX, tileY) {
 
         const tileKey = `${chunkPos.x}_${chunkPos.y}_${tileX}_${tileY}`;
@@ -432,7 +473,6 @@ export class ObjectMap {
             tileKey: tileKey
         });
 
-        logger.info(`Boss spawn triggered at world position (${spawnX}, ${spawnY}) from tile ID 6`);
     }
     #handleOpEnemySpawn(worldX, worldY, chunkPos, tileX, tileY) {
         const tileKey = `${chunkPos.x}_${chunkPos.y}_${tileX}_${tileY}`;
@@ -597,12 +637,16 @@ export class ObjectMap {
      */
     #drawTile(ctx, chunk, tileX, tileY, chunkWorldX, chunkWorldY) {
         const tileIndex = tileY * this.chunk_size + tileX;
-        const tileId = chunk[tileIndex];
+        let tileId = chunk[tileIndex];
 
         if (tileId === 0) return; // NOTE: Skip empty tiles (0)
-
+        if (tileId === 12 || tileId === 13 || tileId === 6) {
+            tileId = 3;
+        }
         const srcX = ((tileId - 1) % this.tiles_per_row) * this.tile_size;
         const srcY = Math.floor((tileId - 1) / this.tiles_per_row) * this.tile_size;
+
+
 
 
         const tileWorldX = chunkWorldX + tileX * this.tile_size;

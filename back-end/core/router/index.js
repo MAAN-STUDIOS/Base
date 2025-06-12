@@ -903,6 +903,17 @@ router.post('/games/:id/join', GameController.joinGame);
 
 /**
  * @swagger
+ * /games/:id/reportBossDeath
+ * 
+ * 
+ */
+router.post('/games/:id/reportBossDeath', GameController.report_boss_defeat);
+
+
+
+
+/**
+ * @swagger
  * /games/leave:
  *   post:
  *     tags:

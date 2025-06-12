@@ -113,10 +113,10 @@ export default function humanScreen() {
                     width: window.innerWidth,
                     height: window.innerHeight,
                     config: {
-                        tiles_per_row: 4,
+                        tiles_per_row: 2,
                         tile_size: 200,
                         chunk_size: 16,
-                        n_loaded_chunks: 3,
+                        n_loaded_chunks: 2,
                         debug: false,
                         debug_info: false
                     }

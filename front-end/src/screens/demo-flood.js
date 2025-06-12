@@ -195,7 +195,7 @@ export default function floodScreen() {
                       tiles_per_row: 2,
                       tile_size: 200,
                       chunk_size: 16,
-                      n_loaded_chunks: 3,
+                      n_loaded_chunks: 2,
                       debug: false,
                       debug_info: true
                   }
@@ -208,7 +208,7 @@ export default function floodScreen() {
                       tiles_per_row: 2,
                       tile_size: 6,
                       chunk_size: 16,
-                      n_loaded_chunks: 5,
+                      n_loaded_chunks: 2,
                       debug: false,
                       debug_info: false
                   }
