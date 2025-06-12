@@ -329,7 +329,11 @@ export default class FloodHUD {
         
         this.levelValue.textContent = player.evolution;
 
-        this.coordinatesText.textContent = `X: ${Math.floor(player.real_position.x)}, Y: ${Math.floor(player.real_position.y)}`;
+
+        const coord_x = Math.floor(player.real_position.x).toLocaleString('en-US', { maximumFractionDigits: 0 });
+        const coord_y = Math.floor(player.real_position.y).toLocaleString('en-US', { maximumFractionDigits: 0 });
+
+        this.coordinatesText.textContent = `X: ${coord_x}  Y: ${coord_y}`;
         
         const cloneCosts = [25, 50];
         const now = performance.now();
