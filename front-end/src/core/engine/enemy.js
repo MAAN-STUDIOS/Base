@@ -28,8 +28,10 @@ export class Enemy {
             attackRadius = 50,
             retreatHealthThreshold = 30,
             retreatDistance = 150,
+            game = null
         } = config;
 
+        this.game = game;  // Referencia al juego
         this.enemyType = config.type || 'flood'
 
         this.position = position;
@@ -366,6 +368,23 @@ export class Enemy {
 
     takeDamage(amount) {
         this.health = Math.max(0, this.health - amount);
+        if (this.health <= 0) {
+            // Notificar al jugador que mató a un enemigo
+            if (this.game && this.game.player && typeof this.game.player.addKill === 'function') {
+                this.game.player.addKill();
+            }
+            this.die();
+        }
+    }
+
+    die() {
+        // Eliminar el enemigo del juego
+        if (this.game && this.game.enemies) {
+            const index = this.game.enemies.indexOf(this);
+            if (index > -1) {
+                this.game.enemies.splice(index, 1);
+            }
+        }
     }
 
     draw(ctx) {

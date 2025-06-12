@@ -281,7 +281,7 @@ export class FloodPlayer extends Player {
         }
 
         if (nearestClone) {
-            const healthRestored = 80;
+            const healthRestored = 100;
             this.health = Math.min(this.maxHealth, this.health + healthRestored);
             nearestClone.die();
             this.consumeCooldown = now + 2000;
