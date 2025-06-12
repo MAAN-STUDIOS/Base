@@ -187,6 +187,88 @@ class GameHandler {
         }
         
     }
+    async get_dungeon_cords(dungeon_id, game_id) {
+        //console.log(`Getting dungeon coords for dungeon ${dungeon_id} in game ${game_id}`);
+        const player_id = this.player_to_game.get(game_id);
+        try { 
+            if (!game_id) {
+                return { success: false, error: "Player not in any game" };
+            }
+
+            const game = this.active_games.get(game_id);
+            if (!game) {
+                return { success: false, error: "Game not found" };
+            }
+            
+            const dungeon = await game.get_dungeon_cords(dungeon_id);
+            //console.log(`Dungeon coords for dungeon ${dungeon_id} in game ${game_id}:`, dungeon);
+            if (!dungeon) {
+                return { success: false, error: "Dungeon not found" };
+            }
+
+            return {
+                success: true,
+                coords: dungeon
+            };
+        } catch (error) {
+            logger.error(`Failed to get dungeon coords for player ${player_id} in game ${game_id}:`, error);
+            return { success: false, error: error.message };
+        }
+
+    } 
+    async report_player_death(game_id, player_id) {
+        try {
+            const game = this.active_games.get(game_id);
+            if (!game) {
+                return { success: false, error: "Game not found" };
+            }
+            if (!this.player_to_game.has(player_id)) {
+                return { success: false, error: "Player not in any game" };
+            }
+            const player = game.players.get(player_id);
+            if (!player) {
+                return { success: false, error: "Player not found in game" };
+            }
+            const result = await game.report_player_death(player_id);
+            if (result && result.success !== undefined) {
+                return result; 
+            } else {
+                return { success: true, message: "Player death reported successfully" };
+            }
+        } catch (error) {
+            logger.error(`Failed to report player death in game ${game_id}:`, error);
+            return { success: false, error: error.message };
+        }
+    }
+    async report_player_kill(game_id, player_id, target_player_id) {
+        try {
+            const game = this.active_games.get(game_id);
+            if (!game) {
+                return { success: false, error: "Game not found" };
+            }
+            if (!this.player_to_game.has(player_id)) {
+
+                return { success: false, error: "Player not in any game" };
+            }
+            const player = game.players.get(player_id);
+            if (!player) {
+                return { success: false, error: "Player not found in game" };
+            }
+            const target_player = game.players.get(target_player_id);
+            if (!target_player) {
+                return { success: false, error: "Target player not found in game" };
+            }
+            const result = await game.report_player_kill(player_id, target_player_id);
+            if (result && result.success !== undefined) {
+                return result;
+            } else {
+                return { success: true, message: "Player kill reported successfully" };
+            }
+        } catch (error) {
+            logger.error(`Failed to report player kill in game ${game_id}:`, error);
+            return { success: false, error: error.message };
+        }
+    }   
 
     async leave_game(player_id) {
         try {

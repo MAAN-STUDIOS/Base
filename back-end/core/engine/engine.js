@@ -256,8 +256,6 @@ export class Game {
     }
     async report_boss_defeat(player_id) {
         const player = this.players.get(player_id);
-
-        
         if (!player) {
             return error(`Player with ID ${player_id} not found in game ${this.game_id}`);
         }
@@ -277,7 +275,11 @@ export class Game {
 
             this.#emit_event("boss_defeated", { player, game_id: this.game_id });
             logger.info(`Player ${player.player_game_id} defeated a boss in game ${this.game_id}`);
-
+            if (!player.dungeon_3_found) {
+                player.dungeon_3_found = true;
+                const coords = await this.get_dungeon_cords(3);
+                return { success: true, coords }
+            }
             if (!player.dungeon_1_found){
                 player.dungeon_1_found = true;
                 const coords = await this.get_dungeon_cords(1);
@@ -286,11 +288,6 @@ export class Game {
             if (!player.dungeon_2_found) {
                 player.dungeon_2_found = true;
                 const coords = await this.get_dungeon_cords(2);
-                return { success: true, coords }
-            }
-            if (!player.dungeon_3_found) {
-                player.dungeon_3_found = true;
-                const coords = await this.get_dungeon_cords(3);
                 return { success: true, coords }
             }
         } catch (err) {

@@ -909,7 +909,11 @@ router.post('/games/:id/join', GameController.joinGame);
  */
 router.post('/games/:id/reportBossDeath', GameController.report_boss_defeat);
 
+router.post('/games/:id/reportPlayerDeath', GameController.reportPlayerDeath);
 
+router.post('/games/:id/reportPlayerKill', GameController.reportPlayerKill);
+
+router.get('/games/:id/get_dungeon_coords/:dungeon_id', GameController.get_dungeon_coordinates);
 
 
 /**
