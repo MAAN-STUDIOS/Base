@@ -572,13 +572,17 @@ export class HumanPlayer extends Player {
         this.activeSlot = 0;
 
         const token = localStorage.getItem("authToken");
-        fetch(`${process.env.BACKEND_URL}/games/${this.id}/reportBossDeath`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`
-            }
-        }).then();
+        try {
+            fetch(`${process.env.BACKEND_URL}/games/${this.id}/reportPlayerDeath`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                }
+            }).then();
+        } catch (e) {
+
+        }
     }
 
     takeDamage(amount) {

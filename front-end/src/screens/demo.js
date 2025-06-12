@@ -8,6 +8,8 @@ import { ShootingSystem } from "@engine/shootingsystem.js";
 import minimapsSpriteSheet from "@assets/minimap.png";
 import { redirectIfNotLoggedIn } from "@utils/redirects.js";
 import logger from "@utils/logger.js";
+import socket from "@utils/networkmanager.js";
+import { navigate } from "@utils/router.js";
 
 const starField = {
    stars: [],
@@ -80,7 +82,13 @@ export default function humanScreen() {
     redirectIfNotLoggedIn();
 
     const setup = async () => {
-
+        socket.on("win", (data) => {
+            if (data?.winner === "human") {
+                navigate("humanWin") ;
+            } else if (data?.winner === "flood") {
+                navigate("floodWin") ;
+            }
+        });
 
         const hasReloaded = localStorage.getItem("hasReloadedH");
         if (!hasReloaded) {

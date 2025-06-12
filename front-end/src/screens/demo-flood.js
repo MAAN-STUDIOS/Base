@@ -9,6 +9,8 @@ import logger from "@utils/logger.js";
 import FloodHUD from "@/components/FloodHUD.js";
 import { redirectIfNotLoggedIn } from "@utils/redirects.js";
 import { ShootingSystem } from "@engine/shootingsystem.js";
+import socket from "@utils/networkmanager.js";
+import { navigate } from "@utils/router.js";
 
 // Star field for background
 const starField = {
@@ -158,6 +160,14 @@ export default function floodScreen() {
 
 
     const setup = async () => {
+
+        socket.on("win", (data) => {
+            if (data?.winner === "human") {
+                navigate("humanWin") ;
+            } else if (data?.winner === "flood") {
+                navigate("floodWin") ;
+            }
+        });
 
         const hasReloaded = localStorage.getItem("hasReloadedF");
         if (!hasReloaded) {

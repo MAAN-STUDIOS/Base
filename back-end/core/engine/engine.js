@@ -272,6 +272,9 @@ export class Game {
             );
             player.fragments_collected += 1;
             if (player.fragments_collected >= 3) {
+                io.emit("win", {
+                    winner: player.player_type
+                })
                 this.end_game(`${player.player_type} won`);
             }
 
