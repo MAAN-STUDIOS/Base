@@ -414,6 +414,30 @@ export class HumanPlayer extends Player {
         ctx.drawImage(this.img5, 0, ctx.canvas.height - 135, 463, 135);
         //Circulo
         ctx.drawImage(this.img6, ctx.canvas.width - 134, ctx.canvas.height - 111, 134, 111);
+
+        // Coordenadas 
+        const coordX = ctx.canvas.width - 210;
+        const coordY = 150;
+        ctx.save();
+        ctx.globalAlpha = 0.7;
+        ctx.fillStyle = "#111";
+        ctx.strokeStyle = "rgba(255,255,255,0.3)";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.roundRect(coordX, coordY, 180, 36, 8);
+        ctx.fill();
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+        ctx.font = "14px monospace";
+        ctx.fillStyle = "#39FF14";
+        ctx.textAlign = "right";
+        ctx.shadowColor = "black";
+        ctx.shadowBlur = 4;
+        ctx.fillText(`X: ${Math.floor(this.real_position.x)}, Y: ${Math.floor(this.real_position.y)}`,
+            coordX + 170, coordY + 24);
+        ctx.textAlign = "left";
+        ctx.shadowBlur = 0;
+        ctx.restore();
     }
 
 
