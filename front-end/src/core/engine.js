@@ -104,7 +104,7 @@ export class Engine {
             tiles_per_row: options.map.config.tiles_per_row || 4,
             tile_size: options.map.config.tile_size || 200,
             chunk_size: options.map.config.chunk_size || 16,
-            n_loaded_chunks: options.map.config.n_loaded_chunks || 5,
+            n_loaded_chunks: options.map.config.n_loaded_chunks || 3,
             debug: options.map.config.debug || false,
             debug_info: options.map.config.debug_info || false,
             solidTilesID: [1, 2, 3, 4]
@@ -161,7 +161,7 @@ export class Engine {
 
         this.enemyConfig = {
             spawnRadius: 500,
-            maxEnemies: 50,
+            maxEnemies: 20,
             spawnInterval: 3000,
             lastSpawnTime: 0,
             enemySettings: {

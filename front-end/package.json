@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite --config vite.config.js --mode developer",
     "docker-dev": "vite --config vite.config.js --mode docker_dev --host",
-    "build": "vite build",
+    "build": "vite build --config vite.config.js",
     "preview": "vite preview"
   },
   "devDependencies": {
