@@ -21,10 +21,12 @@ export default class FloodHUD {
         this.setupCoreStats();
         this.setupCloneAbilities();
         this.setupMutationPowers();
+        this.setupCoordinates();
 
         this.hudContainer.appendChild(this.statsContainer);
         this.hudContainer.appendChild(this.cloneAbilities);
         this.hudContainer.appendChild(this.mutationPowers);
+        this.hudContainer.appendChild(this.coordinatesContainer);
 
         this.gameContainer.appendChild(this.hudContainer);
     }
@@ -224,6 +226,32 @@ export default class FloodHUD {
         this.mutationPowers.appendChild(cloneInfoContainer);
     }
 
+    setupCoordinates() {
+        this.coordinatesContainer = document.createElement('div');
+        this.coordinatesContainer.style.position = 'absolute';
+        this.coordinatesContainer.style.top = '150px';
+        this.coordinatesContainer.style.right = '30px';
+        this.coordinatesContainer.style.left = '';
+        this.coordinatesContainer.style.transform = '';
+        this.coordinatesContainer.style.display = 'flex';
+        this.coordinatesContainer.style.flexDirection = 'column';
+        this.coordinatesContainer.style.alignItems = 'flex-end';
+        this.coordinatesContainer.style.gap = '5px';
+        this.coordinatesContainer.style.background = 'rgba(0, 0, 0, 0.5)';
+        this.coordinatesContainer.style.border = '2px solid rgba(255, 255, 255, 0.3)';
+        this.coordinatesContainer.style.borderRadius = '8px';
+        this.coordinatesContainer.style.padding = '5px 10px';
+        this.coordinatesContainer.style.zIndex = '10';
+
+        this.coordinatesText = document.createElement('div');
+        this.coordinatesText.style.color = '#77ff00';
+        this.coordinatesText.style.fontSize = '10px';
+        this.coordinatesText.style.textShadow = '1px 1px 2px black';
+        this.coordinatesText.textContent = 'X: 0, Y: 0';
+
+        this.coordinatesContainer.appendChild(this.coordinatesText);
+    }
+
     update(player) {
         const maxHealth = 100 * player.evolution;
         const maxBiomass = 200;
@@ -238,6 +266,9 @@ export default class FloodHUD {
         this.biomassBar.fill.style.width = `${biomassPercent}%`;
         
         this.levelValue.textContent = player.evolution;
+
+        // Update coordinates
+        this.coordinatesText.textContent = `X: ${Math.floor(player.real_position.x)}, Y: ${Math.floor(player.real_position.y)}`;
         
         const cloneCosts = [25, 50];
         const now = performance.now();
