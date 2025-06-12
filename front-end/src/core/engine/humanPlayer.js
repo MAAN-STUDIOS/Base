@@ -386,7 +386,7 @@ export class HumanPlayer extends Player {
         ctx.fillRect(25, 5, 250 * healthPercentage, 20);
 
         ctx.fillStyle = "white";
-        ctx.fillText("Salud", 280, 20);
+        ctx.fillText("Health", 280, 20);
 
         ctx.strokeStyle = "white";
         ctx.strokeRect(25, 5, 250, 20);
@@ -398,7 +398,7 @@ export class HumanPlayer extends Player {
         ctx.fillRect(25, 30, 200 * oxygenPercentage, 20);
 
         ctx.fillStyle = "white";
-        ctx.fillText("Oxígeno", 230, 45);
+        ctx.fillText("Oxygen", 230, 45);
 
         ctx.strokeStyle = "white";
         ctx.strokeRect(25, 30, 200, 20);
