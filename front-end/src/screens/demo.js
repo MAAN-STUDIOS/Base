@@ -228,6 +228,10 @@ export default function humanScreen() {
           <div class="${styles.mapBg}"></div>
           
           <div class="${styles.menu}" id="menu">
+            <div class="${styles.objectiveBlock}" style="margin-bottom: 18px; background: rgba(0,0,0,0.7); color: #fff; border-radius: 10px; padding: 14px 18px; font-size: 1.1rem; font-weight: bold; box-shadow: 0 2px 8px #000; text-align: center; letter-spacing: 0.5px;">
+              <span class="${styles.controlsTitle}">Objective:</span><br>
+              Find the fragment. Fight the next boss.
+            </div>
             <div class="${styles.miniMenu}">
                 <button id="btn-continue">Continue</button>
                 <button id="btn-back-to-play">Back to menu</button>

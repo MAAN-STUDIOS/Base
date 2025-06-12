@@ -336,6 +336,10 @@ export default function floodScreen() {
           <div class="${styles.mapBg}"></div>
           
           <div class="${styles.menu}" id="menu">
+            <div class="${styles.objectiveBlock}" style="margin-bottom: 18px; background: rgba(0,0,0,0.7); color: #fff; border-radius: 10px; padding: 14px 18px; font-size: 1.1rem; font-weight: bold; box-shadow: 0 2px 8px #000; text-align: center; letter-spacing: 0.5px;">
+              <span class="${styles.controlsTitle}">Objective:</span><br>
+              Find the fragment. Fight the next boss.
+            </div>
             <div class="${styles.miniMenu}">
                 <button id="btn-continue">Continue</button>
                 <button id="btn-back-to-play">Back to menu</button>
@@ -347,12 +351,9 @@ export default function floodScreen() {
                 <div class=${styles.controlItem}>Clone: [C]</div>
                 <div class=${styles.controlItem}>Evolve: [E]</div>
                 <div class=${styles.controlItem}>Attack: [F]</div>
-                <div class=${styles.controlItem}>Consume (+80 Health): [Q]</div>
+                <div class=${styles.controlItem}>Consume (+100 Health): [Q]</div>
             </div> 
           </div>
-
-          
-
         </main>
    `];
 }
