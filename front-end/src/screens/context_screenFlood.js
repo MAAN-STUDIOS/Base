@@ -104,7 +104,7 @@ export default function () {
                 <div style="color: #ffaa00; font-size: 2rem;">🍖</div>
             </div>
             <div class="${styles.itemName}">Consume Clone</div>
-            <div class="${styles.itemDescription}">Press Q to eat one of your clones, restoring 80 health. You will lose the clone and gain no biomass.</div>
+            <div class="${styles.itemDescription}">Press Q to eat one of your clones, restoring 100 health. You will lose the clone and gain no biomass.</div>
         </div>
     </div>
 </div>

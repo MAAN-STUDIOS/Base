@@ -9,14 +9,14 @@ import SpriteSheet from "@/assets/Flood/Clone/clone-sprites.png";
 export class FloodClone extends GameObject {
     constructor(options = {}) {
         super(options);
-        this.health = 300;
-        this.maxHealth = 300;
+        this.health = 600;
+        this.maxHealth = 600;
         this.hitbox = new Hitbox(this);
         this.evolution = options.evolution || 1;
         this.speed = 150;
         this.target = null;
         this.visionRadius = 150;
-        this.attackRange = 50;
+        this.attackRange = 60;
         this.attackCooldown = 0;
         this.followDistance = 100;
         this.player = options.player;
@@ -24,8 +24,8 @@ export class FloodClone extends GameObject {
         this.targetWorldPosition = null;
         this.formationOffset = new Vector(0, 0);
         this.comfortZone = 40;
-        this.followSpeed = 50;
-        this.urgentFollowSpeed = 80;
+        this.followSpeed = 80;
+        this.urgentFollowSpeed = 100;
         this.urgentDistance = 10000;
         this.isDead = false;
 
@@ -263,7 +263,7 @@ export class FloodClone extends GameObject {
         if (now < this.attackCooldown) return;
 
         if (target && typeof target.takeDamage === 'function') {
-            target.takeDamage(10);
+            target.takeDamage(20);
             this.attackCooldown = now + 500;
             console.log("Clone attacked enemy", {
                 targetHealth: target.health,
