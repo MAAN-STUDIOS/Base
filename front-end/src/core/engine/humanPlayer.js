@@ -314,7 +314,7 @@ export class HumanPlayer extends Player {
     updateHealth(dt) {
         if (this.health < this.maxHealth) {
             this.healthTimer += dt;
-            if (this.healthTimer >= 3.0) {
+            if (this.healthTimer >= 5.0) {
                 this.health += 1;
                 if (this.health > this.maxHealth) this.health = this.maxHealth;
                 this.healthTimer = 0;
