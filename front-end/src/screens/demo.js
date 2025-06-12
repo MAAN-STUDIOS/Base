@@ -80,6 +80,15 @@ export default function humanScreen() {
     redirectIfNotLoggedIn();
 
     const setup = async () => {
+
+
+        const hasReloaded = localStorage.getItem("hasReloadedH");
+        if (!hasReloaded) {
+            localStorage.setItem("hasReloadedH", "true");
+            window.location.reload(true);
+            return;
+        }
+
         try {
             const token = localStorage.getItem("authToken");
             const gameId = localStorage.getItem("gameId");

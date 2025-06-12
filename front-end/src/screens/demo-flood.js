@@ -158,6 +158,14 @@ export default function floodScreen() {
 
 
     const setup = async () => {
+
+        const hasReloaded = localStorage.getItem("hasReloadedF");
+        if (!hasReloaded) {
+            localStorage.setItem("hasReloadedF", "true");
+            window.location.reload(true);
+            return;
+        }
+
         try {
             const token = localStorage.getItem("authToken");
             const gameId = localStorage.getItem("gameId");

@@ -713,19 +713,19 @@ export class Engine {
         enemy.id = enemyId;
         this.enemies.push(enemy);
 
-        emitEvent(this.socket_events.ENEMY_JOIN, {
-            id: enemyId,
-            state: enemy.state,
-            type: enemy.enemyType,
-            x: enemy.position.x,
-            y: enemy.position.y,
-        });
-
-        logger.debug("Random enemy spawned", {
-            id: enemyId,
-            position: spawnPosition,
-            totalEnemies: this.enemies.length
-        });
+        // emitEvent(this.socket_events.ENEMY_JOIN, {
+        //     id: enemyId,
+        //     state: enemy.state,
+        //     type: enemy.enemyType,
+        //     x: enemy.position.x,
+        //     y: enemy.position.y,
+        // });
+        //
+        // logger.debug("Random enemy spawned", {
+        //     id: enemyId,
+        //     position: spawnPosition,
+        //     totalEnemies: this.enemies.length
+        // });
     }
     async spawnContainers(spawnX, spawnY, type, info) {
 
@@ -755,7 +755,6 @@ export class Engine {
      * @param {number} dt - Delta time
      */
     updateEnemies(dt) {
-        this.updateOtherEnemies(dt);
         const viewportBuffer = 400;
         const viewport = {
             left: this.player.real_position.x - this._world.map.width / 2 - viewportBuffer,
@@ -805,12 +804,12 @@ export class Engine {
 
                 logger.debug(`Player gained biomass! Total: ${this.player.biomass}`);
             } else if (inViewport) {
-                emitEvent(this.socket_events.ENEMY_MOVES, {
-                    id: enemy.id,
-                    state: enemy.state,
-                    x: enemy.position.x,
-                    y: enemy.position.y,
-                });
+                // emitEvent(this.socket_events.ENEMY_MOVES, {
+                //     id: enemy.id,
+                //     state: enemy.state,
+                //     x: enemy.position.x,
+                //     y: enemy.position.y,
+                // });
             }
         }
     }
