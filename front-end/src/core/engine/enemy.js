@@ -89,46 +89,53 @@ export class Enemy {
         this.totalTime = 0;
         this.frameDuration = duration * 1000;
     }
-    
+
     updateFrame(deltaTime) {
+        if (this.game && this.game.player) {
+            const distance = this.position.distanceTo(this.game.player.real_position);
+            if (distance > 600) {
+                return;
+            }
+        }
+
         this.totalTime += deltaTime;
-    
+
         if (this.totalTime > this.frameDuration) {
             const restartFrame = this.repeat ? this.minFrame : this.frame;
             this.frame = this.frame < this.maxFrame ? this.frame + 1 : restartFrame;
-    
+
             this.spriteRect.x = this.frame % this.sheetCols;
             this.spriteRect.y = Math.floor(this.frame / this.sheetCols);
-    
+
             this.totalTime = 0;
         }
     }
 
     setMovementAnimation() {
         const stateAnimations = this.enemyType === 'flood'
-        ? {
-            [STATES.IDLE]: floodEnemy.idle,
-            [STATES.PURSUE]: floodEnemy.pursue,
-            [STATES.SEARCH]: floodEnemy.search,
-            [STATES.ATTACK]: floodEnemy.attack,
-            [STATES.RETREAT]: floodEnemy.retreat
-        }
-        : {
-            [STATES.IDLE]: humanEnemy.idle,
-            [STATES.PURSUE]: humanEnemy.pursue,
-            [STATES.SEARCH]: humanEnemy.search,
-            [STATES.ATTACK]: humanEnemy.attack,
-            [STATES.RETREAT]: humanEnemy.retreat
-        };
-        
+            ? {
+                [STATES.IDLE]: floodEnemy.idle,
+                [STATES.PURSUE]: floodEnemy.pursue,
+                [STATES.SEARCH]: floodEnemy.search,
+                [STATES.ATTACK]: floodEnemy.attack,
+                [STATES.RETREAT]: floodEnemy.retreat
+            }
+            : {
+                [STATES.IDLE]: humanEnemy.idle,
+                [STATES.PURSUE]: humanEnemy.pursue,
+                [STATES.SEARCH]: humanEnemy.search,
+                [STATES.ATTACK]: humanEnemy.attack,
+                [STATES.RETREAT]: humanEnemy.retreat
+            };
+
         const anim = stateAnimations[this.state];
-    
+
         if (this.state !== this.previousState) {
             this.setAnimation(...anim.frames, anim.repeat, anim.duration);
             this.previousState = this.state;
         }
     }
-    
+
 
     /**
      * @param dt
@@ -137,14 +144,14 @@ export class Enemy {
      */
     update(dt, player, clones = []) {
         this.prevPosition = this.position.clone();
-        
+
         const nearestTarget = this.findNearestTarget(player, clones);
         const currentTarget = nearestTarget ? nearestTarget.target : player;
         const currentTargetPos = nearestTarget ? nearestTarget.position : player.real_position;
         const distanceToTarget = nearestTarget ? nearestTarget.distance : this.position.distanceTo(player.real_position);
-        
+
         const hasLosToTarget = true; // TODO: Update with ling of sight
-        
+
         switch (this.state) {
             case STATES.IDLE:
                 this.updateIdle(dt, currentTarget, distanceToTarget, hasLosToTarget, currentTargetPos);
@@ -162,7 +169,7 @@ export class Enemy {
                 this.updateRetreat(dt, player, distanceToTarget);
                 break;
         }
-        
+
         this.stateTimer += dt;
 
         this.setMovementAnimation();
@@ -179,20 +186,20 @@ export class Enemy {
         const targets = [
             { target: player, position: player.real_position, type: 'player' }
         ];
-        
+
         clones.forEach(clone => {
             if (clone && !clone.isDead && clone.real_position) {
-                targets.push({ 
-                    target: clone, 
-                    position: clone.real_position, 
-                    type: 'clone' 
+                targets.push({
+                    target: clone,
+                    position: clone.real_position,
+                    type: 'clone'
                 });
             }
         });
-        
+
         let nearestTarget = null;
         let nearestDistance = Infinity;
-        
+
         targets.forEach(({ target, position, type }) => {
             const distance = this.position.distanceTo(position);
             if (distance <= this.chaseRadius && distance < nearestDistance) {
@@ -200,7 +207,7 @@ export class Enemy {
                 nearestDistance = distance;
             }
         });
-        
+
         return nearestTarget;
     }
 
@@ -223,14 +230,14 @@ export class Enemy {
         if (this.waypoints.length > 0) {
             const targetWaypoint = this.waypoints[this.currentWaypointIndex];
             const direction = targetWaypoint.sub(this.position);
-            
+
             if (direction.magnitude() < 5) {
                 this.currentWaypointIndex = (this.currentWaypointIndex + 1) % this.waypoints.length;
             } else {
                 this.moveTowards(direction, dt);
             }
         }
-    
+
         if (distanceToTarget <= this.chaseRadius && hasLosToTarget) {
             this.lastKnownTargetPos = currentTargetPos.clone();
             this.transitionTo(STATES.PURSUE);
@@ -242,7 +249,7 @@ export class Enemy {
     updatePursue(dt, currentTarget, distanceToTarget, hasLosToTarget, currentTargetPos) {
         if (hasLosToTarget && currentTargetPos) {
             this.lastKnownTargetPos = currentTargetPos.clone();
-    
+
             if (distanceToTarget <= this.attackRadius) {
                 this.transitionTo(STATES.ATTACK);
             } else {
@@ -253,7 +260,7 @@ export class Enemy {
             if (this.lastKnownTargetPos) {
                 const direction = this.lastKnownTargetPos.sub(this.position);
                 const distanceToLastKnown = direction.magnitude();
-    
+
                 if (distanceToLastKnown < 10 || this.stateTimer >= 5) {
                     this.transitionTo(STATES.SEARCH);
                 } else {
@@ -263,7 +270,7 @@ export class Enemy {
                 this.transitionTo(STATES.SEARCH);
             }
         }
-    
+
         if (this.health <= this.retreatHealthThreshold) {
             this.transitionTo(STATES.RETREAT);
         }
@@ -312,7 +319,7 @@ export class Enemy {
         const targets = [
             { obj: player, pos: player.real_position }
         ];
-        
+
         // Add clones within attack range
         clones.forEach(clone => {
             if (clone && !clone.isDead && clone.real_position) {
@@ -321,7 +328,7 @@ export class Enemy {
         });
 
         // Check if any target is within attack range
-        const targetsInRange = targets.filter(({ pos }) => 
+        const targetsInRange = targets.filter(({ pos }) =>
             this.position.distanceTo(pos) <= this.attackRadius
         );
 
@@ -354,6 +361,22 @@ export class Enemy {
 
         const direction = this.position.sub(playerWorldPos);
         this.moveTowards(direction, dt);
+    }
+    cleanup() {
+        // Clean up all references to prevent memory leaks
+        this.hitbox?.clear();
+        this.waypoints = null;
+        this.homePoint = null;
+        this.lastKnownTargetPos = null;
+        this.searchTarget = null;
+        this.game = null;
+        this.img = null;
+        this.spriteRect = null;
+    }
+    die() {
+        this.health = 0;
+        this.alive = false;
+        this.cleanup();
     }
 
     moveTowards(direction, dt) {
@@ -393,19 +416,19 @@ export class Enemy {
         const healthBarWidth = this.width;
         const healthBarHeight = 5;
         const healthPercentage = this.health / this.maxHealth;
-        
+
         ctx.fillStyle = 'red';
         ctx.fillRect(
-            screenX - healthBarWidth/2,
-            screenY - this.height/2 - 10,
+            screenX - healthBarWidth / 2,
+            screenY - this.height / 2 - 10,
             healthBarWidth,
             healthBarHeight
         );
-        
+
         ctx.fillStyle = 'green';
         ctx.fillRect(
-            screenX - healthBarWidth/2,
-            screenY - this.height/2 - 10,
+            screenX - healthBarWidth / 2,
+            screenY - this.height / 2 - 10,
             healthBarWidth * healthPercentage,
             healthBarHeight
         );

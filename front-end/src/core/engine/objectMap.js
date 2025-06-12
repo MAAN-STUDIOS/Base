@@ -346,12 +346,27 @@ export class ObjectMap {
      * @param {Array<Vector>} chunks - Array of chunk coordinates to process
      */
     #attachHitboxes(chunks) {
-
         if (!this.processedChunks) {
             this.processedChunks = new Set();
             this.hitboxes = [];
         }
+        const playerChunk = this.#resolveChunk(this.real_position);
+        const maxDistance = this.n_loaded_chunks + 1;
 
+        this.hitboxes = this.hitboxes.filter(hitbox => {
+            if (!hitbox.chunkCoords) return true;
+
+            const distance = Math.max(
+                Math.abs(hitbox.chunkCoords.x - playerChunk.x),
+                Math.abs(hitbox.chunkCoords.y - playerChunk.y)
+            );
+
+            if (distance > maxDistance) {
+                hitbox.clear?.();
+                return false;
+            }
+            return true;
+        });
 
         const newChunks = chunks.filter(chunkPos => {
             const chunkKey = `${chunkPos.x},${chunkPos.y}`;
@@ -360,8 +375,7 @@ export class ObjectMap {
             }
             this.processedChunks.add(chunkKey);
             return true;
-        });
-
+        }).slice(0, 25); 
 
         for (let chunkPos of newChunks) {
             const chunkKey = this.#genChunKey(chunkPos.x, chunkPos.y);
@@ -370,10 +384,10 @@ export class ObjectMap {
             if (!chunkData) continue;
 
             const chunkWorld = this.#chunkToWorld(chunkPos);
-
             this.#processTilesBatched(chunkData, chunkPos, chunkWorld);
         }
     }
+
     #processTilesBatched(chunkData, chunkPos, chunkWorld, batchSize = 32) {
         let tileIndex = 0;
 

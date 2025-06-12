@@ -195,9 +195,9 @@ export default function floodScreen() {
                       tiles_per_row: 2,
                       tile_size: 200,
                       chunk_size: 16,
-                      n_loaded_chunks: 2,
+                      n_loaded_chunks: 3,
                       debug: false,
-                      debug_info: true
+                      debug_info: false
                   }
               },
               miniMap: {

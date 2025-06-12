@@ -39,7 +39,7 @@ export class FloodPlayer extends Player {
             ...options
         });
 
-        this.biomass = 99999;
+        this.biomass = 35;
         this.evolution = 1;
         this.cloneCooldown = 5000;
         this.lastCloneTime = 0;
@@ -247,11 +247,11 @@ export class FloodPlayer extends Player {
         switch (type) {
             case "melee":
                 if (this.evolution === 1) {
-                    target.takeDamage?.(15);
+                    target.takeDamage?.(20);
                 } else if (this.evolution === 2) {
-                    target.takeDamage?.(25);
+                    target.takeDamage?.(30);
                 } else if (this.evolution === 3) {
-                    target.takeDamage?.(50);
+                    target.takeDamage?.(70);
                 }
                 this.attackCooldowns.melee = now + 200;
                 break;

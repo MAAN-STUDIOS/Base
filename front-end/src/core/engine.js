@@ -594,7 +594,7 @@ export class Engine {
     }
     async reportBossDeath() {
         await reportBossDeath(localStorage.getItem("authToken"), localStorage.getItem("gameId"));
-            
+
     }
 
     /**
@@ -603,32 +603,61 @@ export class Engine {
      */
     updateEnemies(dt) {
         this.updateOtherEnemies(dt);
+        const viewportBuffer = 400;
+        const viewport = {
+            left: this.player.real_position.x - this._world.map.width / 2 - viewportBuffer,
+            right: this.player.real_position.x + this._world.map.width / 2 + viewportBuffer,
+            top: this.player.real_position.y - this._world.map.height / 2 - viewportBuffer,
+            bottom: this.player.real_position.y + this._world.map.height / 2 + viewportBuffer
+        };
 
         for (let i = this.enemies.length - 1; i >= 0; i--) {
             const enemy = this.enemies[i];
-            if (enemy && enemy.update) {
+            if (!enemy || !enemy.update) {
+                this.enemies.splice(i, 1);
+                continue;
+            }
+
+            const distanceToPlayer = enemy.position.distanceTo(this.player.real_position);
+
+            if (distanceToPlayer > 1000) {
+                continue;
+            }
+
+            const inViewport = (
+                enemy.position.x >= viewport.left &&
+                enemy.position.x <= viewport.right &&
+                enemy.position.y >= viewport.top &&
+                enemy.position.y <= viewport.bottom
+            );
+
+            if (inViewport || distanceToPlayer < 500) {
                 enemy.update(dt, this.player, (this.player.clones ?? []));
                 this.handleEnemyCollisions(enemy, this.map);
+            } else {
+                enemy.position.lerpEqual(this.player.real_position, 0.001);
+            }
 
-                if (enemy.health <= 0) {
-                    logger.debug("Enemy defeated", { remainingEnemies: this.enemies.length - 1 });
-                    this.player.infectHuman?.(enemy.damage);
-                    if (enemy.category === "boss") {
-                        logger.info("Boss defeated!");
-                        this.reportBossDeath();
-                    }
-                    this.enemies.splice(i, 1);
+            if (enemy.health <= 0) {
+                //logger.debug("Enemy defeated", { remainingEnemies: this.enemies.length - 1 });
+                this.player.infectHuman?.(enemy.damage);
 
-
-                    logger.debug(`Player gained biomass! Total: ${this.player.biomass}`);
-                } else {
-                    emitEvent(this.socket_events.ENEMY_MOVES, {
-                        id: enemy.id,
-                        state: enemy.state,
-                        x: enemy.position.x,
-                        y: enemy.position.y,
-                    });
+                if (enemy.category === "boss") {
+                    logger.info("Boss defeated!");
+                    this.reportBossDeath();
                 }
+
+                enemy.die?.();
+                this.enemies.splice(i, 1);
+
+                logger.debug(`Player gained biomass! Total: ${this.player.biomass}`);
+            } else if (inViewport) {
+                emitEvent(this.socket_events.ENEMY_MOVES, {
+                    id: enemy.id,
+                    state: enemy.state,
+                    x: enemy.position.x,
+                    y: enemy.position.y,
+                });
             }
         }
     }
@@ -680,34 +709,34 @@ export class Engine {
         const screenCenterX = this._world.map.width / 2;
         const screenCenterY = this._world.map.height / 2;
 
-        // this._world.map.ctx.fillStyle = this._player.obj.color;
-        // this._world.map.ctx.fillRect(
-        //     screenCenterX - this._player.size / 2,
-        //     screenCenterY - this._player.size / 2,
-        //     this._player.size,
-        //     this._player.size
-        // );
-
         this.drawOthers(this._world.map.ctx);
 
         for (let render of this.onRenders) {
             render?.(this._world.map.ctx);
         }
 
-        for (let enemy of this.enemies) {
-            if (enemy && enemy.draw) {
-                const enemyScreenX = enemy.position.x - this.player.real_position.x + (this.map.camaraWidth / 2);
-                const enemyScreenY = enemy.position.y - this.player.real_position.y + (this.map.camaraHeight / 2);
+        let renderedEnemies = 0;
+        const maxRenderDistance = 800;
 
-                const visibleEnemy = (
-                    enemyScreenX >= -enemy.width &&
-                    enemyScreenX <= this.map.camaraWidth + enemy.width &&
-                    enemyScreenY >= -enemy.height &&
-                    enemyScreenY <= this.map.camaraHeight + enemy.height
-                );
-                if (visibleEnemy) {
-                    enemy.drawAtPosition(this._world.map.ctx, enemyScreenX, enemyScreenY);
-                }
+        for (let enemy of this.enemies) {
+            if (!enemy || !enemy.draw) continue;
+
+            const distance = enemy.position.distanceTo(this.player.real_position);
+            if (distance > maxRenderDistance) continue;
+
+            const enemyScreenX = enemy.position.x - this.player.real_position.x + (this.map.camaraWidth / 2);
+            const enemyScreenY = enemy.position.y - this.player.real_position.y + (this.map.camaraHeight / 2);
+
+            const visibleEnemy = (
+                enemyScreenX >= -enemy.width - 50 &&
+                enemyScreenX <= this.map.camaraWidth + enemy.width + 50 &&
+                enemyScreenY >= -enemy.height - 50 &&
+                enemyScreenY <= this.map.camaraHeight + enemy.height + 50
+            );
+
+            if (visibleEnemy) {
+                enemy.drawAtPosition(this._world.map.ctx, enemyScreenX, enemyScreenY);
+                renderedEnemies++;
             }
         }
 
@@ -748,21 +777,23 @@ export class Engine {
             this.showDeathScreen(this._world.map.ctx);
         }
 
-        // Border effect for enemy states
+        // Border effect for enemy states (only check visible enemies)
         let borderColor = null;
         let isAttack = false;
         for (let enemy of this.enemies) {
-            if (enemy.state === 'ATTACK') {
+            const distance = enemy.position.distanceTo(this.player.real_position);
+            if (distance < 500 && enemy.state === 'ATTACK') {
                 isAttack = true;
                 break;
             }
         }
+
         if (isAttack) {
-            // Blinking effect for red border
             const t = performance.now() / 300;
-            const alpha = 0.2 + 0.2 * Math.abs(Math.sin(t)); // oscillates between 0.2 and 0.4
+            const alpha = 0.2 + 0.2 * Math.abs(Math.sin(t));
             borderColor = `rgba(255,0,0,${alpha})`;
         }
+
         if (borderColor) {
             this._world.map.ctx.save();
             this._world.map.ctx.strokeStyle = borderColor;
