@@ -19,7 +19,7 @@ export default function () {
 
     return [listener, `
     <main class="${styles.container}">
-        <video id="video" class="${styles.video}" src="${welcomeVideo}" autoplay muted></video>
+        <video id="video" class="${styles.video}" src="${welcomeVideo}" autoplay></video>
         <button id="menu-btn" class="${styles.btn}" style="display: none;">Start Playing</button>
     </main>
     `];

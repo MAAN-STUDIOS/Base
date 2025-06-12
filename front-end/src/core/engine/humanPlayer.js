@@ -570,6 +570,15 @@ export class HumanPlayer extends Player {
 
         // Volver a la primera arma
         this.activeSlot = 0;
+
+        const token = localStorage.getItem("authToken");
+        fetch(`${process.env.BACKEND_URL}/games/${this.id}/reportBossDeath`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            }
+        }).then();
     }
 
     takeDamage(amount) {

@@ -20,6 +20,13 @@ import { redirectIfNotLoggedIn } from "@utils/redirects.js";
  */
 export default function () {
     redirectIfNotLoggedIn();
+    const access_level = localStorage.getItem("access_level");
+
+    if (access_level) {
+        if (access_level !== "write") {
+            navigate('menu');
+        }
+    }
 
     const getDim = (viewBox) => {
         const viewBoxComponents = viewBox.split(" ").map(Number);
@@ -59,7 +66,7 @@ export default function () {
             window.alert("\"Logged out\"");
         });
 
-        const margin = { top: 10, right: 0, bottom: 10, left: 0 };
+        const margin = { top: 60, right: 0, bottom: 10, left: 0 };
 
         /** @type {Chart} */
         const chartBar = {};
@@ -249,6 +256,51 @@ export default function () {
             .attr("class", "axis")
             .attr("transform", `translate(${margin.left},0)`)
             .call(d3.axisLeft(chartDeath.y));
+
+        chartBar.svg.append("text")
+            .attr("x", chartBar.width / 2)
+            .attr("y", margin.top / 2)
+            .attr("text-anchor", "middle")
+            .attr("font-size", "32px")
+            .attr("font-weight", "bold")
+            .attr("fill", "white")
+            .text("Bars Chart");
+
+        chartGame.svg.append("text")
+            .attr("x", chartGame.width / 2)
+            .attr("y", margin.top / 2)
+            .attr("text-anchor", "middle")
+            .attr("font-size", "32px")
+            .attr("font-weight", "bold")
+            .attr("fill", "white")
+            .text("Game Chart");
+
+        chartMean.svg.append("text")
+            .attr("x", chartMean.width / 2)
+            .attr("y", margin.top / 2)
+            .attr("text-anchor", "middle")
+            .attr("font-size", "32px")
+            .attr("font-weight", "bold")
+            .attr("fill", "white")
+            .text("Mean Chart");
+
+        chartKill.svg.append("text")
+            .attr("x", chartKill.width / 2)
+            .attr("y", margin.top / 2)
+            .attr("text-anchor", "middle")
+            .attr("font-size", "32px")
+            .attr("font-weight", "bold")
+            .attr("fill", "white")
+            .text("Kill Chart");
+
+        chartDeath.svg.append("text")
+            .attr("x", chartDeath.width / 2)
+            .attr("y", margin.top / 2)
+            .attr("text-anchor", "middle")
+            .attr("font-size", "32px")
+            .attr("font-weight", "bold")
+            .attr("fill", "white")
+            .text("Death Chart");
     }
 
     return [innit, `

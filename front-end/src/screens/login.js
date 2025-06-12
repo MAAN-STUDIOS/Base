@@ -27,6 +27,7 @@ export default function () {
             localStorage.setItem('userEmail', response.user.email);
             localStorage.setItem('username', response.user.name);
             localStorage.setItem('userID', response.user.id);
+            localStorage.setItem('access_level', response.user.accessLevel);
 
             // Log successful login
             logger.debug("Login successful", { email: response.user.email });

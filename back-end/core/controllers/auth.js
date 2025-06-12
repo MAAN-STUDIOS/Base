@@ -25,7 +25,7 @@ export class AuthController {
             }
 
             const token = generateToken(user[0]);
-            res.status(200).send({ token, user: { id: user[0].id, email: user[0].email, name: user[0].name } });
+            res.status(200).send({ token, user: { id: user[0].id, email: user[0].email, name: user[0].name, accessLevel: user[0]?.access_level } });
         } catch (error) {
             console.error('Login error:', error);
             res.status(500).send({ error: 'Internal server error' });

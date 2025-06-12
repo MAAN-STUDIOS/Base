@@ -173,7 +173,7 @@ export class GameController {
     }
     
     static async report_boss_defeat(req, res){
-        //logger.info('report_boss_defeat called');
+        logger.info('Boss defeated');
         try {
             const game_id = parseInt(req.params.id);
             const user = authenticateUser(req, res);
