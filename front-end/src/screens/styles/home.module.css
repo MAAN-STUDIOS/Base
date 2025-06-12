@@ -1,0 +1,43 @@
+.container {
+    height: 100dvh;
+}
+
+.video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translate(-50%, 100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(-50%);
+        opacity: 1;
+    }
+}
+
+.btn {
+    z-index: 5;
+    border-radius: 1em;
+    border: 1px solid white;
+    padding: 1em 2em;
+    background: transparent;
+    color: white;
+
+    position: absolute;
+    bottom: 3em;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.animated {
+    animation: slideUp 1.5s ease-out;
+    /* Ensure the final state matches the button's normal position */
+    animation-fill-mode: forwards;
+}
