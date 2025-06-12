@@ -323,10 +323,6 @@ export default function () {
                         Create Game
                     </button>
                     
-                    <button id="stats-btn" class="${styles.menuButton}">
-                        📊 Stats
-                    </button>
-                    
                     <button id="settings-btn" class="${styles.menuButton}">
                         ⚙️ Settings
                     </button>
