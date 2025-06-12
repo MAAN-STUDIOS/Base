@@ -63,7 +63,8 @@ export class Enemy {
         this.img.src = SpriteSheet;
 
         this.spriteRect = new Rect(0, 0, 153, 153);
-        this.previousState = STATES.IDLE;
+        //this.previousState = STATES.IDLE;
+        this.previousState = null;
         this.frame = 0;
         this.minFrame = 0;
         this.maxFrame = 0;
