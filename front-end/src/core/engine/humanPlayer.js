@@ -442,12 +442,12 @@ export class HumanPlayer extends Player {
         // Mostrar información de nivel y kills
         ctx.font = "16px monospace";
         ctx.fillStyle = "white";
-        ctx.fillText(`Nivel: ${this.level}`, 10, 70);
+        ctx.fillText(`Level: ${this.level}`, 10, 70);
         ctx.fillText(`Kills: ${this.kills}/${this.killsNeededForNextLevel}`, 10, 90);
 
         const weapon = this.attackSlots[this.activeSlot];
         if (weapon) {
-            ctx.fillText(`Arma: ${weapon.constructor.name}`, screenX, screenY + 15);
+            ctx.fillText(`Weapon: ${weapon.constructor.name}`, screenX, screenY + 15);
         }
     }
 
