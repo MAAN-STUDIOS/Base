@@ -10,18 +10,18 @@ CREATE TABLE cosmonavt.cosmonavt_user (
     last_login    TIMESTAMP                      NOT NULL DEFAULT CURRENT_TIMESTAMP,
     email         VARCHAR(255)                   NOT NULL,
     password      VARCHAR(512)                   NOT NULL,
-    access_level  ENUM ('none', 'read', 'write') NOT NULL
+    access_level  ENUM ('none', 'read', 'write') NOT NULL DEFAULT 'none'
 ) CHARACTER SET utf8mb4
   ENGINE = InnoDB;
 
 
 CREATE TABLE cosmonavt.player (
-    id                  INT PRIMARY KEY    NOT NULL AUTO_INCREMENT,
-    user_id             INT                NOT NULL,
-    played_time_seconds INT      DEFAULT 0 NOT NULL,
-    kills               SMALLINT DEFAULT 0 NOT NULL,
-    deaths              SMALLINT DEFAULT 0 NOT NULL,
-    description         TEXT               NOT NULL,
+    id                  INT PRIMARY KEY                           NOT NULL AUTO_INCREMENT,
+    user_id             INT                                       NOT NULL,
+    played_time_seconds INT      DEFAULT 0                        NOT NULL,
+    kills               SMALLINT DEFAULT 0                        NOT NULL,
+    deaths              SMALLINT DEFAULT 0                        NOT NULL,
+    description         TEXT     NOT NULL,
     FOREIGN KEY (user_id) REFERENCES cosmonavt.cosmonavt_user (id) ON DELETE CASCADE
 ) CHARACTER SET utf8mb4
   ENGINE = InnoDB;
@@ -68,7 +68,7 @@ CREATE TABLE cosmonavt.player_game (
     kills           SMALLINT NOT NULL,
     last_position_x SMALLINT NOT NULL,
     last_position_y SMALLINT NOT NULL,
-    fragments SMALLINT NOT NULL DEFAULT 0,
+    fragments       SMALLINT NOT NULL DEFAULT 0,
     FOREIGN KEY (player_id) REFERENCES cosmonavt.player (id),
     FOREIGN KEY (game_id) REFERENCES cosmonavt.game (id)
 ) CHARACTER SET utf8mb4
@@ -109,7 +109,7 @@ CREATE TABLE cosmonavt.flood_clones (
 CREATE TABLE cosmonavt.item (
     id          INT          NOT NULL PRIMARY KEY AUTO_INCREMENT,
     sprite_id   SMALLINT     NOT NULL,
-    type        ENUM ('')    NOT NULL, -- TODO: update based on game necessities
+    type        ENUM ('main')    NOT NULL, -- TODO: update based on game necessities
     name        VARCHAR(255) NOT NULL,
     description TEXT         NOT NULL
 ) CHARACTER SET utf8mb4
@@ -119,7 +119,7 @@ CREATE TABLE cosmonavt.item (
 CREATE TABLE cosmonavt.loot (
     id      INT       NOT NULL PRIMARY KEY AUTO_INCREMENT,
     item_id INT       NOT NULL,
-    type    ENUM ('') NOT NULL, -- TODO: update based on game necessities
+    type    ENUM ('main') NOT NULL, -- TODO: update based on game necessities
     FOREIGN KEY (item_id) REFERENCES cosmonavt.item (id)
 ) CHARACTER SET utf8mb4
   ENGINE = InnoDB;
@@ -148,9 +148,9 @@ CREATE TABLE cosmonavt.human_game (
 
 
 CREATE TABLE cosmonavt.fragment (
-    id      INT          NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    id             INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
     player_game_id INT NOT NULL,
-    found_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    found_time     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (player_game_id) REFERENCES cosmonavt.player_game (id)
 ) CHARACTER SET utf8mb4
   ENGINE = InnoDB;
@@ -285,7 +285,7 @@ CREATE VIEW view_flood_view_game AS
 CREATE VIEW view_chunk AS
     SELECT g.id                    AS game_id,
            gd.id                   AS dungeon_id,
-           d.id                   AS dungeon_real_id,
+           d.id                    AS dungeon_real_id,
            c.id                    AS chunk_id,
            c.chunk_x + gd.offset_x AS chunk_x,
            c.chunk_y + gd.offset_y AS chunk_y,
@@ -307,7 +307,7 @@ CREATE VIEW view_stats AS
             FROM (SELECT TIMESTAMPDIFF(SECOND, LAG(d.time) OVER (PARTITION BY pg.id ORDER BY d.time), d.time) AS dt
                   FROM cosmonavt.death d
                            INNER JOIN cosmonavt.player_game pg ON d.player_game_id = pg.id) AS time_diffs
-            WHERE dt IS NOT NULL)                                   AS mean_time_alive,
+            WHERE dt IS NOT NULL)                                             AS mean_time_alive,
            (SELECT MAX(fecha)
             FROM (SELECT MAX(start_time) AS fecha
                   FROM cosmonavt.game

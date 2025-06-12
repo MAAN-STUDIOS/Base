@@ -1,8 +1,18 @@
 USE cosmonavt;
 
+INSERT INTO cosmonavt.cosmonavt_user (name, email, password, access_level)
+VALUES ('team1', 'team1@cosmonavt.com', '1234', 'none'),
+    ('team2', 'team2@cosmonavt.com', '1234', 'none'),
+    ('admin', 'admin@cosmonavt.com', '1234', 'write');
+
+INSERT INTO cosmonavt.player (user_id, description)
+VALUES (1, 'team 1'), (2, 'team 2');
+
+INSERT INTO cosmonavt.admin (user_id) VALUE (3);
+
 
 INSERT
-INTO item (sprite_id, type, name, description)
+INTO cosmonavt.item (sprite_id, type, name, description)
 VALUES (1, 'main', 'name 1', 'best'),
        (2, 'main', 'name 1', 'best'),
        (3, 'main', 'name 1', 'best'),
@@ -10,7 +20,7 @@ VALUES (1, 'main', 'name 1', 'best'),
        (5, 'main', 'name 1', 'best');
 
 INSERT
-INTO loot (item_id, type)
+INTO cosmonavt.loot (item_id, type)
 VALUES (1, 'main'),
        (2, 'main'),
        (3, 'main'),
@@ -19,7 +29,7 @@ VALUES (1, 'main'),
 
 
 INSERT
-INTO weapon (loot_id, damage, cooldown)
+INTO cosmonavt.weapon (loot_id, damage, cooldown)
 VALUES (1, 100, 10),
        (2, 100, 10),
        (3, 100, 10),
@@ -28,7 +38,7 @@ VALUES (1, 100, 10),
 
 
 INSERT
-INTO dungeon (name)
+INTO cosmonavt.dungeon (name)
 VALUES ("station-599"),
        ("station-230"),
        ("saturn-69"),
@@ -37,7 +47,7 @@ VALUES ("station-599"),
 
 
 INSERT
-INTO chunk (dungeon_id, data, chunk_x, chunk_y)
+INTO cosmonavt.chunk (dungeon_id, data, chunk_x, chunk_y)
 VALUES (4, '2, 2, 2, 3, 2, 3, 3, 3, 3, 3, 3, 2, 2, 2, 2, 2,
 2, 2, 5, 5, 5, 5, 5, 5, 5, 5, 2, 5, 5, 5, 5, 2,
 2, 2, 2, 5, 2, 5, 5, 5, 2, 5, 5, 5, 5, 2, 5, 2,
