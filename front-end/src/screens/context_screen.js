@@ -38,7 +38,7 @@ export default function () {
         <div class="${styles.storySection}">
             <h2 class="${styles.sectionTitle}">What Happened?</h2>
             <div class="${styles.storyText}">
-                The Stellar Odyssey ship, en route to Saturn and crewed by six Astral Dynamics engineers, passed through the ergosphere of Geminis D3, a black hole sixteen times the size of Earth.
+                The Stellar Odyssey ship, en route to Saturn and crewed by six Astral Dynamics engineers, passed through the ergosphere of Geminis D3, a black hole 16 times the size of Earth.
             </div>
             <div class="${styles.storyText}">
                 The force of spacetime pulled them into the event horizon, a place where no one is supposed to survive.
@@ -54,7 +54,7 @@ export default function () {
         <div class="${styles.objectiveSection}">
             <h2 class="${styles.sectionTitle}">Main Objective</h2>
             <div class="${styles.objectiveText}">
-                FIND ALL THE FRAGMENTS OF THE CURE SCATTERED AROUND THE SHIP<br>
+                FIND ALL THE FRAGMENTS OF THE CURE SCATERRED AMONG THE HOSTILE BOSSES IN EACH ROOM, REMEMBER YOU NEED 3 FRAGMENTS TO WIN.<br>
                 DESTROY THE FLOOD<br>
                 AND ESCAPE FROM THE PROMETHEUS SHIP ALIVE
             </div>
