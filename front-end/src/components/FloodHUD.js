@@ -1,10 +1,12 @@
 import styles from "@screens/styles/floodHUD.module.css";
 import CloneIcon from "@/assets/Flood/Clone/clone-icon.png";
 import EvolveIcon from "@/assets/Flood/evolve.png";
+import eventBus from "@utils/eventbus.js";
 
 export default class FloodHUD {
     constructor(gameContainer) {
         this.gameContainer = gameContainer;
+        this.waypoints = [];
         this.setup();
     }
 
@@ -17,6 +19,11 @@ export default class FloodHUD {
         this.hudContainer.style.width = '100%';
         this.hudContainer.style.height = '100%';
         this.hudContainer.style.pointerEvents = 'none';
+
+        eventBus.on('waypoint:add', (data) => {
+            const { x, y, name } = data;
+            this.addWaypoint(x, y, name);
+        });
 
         this.setupCoreStats();
         this.setupCloneAbilities();
@@ -242,6 +249,7 @@ export default class FloodHUD {
         this.coordinatesContainer.style.borderRadius = '8px';
         this.coordinatesContainer.style.padding = '5px 10px';
         this.coordinatesContainer.style.zIndex = '10';
+        this.coordinatesContainer.style.minWidth = '120px';
 
         this.coordinatesText = document.createElement('div');
         this.coordinatesText.style.color = '#77ff00';
@@ -249,7 +257,61 @@ export default class FloodHUD {
         this.coordinatesText.style.textShadow = '1px 1px 2px black';
         this.coordinatesText.textContent = 'X: 0, Y: 0';
 
+        this.waypointsContainer = document.createElement('div');
+        this.waypointsContainer.style.display = 'flex';
+        this.waypointsContainer.style.flexDirection = 'column';
+        this.waypointsContainer.style.gap = '3px';
+        this.waypointsContainer.style.marginTop = '5px';
+
         this.coordinatesContainer.appendChild(this.coordinatesText);
+        this.coordinatesContainer.appendChild(this.waypointsContainer);
+    }
+
+    addWaypoint(x, y, name = null) {
+        const waypoint = {
+            x: x,
+            y: y,
+            name: name || `Waypoint ${this.waypoints.length + 1}`,
+            id: Date.now()
+        };
+        this.waypoints.push(waypoint);
+        this.updateWaypointDisplay();
+        return waypoint.id;
+    }
+
+    removeWaypoint(id) {
+        this.waypoints = this.waypoints.filter(waypoint => waypoint.id !== id);
+        this.updateWaypointDisplay();
+    }
+
+    clearWaypoints() {
+        this.waypoints = [];
+        this.updateWaypointDisplay();
+    }
+
+    updateWaypointDisplay() {
+        this.waypointsContainer.innerHTML = '';
+        
+        this.waypoints.forEach((waypoint, index) => {
+            const waypointElement = document.createElement('div');
+            waypointElement.style.color = '#ff9900';
+            waypointElement.style.fontSize = '9px';
+            waypointElement.style.textShadow = '1px 1px 2px black';
+            waypointElement.style.cursor = 'pointer';
+            waypointElement.textContent = `${waypoint.name}: X: ${Math.floor(waypoint.x)}, Y: ${Math.floor(waypoint.y)}`;
+            
+            waypointElement.addEventListener('click', () => {
+                this.removeWaypoint(waypoint.id);
+            });
+            
+            this.waypointsContainer.appendChild(waypointElement);
+        });
+    }
+
+    getDistanceToWaypoint(playerX, playerY, waypoint) {
+        const dx = waypoint.x - playerX;
+        const dy = waypoint.y - playerY;
+        return Math.sqrt(dx * dx + dy * dy);
     }
 
     update(player) {
@@ -267,7 +329,6 @@ export default class FloodHUD {
         
         this.levelValue.textContent = player.evolution;
 
-        // Update coordinates
         this.coordinatesText.textContent = `X: ${Math.floor(player.real_position.x)}, Y: ${Math.floor(player.real_position.y)}`;
         
         const cloneCosts = [25, 50];

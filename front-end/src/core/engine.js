@@ -16,6 +16,7 @@ import socket, { emitEvent, subscribeToEvent } from "@utils/networkmanager.js";
 import { OtherPlayer } from "@engine/otherPlayer.js";
 import { OtherEnemy } from "@engine/otherEnemy.js";
 import eventBus from "@utils/eventbus.js";
+import { reportBossDeath } from "@utils/apimanager";
 
 
 /**
@@ -203,15 +204,15 @@ export class Engine {
                     size: 150
                 },
                 miniboss: {
-                    category: "miniboss",
-                    damage: 60,
+                    category: "normal",
+                    damage: 30,
                     speed: 12,
                     chaseRadius: 800,
-                    health: 500,
+                    health: 600,
                     size: 120
                 },
-                category: {
-                    EnemyCategory: "elite",
+                elite: {
+                    category: "normal",
                     damage: 50,
                     speed: 33,
                     chaseRadius: 1200,
@@ -237,6 +238,7 @@ export class Engine {
 
             logger.info(`${data.type} spawned at (${data.x}, ${data.y}) from tile trigger`);
         });
+
 
         logger.info("Engine created.");
     }
@@ -590,6 +592,10 @@ export class Engine {
             this.enemyConfig.lastSpawnTime = currentTime;
         }
     }
+    async reportBossDeath() {
+        await reportBossDeath(localStorage.getItem("authToken"), localStorage.getItem("gameId"));
+            
+    }
 
     /**
      * Updates all enemies and removes dead ones
@@ -607,8 +613,9 @@ export class Engine {
                 if (enemy.health <= 0) {
                     logger.debug("Enemy defeated", { remainingEnemies: this.enemies.length - 1 });
                     this.player.infectHuman?.(enemy.damage);
-                    if (enemy.category = "boss") {
-                        eventBus.emit("bossDefeated", { token: localStorage.getItem("authToken")});
+                    if (enemy.category === "boss") {
+                        logger.info("Boss defeated!");
+                        this.reportBossDeath();
                     }
                     this.enemies.splice(i, 1);
 

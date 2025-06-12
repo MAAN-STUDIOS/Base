@@ -1,5 +1,6 @@
 "use strict";
 import logger from "./logger.js";
+import eventBus from "./eventbus.js";
 
 const api_url = process.env.BACKEND_URL.replace(/\/+$/, '');
 
@@ -418,8 +419,32 @@ async function get_spawn(game_id, player_type, jwt) {
     }
     return await response.json();
 }
-async function reportBossDeath(jwt) {
-    const response = await fetch(`${api_url}/game/${game_id}/reportBossDeath`)
+async function reportBossDeath(jwt, game_id) {
+    console.log("Reporting boss death for game ID:", game_id);
+    const response = await fetch(`${api_url}/games/${game_id}/reportBossDeath`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `${jwt}`
+        }
+    })
+    if (!response.ok) {
+        logger.error("Error reporting boss death");
+        return null;
+    }
+    const data = await response.json();
+    const coords = data.coords;
+    const x = coords.x * 3200;
+    const y = coords.y * 3200;
+    const d = {
+        x: x,
+        y: y,
+        name: "Dungeon"
+    };
+    eventBus.emit("waypoint:add", d);
+    logger.info("Boss death reported successfully");
+    return;
+
 }
 
 
@@ -437,5 +462,6 @@ export {
     create_game,
     game_info,
     active_games,
-    get_spawn
+    get_spawn,
+    reportBossDeath
 }

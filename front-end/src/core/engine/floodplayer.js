@@ -39,7 +39,7 @@ export class FloodPlayer extends Player {
             ...options
         });
 
-        this.biomass = 0;
+        this.biomass = 99999;
         this.evolution = 1;
         this.cloneCooldown = 5000;
         this.lastCloneTime = 0;

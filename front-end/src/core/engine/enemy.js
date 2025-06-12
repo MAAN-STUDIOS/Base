@@ -33,7 +33,7 @@ export class Enemy {
 
         this.game = game;  // Referencia al juego
         this.enemyType = config.type || 'flood'
-        this.enemyCategory = config.category || 'normal';
+        this.category = config.category || 'normal';
 
         this.position = position;
         this.prevPosition = position.clone();
