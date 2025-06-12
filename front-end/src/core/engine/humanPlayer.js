@@ -486,9 +486,8 @@ export class HumanPlayer extends Player {
         const direction = this.mouseDirection.clone();
         weapon.fire(this.real_position.clone(), direction, this);
 
-        // Daño extra para el flamethrower (nivel 4)
         if (this.activeSlot === 3) {
-            weapon.damage *= 1.5; // 50% más de daño
+            weapon.damage *= 1.5;
         }
 
         const soundMap = [
