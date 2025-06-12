@@ -63,7 +63,6 @@ export class Enemy {
         this.img.src = SpriteSheet;
 
         this.spriteRect = new Rect(0, 0, 153, 153);
-        //this.previousState = STATES.IDLE;
         this.previousState = null;
         this.frame = 0;
         this.minFrame = 0;
@@ -105,20 +104,20 @@ export class Enemy {
     }
 
     setMovementAnimation() {
-        const stateAnimations = this.enemyType === 'flood'
+        const stateAnimations = this.enemyType === 'elite'
         ? {
-            [STATES.IDLE]: floodEnemy.idle,
-            [STATES.PURSUE]: floodEnemy.pursue,
-            [STATES.SEARCH]: floodEnemy.search,
-            [STATES.ATTACK]: floodEnemy.attack,
-            [STATES.RETREAT]: floodEnemy.retreat
-        }
-        : {
             [STATES.IDLE]: humanEnemy.idle,
             [STATES.PURSUE]: humanEnemy.pursue,
             [STATES.SEARCH]: humanEnemy.search,
             [STATES.ATTACK]: humanEnemy.attack,
             [STATES.RETREAT]: humanEnemy.retreat
+        }
+        : {
+            [STATES.IDLE]: floodEnemy.idle,
+            [STATES.PURSUE]: floodEnemy.pursue,
+            [STATES.SEARCH]: floodEnemy.search,
+            [STATES.ATTACK]: floodEnemy.attack,
+            [STATES.RETREAT]: floodEnemy.retreat
         };
         
         const anim = stateAnimations[this.state];
