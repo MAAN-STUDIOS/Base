@@ -78,6 +78,14 @@ function initAudio() {
         volume: 0.1,
         type: "sfx"
     });
+    audioManager.loadSound("clone", cloneSound, {
+        volume: 0.1,
+        type: "sfx"
+    });
+    audioManager.loadSound("floodDamage", playerDamage, {
+        volume: 0.1,
+        type: "sfx"
+    });
 
     audioManager
         .loadSound("menu", terrorMusic, { 

@@ -6,6 +6,7 @@ import logger from "@utils/logger.js";
 import { floodMovement } from "@engine/playerAnimation.js";
 import { Rect } from "@utils/rectangle.js";
 import SpriteSheet from "@/assets/Flood/flood-sprites1.png";
+import eventBus from "@utils/eventbus.js";
 
 
 /**
@@ -213,6 +214,7 @@ export class FloodPlayer extends Player {
         }
         this.clones.push(clone);
 
+        eventBus.emit("clone", clone);
         logger.debug(`Clone created. Remaining biomass: ${this.biomass}`);
         return clone;
     }
@@ -236,7 +238,7 @@ export class FloodPlayer extends Player {
         for (let i = 0; i < 3; i++) {
             setTimeout(() => {
                 this.isAttacking = false;
-            }, 1000);
+            }, 50);
         }
         this.isAttacking = true;
 
@@ -244,6 +246,7 @@ export class FloodPlayer extends Player {
 
         const cooldown = this.attackCooldowns[type] || 0;
         if (now < cooldown) return;
+        eventBus.emit("flood:attack", type, target);
         switch (type) {
             case "melee":
                 if (this.evolution === 1) {

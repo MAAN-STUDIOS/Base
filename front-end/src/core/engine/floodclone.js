@@ -5,6 +5,7 @@ import logger from "@utils/logger.js";
 import { clonMovement } from "@engine/playerAnimation.js";
 import { Rect } from "@utils/rectangle.js";
 import SpriteSheet from "@/assets/Flood/Clone/clone-sprites.png";
+import eventBus from "@utils/eventbus.js";
 
 export class FloodClone extends GameObject {
     constructor(options = {}) {
@@ -264,7 +265,7 @@ export class FloodClone extends GameObject {
 
         if (target && typeof target.takeDamage === 'function') {
             target.takeDamage(20);
-            this.attackCooldown = now + 500;
+            this.attackCooldown = now + 200;
             console.log("Clone attacked enemy", {
                 targetHealth: target.health,
                 cooldown: this.attackCooldown - now
